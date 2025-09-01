@@ -23,8 +23,10 @@ function CreateUser({ onUserCreated }) {
                 setMatricule("");
                 setPassword("");
                 onUserCreated();
+                setError("");
             } else {
                 setError(data.message);
+                setMessage("");
             }
         } catch (err) {
             setError("Erreur de connexion au serveur");
