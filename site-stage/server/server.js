@@ -32,6 +32,26 @@ app.get("/users", (req, res) => {
   });
 });
 
+app.delete("/users/:id", (req, res) => {
+  const userId = req.params.id;
+  db.query("DELETE FROM user WHERE id = ?", [userId], (err, result) => {
+    if (err) {
+      return res.status(500).json(err);
+    }
+    res.json({ message : "Echec lors de la suppréssion."})
+  });
+});
+
+// Route pour reset la db
+app.post("/reset-db", (req, res) => {
+  db.query("DELETE FROM user", (err) => {
+    if (err) {
+      return res.status(500).json(err);
+    }
+    res.json({ message: "DB réinitialisée."})
+  });
+});
+
 // Route pour ajouter un utilisateur
 app.post("/users", (req, res) => {
   const { email, password, name, firstname } = req.body;

@@ -56,6 +56,28 @@ function App() {
       .catch((err) => console.error("Erreur:", err));
   };
 
+  const resetDatabase = () => {
+    if (confirm("Voulez-vous vraiment reset la DB?")) {
+      fetch("http://localhost:5000/reset-db", {method: "POST"})
+        .then((res) => res.json())
+        .then(() => {
+          fetchUsers(); //permet de refresh la liste
+        })
+        .catch((err) => console.error("Erreur lors du reset:", err));
+    }
+  };
+
+  const deleteUser = (id) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur?")) {
+      fetch(`http://localhost:5000/users/${id}`, {method: "DELETE"})
+      .then((res) => res.json())
+      .then(() => {
+        fetchUsers();
+      })
+      .catch((err) => console.error("Erreur lors de la suppression:", err));
+    }
+  };
+
   return (
     <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
       <h1>Test de la Base de Données</h1>
@@ -129,6 +151,15 @@ function App() {
         </form>
       </div>
       
+      <div style={{ marginBottom: "1rem"}}>
+        <button
+          onClick={resetDatabase}
+          style={{ padding: "0.5rem 1rem", backgroundColor: "#d9534f", color: "white", border: "none", borderRadius: "4px"}}
+          >
+            Reset la DB
+          </button>
+      </div>
+
       {/* Liste des utilisateurs */}
       <div>
         <h2>Liste des utilisateurs</h2>
@@ -143,6 +174,7 @@ function App() {
                 <th style={{ padding: "0.5rem", textAlign: "left", border: "1px solid #ddd" }}>Nom</th>
                 <th style={{ padding: "0.5rem", textAlign: "left", border: "1px solid #ddd" }}>Prénom</th>
                 <th style={{ padding: "0.5rem", textAlign: "left", border: "1px solid #ddd" }}>Date de création</th>
+                <th style={{ padding: "0.5rem", textAlign: "left", border: "1px solid #ddd" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -153,6 +185,14 @@ function App() {
                   <td style={{ padding: "0.5rem", border: "1px solid #ddd" }}>{user.name}</td>
                   <td style={{ padding: "0.5rem", border: "1px solid #ddd" }}>{user.firstname}</td>
                   <td style={{ padding: "0.5rem", border: "1px solid #ddd" }}>{new Date(user.created_at).toLocaleString()}</td>
+                  <td style={{ padding: "0.5rem", border: "1px solid #ddd"}}>
+                    <button
+                      onClick={() => deleteUser(user.id)}
+                      style={{ padding: "0.3rem 0.6rem", backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "4px"}}
+                      >
+                        Supprimer
+                      </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
