@@ -1,13 +1,21 @@
-CREATE DATABASE IF NOT EXISTS testdb;
-USE testdb;
+CREATE DATABASE IF NOT EXISTS userdata
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS users (
+USE userdata;
+
+CREATE TABLE IF NOT EXISTS logindata (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nom VARCHAR(50),
-    email VARCHAR(100)
+    matricule VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL
 );
 
-INSERT INTO users (nom, email) VALUES 
-('Alice', 'alice@example.com'),
-('Bob', 'bob@example.com'),
-('Charlie', 'charlie@example.com');
+CREATE TABLE IF NOT EXISTS agentdata (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    matricule VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    nom VARCHAR(50) NOT NULL,
+    prenom VARCHAR(50) NOT NULL,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
+);

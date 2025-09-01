@@ -11,10 +11,8 @@ const db = mysql.createConnection({
     host: "localhost",
     user: "appuser",
     password: "motdepasse",
-    database: "testdb"
+    database: "userdata"
   });
-  
-  
 
 db.connect((err) => {
   if (err) {
@@ -25,12 +23,16 @@ db.connect((err) => {
 });
 
 // Endpoint pour récupérer tous les utilisateurs
-app.get("/users", (req, res) => {
-  db.query("SELECT * FROM users", (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results);
+app.get("http://localhost:5000/users", async (req, res) => {
+    try {
+      const [rows] = await db.query("SELECT * FROM logindata");
+      res.json(rows);
+    } catch (err) {
+      console.error(err); // <-- ça affichera l'erreur exacte
+      res.status(500).send("Internal Server Error");
+    }
   });
-});
+  
 
 // Lancer le serveur
 const PORT = 5000;
