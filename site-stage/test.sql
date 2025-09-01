@@ -1,23 +1,13 @@
-CREATE DATABASE IF NOT EXISTS epytodo;
+CREATE DATABASE IF NOT EXISTS testdb;
+USE testdb;
 
-USE epytodo;
-
-CREATE TABLE IF NOT EXISTS user (
-  id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  email varchar(255) NOT NULL UNIQUE,
-  password varchar(255) NOT NULL,
-  name varchar(255) NOT NULL,
-  firstname varchar(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(50),
+    email VARCHAR(100)
 );
 
-CREATE TABLE IF NOT EXISTS todo (
-  id int PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  title varchar(255) NOT NULL,
-  description text NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  due_time DATETIME NOT NULL,
-  status ENUM('not started', 'todo', 'in progress', 'done') DEFAULT 'not started',
-  user_id int NOT NULL, 
-  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-);
+INSERT INTO users (nom, email) VALUES 
+('Alice', 'alice@example.com'),
+('Bob', 'bob@example.com'),
+('Charlie', 'charlie@example.com');
