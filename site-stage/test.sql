@@ -17,5 +17,6 @@ CREATE TABLE IF NOT EXISTS agentdata (
     nom VARCHAR(50) NOT NULL,
     prenom VARCHAR(50) NOT NULL,
     user_id INT,
+    is_admin INT,
     FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
 );

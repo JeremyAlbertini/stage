@@ -30,11 +30,47 @@ app.get("/users", async (req, res) => {
       const [rows] = await promiseDb.query("SELECT * FROM logindata");
       res.json(rows);
     } catch (err) {
-      console.error(err); // <-- ça affichera l'erreur exacte
+      console.error(err);
       res.status(500).send("Internal Server Error");
     }
   });
   
+app.post("/users/create", async (req, res) => {
+  const { matricule, password } = req.body;
+
+  if (!matricule || !password) {
+    return res.status(400).json({
+      success: false,
+      message: "Le matricule et le mot de passe sont requis."
+    });
+  }
+
+  try {
+    const [result] = await promiseDb.query(
+      "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
+      [matricule, password]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Compte créé avec succès.",
+      userId: result.insertId
+    });
+  } catch (err) {
+    console.error(err);
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({
+        succes: false,
+        message: "Ce matricule existe déjà"
+      });
+    }
+
+    res.status(500).json({
+      succes: false,
+      message: "Erreur lors de la création de compte"
+    });
+  }
+});
 
 // Lancer le serveur
 const PORT = 5000;
