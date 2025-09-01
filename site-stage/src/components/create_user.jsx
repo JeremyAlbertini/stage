@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CreateUser() {
+function CreateUser({ onUserCreated }) {
     const [matricule, setMatricule] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -22,6 +22,7 @@ function CreateUser() {
                 setMessage(data.message);
                 setMatricule("");
                 setPassword("");
+                onUserCreated();
             } else {
                 setError(data.message);
             }

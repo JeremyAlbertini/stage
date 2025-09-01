@@ -4,11 +4,15 @@ import CreateUser from "./components/create_user";
 function App() {
   const [users, setUsers] = useState([]);
 
-  useEffect(() => {
+  const loadUsers = () => {
     fetch("http://localhost:5000/users")
       .then(res => res.json())
       .then(data => setUsers(data))
       .catch(err => console.error(err));
+  };
+
+  useEffect(() => {
+    loadUsers();
   }, []);
 
   return (
@@ -16,7 +20,7 @@ function App() {
       <h1>Gestion des utilisateurs</h1>
       
       {}
-      <CreateUser />
+      <CreateUser onUserCreated={loadUsers}/>
       
       {}
       <h2>Liste des utilisateurs</h2>
