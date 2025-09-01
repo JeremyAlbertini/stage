@@ -9,8 +9,8 @@ app.use(express.json());
 // Connexion à MySQL - utilisez votre utilisateur MySQL réel
 const db = mysql.createConnection({
   host: "localhost",
-  user: "appuser",        // remplacez par votre utilisateur MySQL
-  password: "monpassword",        // remplacez par votre mot de passe
+  user: "root",       // change si nécessaire
+  password: "root", // change si nécessaire
   database: "epytodo"
 });
 
