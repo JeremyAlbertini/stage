@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import CreateUser from "./components/create_user";
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -11,12 +12,17 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: "2rem"
-    }}>
-      <h1>Liste des utilisateurs</h1>
+    <div>
+      <h1>Gestion des utilisateurs</h1>
+      
+      {}
+      <CreateUser />
+      
+      {}
+      <h2>Liste des utilisateurs</h2>
       <ul>
-        {users.map(u => (
-          <li key={u.id}>{u.matricule} - {u.password}</li>
+        {users.map(user => (
+          <li key={user.id}>{user.matricule}</li>
         ))}
       </ul>
     </div>
