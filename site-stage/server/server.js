@@ -14,6 +14,8 @@ const db = mysql.createConnection({
     database: "userdata"
   });
 
+const promiseDb = db.promise();
+
 db.connect((err) => {
   if (err) {
     console.error("Erreur MySQL:", err);
@@ -23,9 +25,9 @@ db.connect((err) => {
 });
 
 // Endpoint pour récupérer tous les utilisateurs
-app.get("http://localhost:5000/users", async (req, res) => {
+app.get("/users", async (req, res) => {
     try {
-      const [rows] = await db.query("SELECT * FROM logindata");
+      const [rows] = await promiseDb.query("SELECT * FROM logindata");
       res.json(rows);
     } catch (err) {
       console.error(err); // <-- ça affichera l'erreur exacte
