@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql2");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(cors());
@@ -11,7 +12,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",       // change si nécessaire
   password: "root", // change si nécessaire
-  database: "epytodo"
+  database: "base"
 });
 
 db.connect((err) => {
@@ -22,51 +23,34 @@ db.connect((err) => {
   console.log("✅ Connecté à MySQL !");
 });
 
-// Route pour récupérer tous les utilisateurs
-app.get("/users", (req, res) => {
-  db.query("SELECT * FROM user", (err, results) => { // Correction: utilisez "user" et non "users"
-    if (err) {
-      return res.status(500).json(err);
-    }
-    res.json(results);
+// Register user
+app.post("/users", async (req, res) => {
+  const { matricule, password, name, firstname } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const sql = "INSERT INTO user (matricule, password, name, firstname) VALUES (?, ?, ?, ?)";
+  db.query(sql, [matricule, hashedPassword, name, firstname], (err, result) => {
+    if (err) return res.status(400).json({ message: "Error: " + err.message });
+    res.json({ id: result.insertId });
   });
 });
 
-app.delete("/users/:id", (req, res) => {
-  const userId = req.params.id;
-  db.query("DELETE FROM user WHERE id = ?", [userId], (err, result) => {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    res.json({ message : "Echec lors de la suppréssion."})
-  });
-});
+// Login user
+app.post("/login", (req, res) => {
+  const { matricule, password } = req.body;
 
-// Route pour reset la db
-app.post("/reset-db", (req, res) => {
-  db.query("DELETE FROM user", (err) => {
-    if (err) {
-      return res.status(500).json(err);
-    }
-    db.query("ALTER TABLE user AUTO_INCREMENT = 1", (err) => {
-      if (err) {
-        return res.status(500).json(err);
-      }
-      res.json({ message: "DB réinitialisée."})
-    });
-  });
-});
+  const sql = "SELECT * FROM user WHERE matricule = ?";
+  db.query(sql, [matricule], async (err, results) => {
+    if (err) return res.status(400).json({ message: "Error: " + err.message });
+    if (results.length === 0) return res.json({ success: false, message: "Utilisateur non trouvé" });
 
-// Route pour ajouter un utilisateur
-app.post("/users", (req, res) => {
-  const { email, password, name, firstname } = req.body;
-  
-  const query = "INSERT INTO user (email, password, name, firstname) VALUES (?, ?, ?, ?)";
-  db.query(query, [email, password, name, firstname], (err, result) => {
-    if (err) {
-      return res.status(500).json(err);
+    const user = results[0];
+    const match = await bcrypt.compare(password, user.password);
+    if (match) {
+      res.json({ success: true, message: "Connexion réussie" });
+    } else {
+      res.json({ success: false, message: "Mot de passe invalide" });
     }
-    res.status(201).json({ id: result.insertId, message: "Utilisateur créé avec succès" });
   });
 });
 
