@@ -48,7 +48,12 @@ app.post("/reset-db", (req, res) => {
     if (err) {
       return res.status(500).json(err);
     }
-    res.json({ message: "DB réinitialisée."})
+    db.query("ALTER TABLE user AUTO_INCREMENT = 1", (err) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+      res.json({ message: "DB réinitialisée."})
+    });
   });
 });
 

@@ -61,7 +61,7 @@ function App() {
       fetch("http://localhost:5000/reset-db", {method: "POST"})
         .then((res) => res.json())
         .then(() => {
-          fetchUsers(); //permet de refresh la liste
+          fetchUsers(); //refresh la liste
         })
         .catch((err) => console.error("Erreur lors du reset:", err));
     }
