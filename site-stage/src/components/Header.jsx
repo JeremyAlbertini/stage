@@ -1,45 +1,74 @@
-import DropdownMenu from "./DropdownMenu.jsx";
+import { useState } from "react";
 
 export default function Header({ title, backgroundColor = "white", color = "black" }) {
-    const menuItems = [
-        { label: "Accueil", href: "/" },
-        { label: "Utilisateurs", href: "/users" },
-        { label: "Paramètres", href: "/settings" },
-      ];
-    return (
-      <header
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          boxSizing: "border-box",
-          height: "60px",
-          backgroundColor,
-          color,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center", // centre le titre
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          zIndex: 1000,
-          position: "relative", // pour le bouton absolu
-        }}
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <header
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "60px",
+        backgroundColor,
+        color,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between", // titre à gauche, bouton à droite
+        padding: "0 1.5rem",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        zIndex: 1000,
+      }}
+    >
+      <h1 style={{ margin: 0, fontSize: "1.5rem" }}>{title}</h1>
+
+      <div
+        style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "flex-start", padding: "0 2rem",}}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
-        {/* Titre centré */}
-        <h1 style={{ margin: 0, fontSize: "1.5rem", textAlign: "center" }}>{title}</h1>
-  
-        {/* Bouton “Compte” à droite */}
+        {/* Bouton principal */}
         <button
           style={{
-            position: "absolute",
-            right: "1.5rem",
+            width:'150px',
             padding: "0.5rem 1rem",
             borderRadius: "6px",
+            display: !hovered ? "block" : "none",
             cursor: "pointer",
           }}
         >
-          Compte
+          Mon Compte
         </button>
-      </header>
-    );
-  }
-  
+
+        {/* Boutons secondaires */}
+        <div
+          style={{
+            display: hovered ? "flex" : "none",
+            flexDirection: "column",
+            backgroundColor:"black",
+            borderRadius: "6px",
+            width:'150px',
+            gap: "0.3rem",
+            marginTop:"2.7rem"
+          }}
+        >
+          <button style={{width:'150px',
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+            cursor: "pointer" }}
+            >
+            Mon Compte
+          </button>
+          <button style={{ width:'150px',
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+             cursor: "pointer" }}
+             >
+          déconnexion
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
