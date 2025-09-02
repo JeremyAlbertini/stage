@@ -25,14 +25,19 @@ db.connect((err) => {
 
 // Register user
 app.post("/users", async (req, res) => {
-  const { matricule, password, name, firstname } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const { matricule, password, name, firstname } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-  const sql = "INSERT INTO user (matricule, password, name, firstname) VALUES (?, ?, ?, ?)";
-  db.query(sql, [matricule, hashedPassword, name, firstname], (err, result) => {
-    if (err) return res.status(400).json({ message: "Error: " + err.message });
-    res.json({ id: result.insertId });
-  });
+    const sql = "INSERT INTO user (matricule, password, name, firstname) VALUES (?, ?, ?, ?)";
+    db.query(sql, [matricule, hashedPassword, name, firstname], (err, result) => {
+      if (err) return res.status(400).json({ success: false, message: "Error: " + err.message });
+      res.json({ success: true, id: result.insertId, message: "User registered successfully" });
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 });
 
 // Login user

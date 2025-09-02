@@ -3,7 +3,7 @@ import { useState } from "react";
 function App() {
   const [page, setPage] = useState("login");
   const [loginData, setLoginData] = useState({ matricule: "", password: "" });
-  const [registerData, setRegisterData] = useState({ matricule: "", password: "" });
+  const [registerData, setRegisterData] = useState({ matricule: "", password: "", name: "", firstname: "" });
   const [message, setMessage] = useState("");
 
   const handleLoginChange = (e) => {
@@ -41,7 +41,7 @@ function App() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.id) {
+        if (data.success) {
           setMessage("Inscription réussie !");
           setPage("login");
         } else {
