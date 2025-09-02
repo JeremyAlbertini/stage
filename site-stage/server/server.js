@@ -71,14 +71,15 @@ async function startServer() {
     });
 
     // Login user
-    app.post("/login", (req, res) => {
+    app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
-    
-      const sql = "SELECT * FROM user WHERE matricule = ?";
-      db.query(sql, [matricule], async (err, results) => {
-        if (err) return res.status(400).json({ message: "Error: " + err.message });
-        if (results.length === 0) return res.json({ success: false, message: "Utilisateur non trouvé" });
-      
+
+      try {
+        const [results] = await db.query("SELECT * FROM logindata WHERE matricule = ?", [matricule]);
+        if (results.length === 0) {
+          return res.json({ success: false, message: "Utilisateur non trouvé" });
+        }
+
         const user = results[0];
         const match = await bcrypt.compare(password, user.password);
         if (match) {
@@ -86,7 +87,9 @@ async function startServer() {
         } else {
           res.json({ success: false, message: "Mot de passe invalide" });
         }
-      });
+      } catch (err) {
+        res.status(400).json({ message: "Error: " + err.message });
+      }
     });
 
     
