@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./log.css";
+import "../styles/log.css";
 
 function log() {
   const [page, setPage] = useState("login");
