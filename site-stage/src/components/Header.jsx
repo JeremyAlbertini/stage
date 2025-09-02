@@ -17,7 +17,7 @@ export default function Header({ title, backgroundColor = "white", color = "blac
         alignItems: "center",
         justifyContent: "space-between", // titre à gauche, bouton à droite
         padding: "0 1.5rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
         zIndex: 1000,
       }}
     >

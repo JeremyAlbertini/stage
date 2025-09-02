@@ -6,17 +6,20 @@
   font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-body {
+/* Only scope styles to .log-page and its children */
+
+/* Main Container */
+.log-page {
+  width: 100vw;
+  height: 100vh;
   background: linear-gradient(135deg, #1e90ff, #007bff, #00bfff);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   color: #fff;
 }
 
-/* Main Container */
-.app-container {
+.log-page .app-container {
   width: 100%;
   max-width: 400px;
   background: #ffffff;
