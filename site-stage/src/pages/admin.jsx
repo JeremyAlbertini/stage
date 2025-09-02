@@ -1,60 +1,54 @@
 import Header from "../components/Header.jsx";
 import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import CreateUser from "../components/create_user.jsx";
+import "../styles/admin.css";
 
 export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
 
     return (
         <div>
-            <div style={{
-                boxSizing: "border-box",
-                padding: "2rem",
-                backgroundColor:"rgb(108, 60, 197)",
-                marginTop: "60px"
-            }}>
-                <h1>Bienvenue sur la page administration</h1>
-                <p>Ici vous pouvez administrer vos agents.</p>
+
+        <div className="admin-container">
+            <div className="admin-card">
+                <h1 className="admin-title">Bienvenue sur la page administration</h1>
+                <p className="admin-text">Ici vous pouvez administrer vos agents.</p>
 
                 <button
                     onClick={() => navigate("/admin/create-user")}
-                    style={{
-                        backgroundColor: "rgb(80, 60, 180)",
-                        color: "white",
-                        fontWeight: "bold",
-                        marginBottom: "20px",
-                        
-                    }}
+                    className="admin-button"
                 >
-                    Créer un nouvel utilisateur
+                Créer un nouvel utilisateur
                 </button>
-                <Routes>
-                    <Route path="/" element={
-                        <div>
-                            <h2>Liste des utilisateurs</h2>
-                            <ul>
-                                {users.map(user => (
-                                    <li key={user.id}>{user.matricule} - {user.password}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    }/>
-
-                    <Route path="create-user" element={
-                        <div>
-                            <button 
-                                onClick={() => navigate("/admin")}
-                                style={{ marginBottom: "20px" }}
-                            >
-                                ← Retour à la liste
-                            </button>
-                            <CreateUser onUserCreated={() => {
-                                loadUsers();
-                                navigate("/admin");  // Redirection après création réussie
-                            }} />
-                        </div>
-                    } />
-                </Routes>
+            </div>
+    
+            <Routes>
+                <Route path="/" element={
+                    <div className="admin-card">
+                        <h2 className="admin-subtitle">Liste des utilisateurs</h2>
+                        <ul className="user-list">
+                        {users.map(user => (
+                        <li key={user.id}>{user.matricule}</li>
+                        ))}
+                    </ul>
+                    </div>
+                }/>
+    
+                <Route path="create-user" element={
+                    <div className="admin-card">
+                        <button 
+                        onClick={() => navigate("/admin")}
+                        className="admin-button admin-button-secondary"
+                    >
+                        ← Retour à la liste
+                    </button>
+                    <CreateUser onUserCreated={() => {
+                        loadUsers();
+                        navigate("/admin");
+                    }} />
+                    </div>
+                } />
+            </Routes>
             </div>
         </div>
     );

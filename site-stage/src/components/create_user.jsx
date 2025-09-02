@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../styles/admin.css";
 
 function CreateUser({ onUserCreated }) {
     const [matricule, setMatricule] = useState("");
@@ -35,44 +36,40 @@ function CreateUser({ onUserCreated }) {
 
     return (
         <div>
-            <h2>Créer un nouveau compte</h2>
+            <h2 className="admin-subtitle">Créer un nouveau compte</h2>
+        
+        {message && <p className="success-message">{message}</p>}
+        {error && <p className="error-message">{error}</p>}
+    
+            <form onSubmit={handleSubmit} className="admin-form">
+            <div className="form-group">
+                <label htmlFor="matricule">Matricule :</label>
+                <input
+                type="text"
+                id="matricule"
+                value={matricule}
+                onChange={(e) => setMatricule(e.target.value)}
+                required
+                />
+            </div>
             
-            {message && <p style={{  color: "green"  }}>{message}</p>}
-            {error && <p style={{ color : "red" }}>{error}</p>}
-
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="matricule">Matricule :</label>
-                    <input
-                        type="text"
-                        id="matricule"
-                        value={matricule}
-                        onChange={(e) => setMatricule(e.target.value)}
-                        required
-                    />
-                    </div> 
-                    
-                    <div>
-                        <label htmlFor="password">Mot de passe :</label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            />
-                        </div>
-                        
-                        <button type="submit"
-                        style={{ 
-                            backgroundColor: "rgb(51, 35, 143)",
-                            color: "white",
-                            fontWeight: "bold"
-                        }}  >Créer le compte
-                        </button>
-                    </form>
+            <div className="form-group">
+                <label htmlFor="password">Mot de passe :</label>
+                <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+            />
+            </div>
+            
+            <button type="submit" className="admin-button">
+                Créer le compte
+            </button>
+            </form>
         </div>
-    )
+    );
 }
 
 export default CreateUser;
