@@ -7,12 +7,6 @@ export default function AdminPage({ users, loadUsers }) {
 
     return (
         <div>
-            <Header 
-                title="Admin" 
-                backgroundColor="rgb(51, 35, 143)"
-                color="white"
-            />
-
             <div style={{
                 boxSizing: "border-box",
                 padding: "2rem",
