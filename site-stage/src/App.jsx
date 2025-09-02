@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./App.css";
 
 function App() {
   const [page, setPage] = useState("login");
@@ -51,51 +52,80 @@ function App() {
       .catch(() => setMessage("Erreur serveur."));
   };
 
-  return (
-    <div className="container">
+return (
+  <div className="app-container">
+    <div className="form-container">
       <h1>{page === "login" ? "Connexion" : "Inscription"}</h1>
-      <div style={{ marginBottom: "1rem" }}>
-        <button onClick={() => setPage("login")}>Connexion</button>
-        <button onClick={() => setPage("register")} style={{ marginLeft: "1rem" }}>
-          Inscription
-        </button>
-      </div>
-      {message && <div style={{ color: "red", marginBottom: "1rem" }}>{message}</div>}
+
       {page === "login" ? (
-        <form onSubmit={handleLoginSubmit}>
-          <div>
-            <label>Matricule:</label>
-            <input type="text" name="matricule" value={loginData.matricule} onChange={handleLoginChange} required />
-          </div>
-          <div>
-            <label>Mot de passe:</label>
-            <input type="password" name="password" value={loginData.password} onChange={handleLoginChange} required />
-          </div>
-          <button type="submit">Se connecter</button>
+        <form onSubmit={handleLoginSubmit} className="auth-form">
+          <input
+            type="text"
+            name="matricule"
+            placeholder="Matricule"
+            value={loginData.matricule}
+            onChange={handleLoginChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            value={loginData.password}
+            onChange={handleLoginChange}
+            required
+          />
+          <button type="submit" className="btn-primary">Se connecter</button>
+          <p>
+            Pas de compte ?{" "}
+            <span className="link" onClick={() => setPage("register")}>Inscrivez-vous</span>
+          </p>
         </form>
       ) : (
-        <form onSubmit={handleRegisterSubmit}>
-          <div>
-            <label>Matricule:</label>
-            <input type="text" name="matricule" value={registerData.matricule} onChange={handleRegisterChange} required />
-          </div>
-          <div>
-            <label>Mot de passe:</label>
-            <input type="password" name="password" value={registerData.password} onChange={handleRegisterChange} required />
-          </div>
-          <div>
-            <label>Nom :</label>
-            <input type="name" name="name" value={registerData.name} onChange={handleRegisterChange} required />
-          </div>
-          <div>
-            <label>Prènom :</label>
-            <input type="firstname" name="firstname" value={registerData.firstname} onChange={handleRegisterChange} required />
-          </div>
-          <button type="submit">S'inscrire</button>
+        <form onSubmit={handleRegisterSubmit} className="auth-form">
+          <input
+            type="text"
+            name="matricule"
+            placeholder="Matricule"
+            value={registerData.matricule}
+            onChange={handleRegisterChange}
+            required
+          />
+          <input
+            type="text"
+            name="name"
+            placeholder="Nom"
+            value={registerData.name}
+            onChange={handleRegisterChange}
+            required
+          />
+          <input
+            type="text"
+            name="firstname"
+            placeholder="Prénom"
+            value={registerData.firstname}
+            onChange={handleRegisterChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            value={registerData.password}
+            onChange={handleRegisterChange}
+            required
+          />
+          <button type="submit" className="btn-primary">S'inscrire</button>
+          <p>
+            Déjà inscrit ?{" "}
+            <span className="link" onClick={() => setPage("login")}>Connectez-vous</span>
+          </p>
         </form>
       )}
+
+      {message && <p className="message">{message}</p>}
     </div>
-  );
-}
+  </div>
+)};
 
 export default App;
