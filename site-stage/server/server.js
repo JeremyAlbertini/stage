@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise"); // <-- version promesse
 const cors = require("cors");
 
 const app = express();
@@ -19,10 +19,8 @@ const promiseDb = db.promise();
 db.connect((err) => {
   if (err) {
     console.error("Erreur MySQL:", err);
-    return;
   }
-  console.log("✅ Connecté à MySQL !");
-});
+})();
 
 // Endpoint pour récupérer tous les utilisateurs
 app.get("/users", async (req, res) => {
@@ -74,4 +72,6 @@ app.post("/users/create", async (req, res) => {
 
 // Lancer le serveur
 const PORT = 5000;
-app.listen(PORT, () => console.log(`✅ Serveur démarré sur http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)
+);

@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/home.jsx";
+import Users from "./pages/user.jsx";
 import CreateUser from "./components/create_user";
 
 function App() {
@@ -16,6 +18,17 @@ function App() {
   }, []);
 
   return (
+    <Router>
+      {/* <nav style={{ padding: "1rem", background: "#eee" }}>
+        <Link to="/" style={{ marginRight: "1rem" }}>Accueil</Link>
+        <Link to="/users">Utilisateurs</Link>
+      </nav> */}
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/users" element={<Users />} />
+      </Routes>
+    </Router>
     <div>
       <h1>Gestion des utilisateurs</h1>
       
@@ -32,5 +45,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
