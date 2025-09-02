@@ -6,6 +6,7 @@ function CreateUser({ onUserCreated }) {
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [isAdmin, setIsAdmin] = useState("0");
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // ca empeche la page de refresh
@@ -61,6 +62,16 @@ function CreateUser({ onUserCreated }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+            />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="isAdmin">Compte administrateur:</label>
+                <input
+                type="checkbox"
+                id="isAdmin"
+                value={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.value)}
             />
             </div>
             
