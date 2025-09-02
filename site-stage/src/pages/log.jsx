@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../styles/log.css";
+import { Navigate } from "react-router-dom";
 
 function Log() {
   const [page, setPage] = useState("login");
@@ -25,7 +26,9 @@ function Log() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
+          localStorage.setItem('user', JSON.stringify(data.user));
           setMessage("Connexion réussie !");
+          Navigate("/");
         } else {
           setMessage(data.message || "Erreur de connexion.");
         }

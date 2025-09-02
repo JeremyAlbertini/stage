@@ -44,7 +44,6 @@ export default function AdminPage({ users, loadUsers }) {
                     </button>
                     <CreateUser onUserCreated={() => {
                         loadUsers();
-                        navigate("/admin");
                     }} />
                     </div>
                 } />

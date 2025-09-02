@@ -71,23 +71,42 @@ async function startServer() {
     });
 
     // Login user
-    app.post("/login", (req, res) => {
+    app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
     
-      const sql = "SELECT * FROM user WHERE matricule = ?";
-      db.query(sql, [matricule], async (err, results) => {
-        if (err) return res.status(400).json({ message: "Error: " + err.message });
-        if (results.length === 0) return res.json({ success: false, message: "Utilisateur non trouvé" });
-      
-        const user = results[0];
+      try {
+        const [users] = await db.query(
+          "SELECT l.id, l.matricule, l.password, a.is_admin FROM logindata l " +
+          "LEFT JOIN agentdata a ON l.id = a.user_id " +
+          "WHERE l.matricule = ?",
+          [matricule]
+        );
+        if (users.length === 0) {
+          return res.json({ success: false, message: "Utilisateur non trouvé" });
+        }
+
+        const user = users[0];
         const match = await bcrypt.compare(password, user.password);
+
+
         if (match) {
-          res.json({ success: true, message: "Connexion réussie" });
+          res.json({
+            success: true, 
+            message: "Connexion réussie" ,
+            user: {
+              id: user.id,
+              matricule: user.matricule,
+              isAdmin: user.is_admin === 1
+            }
+          });
         } else {
           res.json({ success: false, message: "Mot de passe invalide" });
         }
-      });
-    });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+  });
 
     
     // Lancer le serveur
