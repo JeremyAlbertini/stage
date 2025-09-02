@@ -15,7 +15,7 @@ function CreateUser({ onUserCreated }) {
             const response = await fetch("http://localhost:5000/users/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ matricule, password })
+                body: JSON.stringify({ matricule, password, isAdmin })
                 });
             
             const data = await response.json();
@@ -71,7 +71,7 @@ function CreateUser({ onUserCreated }) {
                 type="checkbox"
                 id="isAdmin"
                 value={isAdmin}
-                onChange={(e) => setIsAdmin(e.target.value)}
+                onChange={(e) => setIsAdmin(e.target.checked)}
             />
             </div>
             
