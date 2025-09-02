@@ -1,6 +1,7 @@
 const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(cors());
@@ -32,6 +33,8 @@ async function startServer() {
     // Endpoint pour créer un utilisateur
     app.post("/users/create", async (req, res) => {
       const { matricule, password } = req.body;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
     
       if (!matricule || !password) {
         return res.status(400).json({
@@ -43,7 +46,7 @@ async function startServer() {
       try {
         const [result] = await db.query(
           "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
-          [matricule, password]
+          [matricule, hashedPassword]
         );
     
         res.status(201).json({
@@ -66,6 +69,26 @@ async function startServer() {
         });
       }
     });
+
+    // Login user
+    app.post("/login", (req, res) => {
+      const { matricule, password } = req.body;
+    
+      const sql = "SELECT * FROM user WHERE matricule = ?";
+      db.query(sql, [matricule], async (err, results) => {
+        if (err) return res.status(400).json({ message: "Error: " + err.message });
+        if (results.length === 0) return res.json({ success: false, message: "Utilisateur non trouvé" });
+      
+        const user = results[0];
+        const match = await bcrypt.compare(password, user.password);
+        if (match) {
+          res.json({ success: true, message: "Connexion réussie" });
+        } else {
+          res.json({ success: false, message: "Mot de passe invalide" });
+        }
+      });
+    });
+
     
     // Lancer le serveur
     const PORT = 5000;
