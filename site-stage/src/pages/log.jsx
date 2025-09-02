@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "../styles/log.css";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Log() {
   const [page, setPage] = useState("login");
@@ -10,6 +10,8 @@ function Log() {
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
   };
+
+  const navigate = useNavigate();
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ function Log() {
         if (data.success) {
           localStorage.setItem('user', JSON.stringify(data.user));
           setMessage("Connexion réussie !");
-          Navigate("/");
+          navigate("/");
         } else {
           setMessage(data.message || "Erreur de connexion.");
         }
