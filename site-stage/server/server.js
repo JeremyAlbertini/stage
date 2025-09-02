@@ -32,7 +32,7 @@ async function startServer() {
     
     // Endpoint pour créer un utilisateur
     app.post("/users/create", async (req, res) => {
-      const { matricule, password } = req.body;
+      const { matricule, password, isAdmin } = req.body;
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
     
@@ -44,17 +44,29 @@ async function startServer() {
       }
     
       try {
-        const [result] = await db.query(
+        await db.beginTransaction();
+
+        const [loginResult] = await db.query(
           "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
-          [matricule, hashedPassword]
+          [matricule, hashedPassword],
         );
     
+        const userId = loginResult.insertId;
+
+        await db.query(
+          "INSERT INTO agentdata (matricule, email, nom, prenom, user_id, is_admin) VALUES (?, ?, ?, ?, ?, ?)",
+          [matricule, matricule + "@example.com", matricule, "", userId, isAdmin ? 1 : 0]
+        );
+
+        await db.commit();
+
         res.status(201).json({
           success: true,
           message: "Compte créé avec succès.",
-          userId: result.insertId
+          userId: loginResult.insertId
         });
       } catch (err) {
+        await db.rollback();
         console.error(err);
         if (err.code === 'ER_DUP_ENTRY') {
           return res.status(400).json({

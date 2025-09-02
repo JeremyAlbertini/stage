@@ -6,6 +6,7 @@ function CreateUser({ onUserCreated }) {
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [isAdmin, setIsAdmin] = useState("0");
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // ca empeche la page de refresh
@@ -14,7 +15,7 @@ function CreateUser({ onUserCreated }) {
             const response = await fetch("http://localhost:5000/users/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ matricule, password })
+                body: JSON.stringify({ matricule, password, isAdmin })
                 });
             
             const data = await response.json();
@@ -61,6 +62,16 @@ function CreateUser({ onUserCreated }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+            />
+            </div>
+
+            <div className="form-group">
+                <label htmlFor="isAdmin">Compte administrateur:</label>
+                <input
+                type="checkbox"
+                id="isAdmin"
+                value={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.checked)}
             />
             </div>
             
