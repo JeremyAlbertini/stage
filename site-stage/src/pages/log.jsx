@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "../styles/log.css";
 
-function log() {
+function Log() {
   const [page, setPage] = useState("login");
   const [loginData, setLoginData] = useState({ matricule: "", password: "" });
   const [registerData, setRegisterData] = useState({ matricule: "", password: "", name: "", firstname: "" });
@@ -53,8 +53,8 @@ function log() {
   };
 
 return (
-  <div className="app-container">
-    <div className="form-container">
+  <div className="log-page">
+    <div className="app-container">
       <h1>{page === "login" ? "Connexion" : "Inscription"}</h1>
 
       {page === "login" ? (
@@ -128,4 +128,4 @@ return (
   </div>
 )};
 
-export default log;
+export default Log;
