@@ -1,26 +1,19 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/home.jsx";
+import Users from "./pages/user.jsx";
 
-function App() {
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    fetch("http://localhost:5000/users")
-      .then(res => res.json())
-      .then(data => setUsers(data))
-      .catch(err => console.error(err));
-  }, []);
-
+export default function App() {
   return (
-    <div style={{ padding: "2rem"
-    }}>
-      <h1>Liste des utilisateurs</h1>
-      <ul>
-        {users.map(u => (
-          <li key={u.id}>{u.matricule} - {u.password}</li>
-        ))}
-      </ul>
-    </div>
+    <Router>
+      {/* <nav style={{ padding: "1rem", background: "#eee" }}>
+        <Link to="/" style={{ marginRight: "1rem" }}>Accueil</Link>
+        <Link to="/users">Utilisateurs</Link>
+      </nav> */}
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/users" element={<Users />} />
+      </Routes>
+    </Router>
   );
 }
-
-export default App;
