@@ -31,7 +31,7 @@
 }
 
 /* Title */
-h1 {
+.title-login {
   margin-bottom: 1.5rem;
   color: #007bff;
   font-size: 1.8rem;

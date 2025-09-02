@@ -7,7 +7,7 @@ export default function Home() {
       <Header title="Acceuil" />
       <div style={{ display: "flex", flex: 1 , marginTop: '60px'}}>
         <LeftBand />
-        <div style={{ flex: 1, boxSizing: "border-box", padding: "2rem", backgroundColor: "blue" }}>
+        <div style={{ flex: 1, boxSizing: "border-box", padding: "2rem" }}>
           <h1>Bienvenue sur mon app</h1>
           <p>Ceci est la page d'accueil.</p>
         </div>

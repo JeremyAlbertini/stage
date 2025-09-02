@@ -55,7 +55,7 @@ function Log() {
 return (
   <div className="log-page">
     <div className="app-container">
-      <h1>{page === "login" ? "Connexion" : "Inscription"}</h1>
+      <h1 className="title-login">{page === "login" ? "Connexion" : "Inscription"}</h1>
 
       {page === "login" ? (
         <form onSubmit={handleLoginSubmit} className="auth-form">
