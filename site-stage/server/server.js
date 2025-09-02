@@ -103,10 +103,9 @@ async function startServer() {
           res.json({ success: false, message: "Mot de passe invalide" });
         }
       } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
+        res.status(400).json({ message: "Error: " + err.message });
       }
-  });
+    });
 
     
     // Lancer le serveur
