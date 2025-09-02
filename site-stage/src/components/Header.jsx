@@ -1,4 +1,4 @@
-import DropdownMenu from "./DropdownMenu.jsx";
+//import DropdownMenu from "./DropdownMenu.jsx";
 
 export default function Header({ title, backgroundColor = "white", color = "black" }) {
     const menuItems = [
@@ -21,7 +21,7 @@ export default function Header({ title, backgroundColor = "white", color = "blac
           justifyContent: "center", // centre le titre
           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           zIndex: 1000,
-          position: "relative", // pour le bouton absolu
+          //position: "relative", // pour le bouton absolu
         }}
       >
         {/* Titre centré */}
