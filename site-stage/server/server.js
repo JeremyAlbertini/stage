@@ -6,8 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connexion MySQL
-
 async function startServer() {
   try {
     // Connexion MySQL avec await (version promise)
