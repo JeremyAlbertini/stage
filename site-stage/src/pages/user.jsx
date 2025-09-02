@@ -16,7 +16,7 @@ export default function Users() {
       <ul>
         {users.map(u => (
           <li key={u.id}>
-            {u.matricule} - {u.password}
+            {u.matricule}
           </li>
         ))}
       </ul>

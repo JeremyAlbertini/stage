@@ -33,7 +33,7 @@ export default function AdminPage({ users, loadUsers }) {
                             <h2>Liste des utilisateurs</h2>
                             <ul>
                                 {users.map(user => (
-                                    <li key={user.id}>{user.matricule}</li>
+                                    <li key={user.id}>{user.matricule} - {user.password}</li>
                                 ))}
                             </ul>
                         </div>
