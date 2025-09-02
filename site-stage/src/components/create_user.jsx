@@ -63,7 +63,13 @@ function CreateUser({ onUserCreated }) {
                             />
                         </div>
                         
-                        <button type="submit">Créer le compte</button>
+                        <button type="submit"
+                        style={{ 
+                            backgroundColor: "rgb(51, 35, 143)",
+                            color: "white",
+                            fontWeight: "bold"
+                        }}  >Créer le compte
+                        </button>
                     </form>
         </div>
     )

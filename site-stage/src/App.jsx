@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/home.jsx";
 import Users from "./pages/user.jsx";
 import CreateUser from "./components/create_user";
+import AdminPage from "./pages/admin.jsx";
 import { useState, useEffect } from "react";
 
 function App() {
@@ -29,18 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/users" element={<Users />} />
-        <Route path="/admin" element={
-          <div>
-            <h1>Administration des utilisateurs</h1>
-            <CreateUser onUserCreated={loadUsers}/>
-            <h2>Liste des utilisateurs</h2>
-            <ul>
-              {users.map(user => (
-                <li key={user.id}>{user.matricule}</li>
-              ))}
-            </ul>
-          </div>
-        } />
+        <Route path="/admin/*" element={<AdminPage users={users} loadUsers={loadUsers} />} />
       </Routes>
     </Router>
   );

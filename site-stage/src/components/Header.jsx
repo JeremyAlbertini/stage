@@ -5,6 +5,7 @@ export default function Header({ title, backgroundColor = "white", color = "blac
         { label: "Accueil", href: "/" },
         { label: "Utilisateurs", href: "/users" },
         { label: "Paramètres", href: "/settings" },
+        { label: "Administration", href: "/admin" },
       ];
     return (
       <header
@@ -31,7 +32,7 @@ export default function Header({ title, backgroundColor = "white", color = "blac
         <button
           style={{
             position: "absolute",
-            right: "1.5rem",
+            right: "10.5rem",
             padding: "0.5rem 1rem",
             borderRadius: "6px",
             cursor: "pointer",
