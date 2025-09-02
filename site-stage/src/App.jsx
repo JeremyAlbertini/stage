@@ -21,12 +21,6 @@ function App() {
 
   return (
     <Router>
-      <nav style={{ padding: "1rem", background: "#eee" }}>
-        <Link to="/">Accueil</Link>
-        <Link to="/users" style={{ marginLeft: "1rem" }}>Utilisateurs</Link>
-        <Link to="/admin" style={{ marginLeft: "1rem" }}>Administration</Link>
-      </nav>
-      
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/users" element={<Users />} />

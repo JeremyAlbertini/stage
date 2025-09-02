@@ -4,7 +4,7 @@ export default function leftBand() {
   const items = [
     { name: "Accueil", path: "/" },
     { name: "Utilisateurs", path: "/users" },
-    { name: "Paramètres", path: "/parametres" },
+    { name: "Paramètres", path: "/admin" },
   ];
 
   return (
