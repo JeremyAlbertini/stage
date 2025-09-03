@@ -88,7 +88,7 @@ async function startServer() {
     
       try {
         const [users] = await db.query(
-          "SELECT l.id, l.matricule, l.password, a.is_admin FROM logindata l " +
+          "SELECT l.id, l.matricule, l.password, a.is_admin, a.email, a.nom, a.prenom FROM logindata l " +
           "LEFT JOIN agentdata a ON l.id = a.user_id " +
           "WHERE l.matricule = ?",
           [matricule]
@@ -108,7 +108,10 @@ async function startServer() {
             user: {
               id: user.id,
               matricule: user.matricule,
-              isAdmin: user.is_admin === 1
+              isAdmin: user.is_admin === 1,
+              email: user.email,
+              nom: user.nom,
+              preno: user.prenom
             }
           });
         } else {

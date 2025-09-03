@@ -23,7 +23,10 @@ export default function Profile() {
                     <div>
                         <p>Matricule: {userData.matricule}</p>
                         <p>ID: {userData.id}</p>
-                        <p>email: {userData.email}</p>
+                        <p>Email: {userData.email || "Non renseigné"}</p>
+                        <p>Nom: {userData.nom || "Non renseigné"}</p>
+                        <p>Prénom: {userData.prenom || "Non renseigné"}</p>
+                        <p>Rôle: {userData.isAdmin ? "Administrateur" : "Utilisateur"}</p>
                     </div>
                     ): (
                         <p>Chargement des données...</p>
