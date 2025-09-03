@@ -62,9 +62,14 @@ export default function Header({ title, backgroundColor = "white", color = "blac
             >
             Mon Compte
           </button>
-          <button style={{ width:'150px',
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
+          <button 
+            onClick={() => {
+              localStorage.removeItem('user');
+              navigate('/login');
+            }}
+            style={{ width:'150px',
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
               cursor: "pointer" }}
               >
           Déconnexion
