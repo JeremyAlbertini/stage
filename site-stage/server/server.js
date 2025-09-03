@@ -110,41 +110,43 @@ async function startServer() {
 
 
         if (match) {
-          res.json({
-            success: true, 
-            message: "Connexion réussie" ,
+          // Générer JWT
+          const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
+      
+          // Définir le cookie
+          res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+      
+          // UNE SEULE réponse qui contient à la fois les infos utilisateur et le message de succès
+          return res.json({
+            success: true,
+            message: "Connexion réussie",
             user: {
               id: user.id,
               matricule: user.matricule,
               isAdmin: user.is_admin === 1,
               email: user.email,
               nom: user.nom,
-              preno: user.prenom
+              prenom: user.prenom
             }
           });
         } else {
-          res.json({ success: false, message: "Mot de passe invalide" });
-        }
-        if (!match) {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
-
-        // Generate JWT
-        const token = jwt.sign({ id: user.id, matricule: user.matricule }, secretKey, { expiresIn: "1h" });
-
-        // Set HTTP-only cookie
-        res.cookie("token", token, {
-          httpOnly: true,
-          secure: false, // true in production with HTTPS
-          sameSite: "strict",
-          maxAge: 60 * 60 * 1000
-        });
-
-        return res.json({ success: true, message: "Connexion réussie" });
+        // Supprimer tout code après ce point
       } catch (err) {
-        res.status(400).json({ message: "Error: " + err.message });
-      }
-    });
+      // Gérer l'erreur
+      console.error("Erreur de login:", err);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Erreur serveur lors de la connexion" 
+      });
+    }
+  });
 
     // Check current user
     app.get("/me", (req, res) => {
@@ -153,7 +155,14 @@ async function startServer() {
 
       try {
         const decoded = jwt.verify(token, secretKey);
-        res.json({ loggedIn: true, user: decoded });
+        return res.json({
+          loggedIn: true,
+          user:{
+            id: decoded.id,
+            matricule: decoded.matricule,
+            isAdmin: decoded.isAdmin,
+          }
+        });
       } catch {
         res.status(401).json({ loggedIn: false });
       }
