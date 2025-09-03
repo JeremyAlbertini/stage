@@ -2,10 +2,19 @@ const express = require("express");
 const mysql = require("mysql2/promise");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
+const PORT = 5000;
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
+const secretKey = "ifsuydgyufogifeglfueroiuhmugve";
 
 async function startServer() {
   try {
@@ -82,7 +91,6 @@ async function startServer() {
       }
     });
 
-    // Login user
     app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
     
@@ -117,14 +125,47 @@ async function startServer() {
         } else {
           res.json({ success: false, message: "Mot de passe invalide" });
         }
+        if (!match) {
+          return res.json({ success: false, message: "Mot de passe invalide" });
+        }
+
+        // Generate JWT
+        const token = jwt.sign({ id: user.id, matricule: user.matricule }, secretKey, { expiresIn: "1h" });
+
+        // Set HTTP-only cookie
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: false, // true in production with HTTPS
+          sameSite: "strict",
+          maxAge: 60 * 60 * 1000
+        });
+
+        return res.json({ success: true, message: "Connexion réussie" });
       } catch (err) {
         res.status(400).json({ message: "Error: " + err.message });
       }
     });
 
-    
+    // Check current user
+    app.get("/me", (req, res) => {
+      const token = req.cookies.token;
+      if (!token) return res.status(401).json({ loggedIn: false });
+
+      try {
+        const decoded = jwt.verify(token, secretKey);
+        res.json({ loggedIn: true, user: decoded });
+      } catch {
+        res.status(401).json({ loggedIn: false });
+      }
+    });
+
+    // Logout
+    app.post("/logout", (req, res) => {
+      res.clearCookie("token");
+      res.json({ success: true, message: "Déconnecté" });
+    });
+
     // Lancer le serveur
-    const PORT = 5000;
     app.listen(PORT, () =>
       console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)
     );
