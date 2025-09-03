@@ -41,7 +41,7 @@ async function startServer() {
     
     // Endpoint pour créer un utilisateur
     app.post("/users/create", async (req, res) => {
-      const { matricule, password } = req.body;
+      const { matricule, password, isAdmin } = req.body;
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
     
@@ -53,17 +53,29 @@ async function startServer() {
       }
     
       try {
-        const [result] = await db.query(
+        await db.beginTransaction();
+
+        const [loginResult] = await db.query(
           "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
-          [matricule, hashedPassword]
+          [matricule, hashedPassword],
         );
     
+        const userId = loginResult.insertId;
+
+        await db.query(
+          "INSERT INTO agentdata (matricule, email, nom, prenom, user_id, is_admin) VALUES (?, ?, ?, ?, ?, ?)",
+          [matricule, matricule + "@example.com", matricule, "", userId, isAdmin ? 1 : 0]
+        );
+
+        await db.commit();
+
         res.status(201).json({
           success: true,
           message: "Compte créé avec succès.",
-          userId: result.insertId
+          userId: loginResult.insertId
         });
       } catch (err) {
+        await db.rollback();
         console.error(err);
         if (err.code === 'ER_DUP_ENTRY') {
           return res.status(400).json({
@@ -81,35 +93,60 @@ async function startServer() {
 
     app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
-
+    
       try {
-        const [results] = await db.query("SELECT * FROM logindata WHERE matricule = ?", [matricule]);
-        if (results.length === 0) {
+        const [users] = await db.query(
+          "SELECT l.id, l.matricule, l.password, a.is_admin, a.email, a.nom, a.prenom FROM logindata l " +
+          "LEFT JOIN agentdata a ON l.id = a.user_id " +
+          "WHERE l.matricule = ?",
+          [matricule]
+        );
+        if (users.length === 0) {
           return res.json({ success: false, message: "Utilisateur non trouvé" });
         }
 
-        const user = results[0];
+        const user = users[0];
         const match = await bcrypt.compare(password, user.password);
-        if (!match) {
+
+
+        if (match) {
+          // Générer JWT
+          const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
+      
+          // Définir le cookie
+          res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+      
+          // UNE SEULE réponse qui contient à la fois les infos utilisateur et le message de succès
+          return res.json({
+            success: true,
+            message: "Connexion réussie",
+            user: {
+              id: user.id,
+              matricule: user.matricule,
+              isAdmin: user.is_admin === 1,
+              email: user.email,
+              nom: user.nom,
+              prenom: user.prenom
+            }
+          });
+        } else {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
-
-        // Generate JWT
-        const token = jwt.sign({ id: user.id, matricule: user.matricule }, secretKey, { expiresIn: "1h" });
-
-        // Set HTTP-only cookie
-        res.cookie("token", token, {
-          httpOnly: true,
-          secure: false, // true in production with HTTPS
-          sameSite: "strict",
-          maxAge: 60 * 60 * 1000
-        });
-
-        return res.json({ success: true, message: "Connexion réussie" });
+        // Supprimer tout code après ce point
       } catch (err) {
-        res.status(400).json({ message: "Error: " + err.message });
-      }
-    });
+      // Gérer l'erreur
+      console.error("Erreur de login:", err);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Erreur serveur lors de la connexion" 
+      });
+    }
+  });
 
     // Check current user
     app.get("/me", (req, res) => {
@@ -118,7 +155,14 @@ async function startServer() {
 
       try {
         const decoded = jwt.verify(token, secretKey);
-        res.json({ loggedIn: true, user: decoded });
+        return res.json({
+          loggedIn: true,
+          user:{
+            id: decoded.id,
+            matricule: decoded.matricule,
+            isAdmin: decoded.isAdmin,
+          }
+        });
       } catch {
         res.status(401).json({ loggedIn: false });
       }
