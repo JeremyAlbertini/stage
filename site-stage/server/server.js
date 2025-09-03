@@ -119,7 +119,7 @@ async function startServer() {
               isAdmin: user.is_admin === 1,
               email: user.email,
               nom: user.nom,
-              preno: user.prenom
+              prenon: user.prenom
             }
           });
         } else {
