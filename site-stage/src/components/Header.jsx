@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Header({ title, backgroundColor = "white", color = "black" }) {
   const [hovered, setHovered] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <header
@@ -63,9 +65,18 @@ export default function Header({ title, backgroundColor = "white", color = "blac
           <button style={{ width:'150px',
             padding: "0.5rem 1rem",
             borderRadius: "6px",
-             cursor: "pointer" }}
-             >
-          déconnexion
+              cursor: "pointer" }}
+              >
+          Déconnexion
+          </button>
+          <button
+            onClick={() => navigate('/profile')}
+            style={{width:'150px',
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
+              cursor: "pointer"}}
+              >
+            Mes Infos
           </button>
         </div>
       </div>

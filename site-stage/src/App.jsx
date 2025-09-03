@@ -6,6 +6,7 @@ import CreateUser from "./components/create_user";
 import AdminPage from "./pages/admin.jsx";
 import { useState, useEffect } from "react";
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
+import Profile from "./pages/profile.jsx";
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -27,6 +28,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/users" element={<Users />} />
         <Route path="/login" element={<Log />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/admin/*" element={
           <ProtectedRoute requireAdmin={true}>
             <AdminPage users={users} loadUsers={loadUsers} />
