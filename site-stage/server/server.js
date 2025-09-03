@@ -92,7 +92,6 @@ async function startServer() {
       }
     });
 
-    
     // Lancer le serveur
     const PORT = 5000;
     app.listen(PORT, () =>
