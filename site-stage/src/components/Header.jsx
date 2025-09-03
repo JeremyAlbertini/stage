@@ -13,12 +13,12 @@ export default function Header({ title, backgroundColor }) {
       <Dropdown 
         trigger={<Button>Mon Compte</Button>}
       >
-        <Button>Mon Compte</Button>
+        <Button onClick={() => navigate('/profile'
+        )}>Mon Compte</Button>
         <Button onClick={() => { 
           localStorage.removeItem('user');
           navigate('/login');
         }}>Déconnexion</Button>
-        <Button onClick={() => navigate('/profile')}>Mes Infos</Button>
       </Dropdown>
     </header>
   );

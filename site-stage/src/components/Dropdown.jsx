@@ -7,12 +7,9 @@ export default function Dropdown({ trigger, children }) {
         <div
             className="dropdown-container"
             onMouseEnter={() => setIsOpen(true)}
-            // onMouseLeave={() => setIsOpen(false)}
         >
-            {/* Élément déclencheur */}
             {trigger}
             
-            {/* Menu déroulant */}
             {isOpen && (
                 <div 
                     className="dropdown-menu"
