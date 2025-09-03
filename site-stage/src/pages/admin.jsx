@@ -9,6 +9,14 @@ export default function AdminPage({ users, loadUsers }) {
     return (
         <div>
 
+        <div className="back-nav">
+            <button
+            onClick={() => navigate("/")}
+            className="admin-button admin-button-secondary"
+            >
+                ← Retour à l'accueil
+            </button>
+        </div>
         <div className="admin-container">
             <div className="admin-card">
                 <h1 className="admin-title">Bienvenue sur la page administration</h1>
@@ -44,7 +52,6 @@ export default function AdminPage({ users, loadUsers }) {
                     </button>
                     <CreateUser onUserCreated={() => {
                         loadUsers();
-                        navigate("/admin");
                     }} />
                     </div>
                 } />

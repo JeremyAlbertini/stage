@@ -6,6 +6,8 @@ import CreateUser from "./components/create_user";
 import AdminPage from "./pages/admin.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import { useState, useEffect } from "react";
+import ProtectedRoute from "./components/ProtectedRoutes.jsx";
+import Profile from "./pages/profile.jsx";
 
 function AppRoutes({ users, setUsers, user, setUser }) {
   const navigate = useNavigate();
@@ -45,7 +47,12 @@ function AppRoutes({ users, setUsers, user, setUser }) {
       <Route path="/" element={<Home user={user} />} />
       <Route path="/users" element={<Users />} />
       <Route path="/login" element={<Log />} />
-      <Route path="/admin/*" element={<AdminPage users={users} loadUsers={loadUsers} />} />
+        <Route path="/profile" element={<Profile />} />
+      <Route path="/admin/*" element={
+          <ProtectedRoute requireAdmin={true}>
+            <AdminPage users={users} loadUsers={loadUsers} />
+          </ProtectedRoute>
+        } />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
