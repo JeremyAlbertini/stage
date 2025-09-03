@@ -63,8 +63,38 @@ async function startServer() {
         const userId = loginResult.insertId;
 
         await db.query(
-          "INSERT INTO agentdata (matricule, email, nom, prenom, user_id, is_admin) VALUES (?, ?, ?, ?, ?, ?)",
-          [matricule, matricule + "@example.com", matricule, "", userId, isAdmin ? 1 : 0]
+          `INSERT INTO agentdata (
+            matricule, nom, prenom, civilite, date_naiss, lieu_naiss, 
+            dpt_naiss, pays_naiss, photo, adresse, adresse_code, adresse_ville, 
+            tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro, 
+            mail_pro, user_id, is_admin
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+          )`,
+          [
+            matricule,                          // matricule
+            matricule,                          // nom
+            "",                                 // prenom
+            "Monsieur",                         // civilite
+            "1990-01-01",                       // date_naiss
+            "Ville",                            // lieu_naiss
+            "06",                               // dpt_naiss
+            "France",                           // pays_naiss
+            "ano.jpg",                          // photo
+            "1 rue exemple",                    // adresse
+            "06000",                            // adresse_code
+            "Nice",                             // adresse_ville
+            "0600000000",                       // tel_perso
+            matricule + "@perso.com",           // mail_perso
+            "Actif",                            // statut
+            "Agent",                            // grade
+            "Animateur",                        // poste (valeur de l'enum)
+            "0400000000",                       // tel_fixe
+            "0700000000",                       // tel_pro
+            matricule + "@pro.com",             // mail_pro
+            userId,                             // user_id
+            isAdmin ? 1 : 0                     // is_admin
+          ]
         );
 
         await db.commit();
@@ -96,7 +126,7 @@ async function startServer() {
     
       try {
         const [users] = await db.query(
-          "SELECT l.id, l.matricule, l.password, a.is_admin, a.email, a.nom, a.prenom FROM logindata l " +
+          "SELECT l.id, l.matricule, l.password, a.is_admin, a.nom, a.prenom FROM logindata l " +
           "LEFT JOIN agentdata a ON l.id = a.user_id " +
           "WHERE l.matricule = ?",
           [matricule]
