@@ -28,7 +28,7 @@ function Log() {
         if (data.success) {
           checkUser();
           setMessage("Connexion réussie !");
-          navigate("/");
+          //navigate("/");
         } else {
           setMessage(data.message || "Erreur de connexion.");
         }
