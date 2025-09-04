@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import LeftBand from "../components/LeftBand";
+import BasePage from "../components/BasePage";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -13,12 +14,7 @@ export default function Users() {
   }, []);
 
   return (
-    <div style={{height: "100vh", display: "flex", flexDirection:"column"}}>
-        <Header title='Users' />
-
-        <div style={{ display: "flex", flex: 1, marginTop: '60px' }}>
-        <LeftBand />
-        <div style={{ flex: 1, boxSizing: "border-box", padding: "2rem", backgroundColor: "blue" }}>
+    <BasePage title='Users'>
         <h1>Liste des utilisateurs</h1>
         <ul>
             {users.map(u => (
@@ -27,8 +23,6 @@ export default function Users() {
             </li>
             ))}
         </ul>
-      </div>
-    </div>
-    </div>
+    </BasePage>
   );
 }
