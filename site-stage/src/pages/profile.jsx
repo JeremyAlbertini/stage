@@ -88,7 +88,7 @@ export default function Profile() {
                     if (data.success) {
                         setUserData(prev => ({
                             ...prev,
-                            photo: null // Retour à la photo par défaut
+                            photo: "ano.png" // Utiliser explicitement "ano.png" au lieu de null
                         }));
                     } else {
                         alert("Erreur lors de la suppression: " + data.message);

@@ -43,18 +43,24 @@ class ImageStorage {
     }
 
     async deleteProfileImage(filename) {
-        if (!filename) return;
-
+        if (!filename) {
+            console.log("Aucun nom de fichier fourni pour la suppression");
+            return;
+        }
+    
         if (this.type === 'local') {
             try {
                 const filepath = path.join(this.uploadDir, filename);
-
+    
                 if (fs.existsSync(filepath)) {
                     await fs.promises.unlink(filepath);
                     console.log(`Image de profil supprimée: ${filename}`);
+                } else {
+                    console.log(`Le fichier n'existe pas: ${filepath}`);
                 }
             } catch (error) {
                 console.error("Erreur lors de la suppression de l'image:", error);
+                throw error;
             }
         }
     }

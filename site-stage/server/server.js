@@ -250,8 +250,8 @@ async function startServer() {
               }
           }
           
-          // Mettre à jour la base de données (remettre à null ou revenir à l'image par défaut)
-          await db.query("UPDATE agentdata SET photo = NULL WHERE user_id = ?", [userId]);
+          // IMPORTANT: Modifier cette ligne - utiliser 'ano.png' au lieu de NULL
+          await db.query("UPDATE agentdata SET photo = 'ano.png' WHERE user_id = ?", [userId]);
           
           res.json({
               success: true,
@@ -261,7 +261,7 @@ async function startServer() {
           console.error("Erreur lors de la suppression:", error);
           res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
       }
-  });
+    });
 
     // Lancer le serveur
     app.listen(PORT, () =>
