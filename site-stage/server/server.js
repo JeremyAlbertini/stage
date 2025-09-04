@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const storage = require('./services/storage');
 const multer = require("multer");
 const upload = multer({ dest: "tmp/uploads/" });
+const path = require('path');
 
 const PORT = 5000;
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
+app.use(express.static(path.join(__dirname, '../public')));
 
 const secretKey = "ifsuydgyufogifeglfueroiuhmugve";
 
@@ -226,6 +228,40 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur lors de l'upload" });
       }
     });
+
+    app.post('/delete/profile-photo', async (req, res) => {
+      try {
+          const token = req.cookies.token;
+          if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
+          
+          const decoded = jwt.verify(token, secretKey);
+          const userId = decoded.id;
+          
+          // Récupérer la photo actuelle
+          const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+          
+          if (rows.length > 0 && rows[0].photo) {
+              const currentPhoto = rows[0].photo;
+              
+              // Ne pas supprimer ano.png qui est l'image par défaut
+              if (currentPhoto !== 'ano.png') {
+                  // Supprimer le fichier physiquement
+                  await storage.deleteProfileImage(currentPhoto);
+              }
+          }
+          
+          // Mettre à jour la base de données (remettre à null ou revenir à l'image par défaut)
+          await db.query("UPDATE agentdata SET photo = NULL WHERE user_id = ?", [userId]);
+          
+          res.json({
+              success: true,
+              message: "Photo de profil supprimée"
+          });
+      } catch (error) {
+          console.error("Erreur lors de la suppression:", error);
+          res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
+      }
+  });
 
     // Lancer le serveur
     app.listen(PORT, () =>

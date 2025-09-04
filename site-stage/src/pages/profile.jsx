@@ -74,6 +74,31 @@ export default function Profile() {
                 }
             }
 
+            const handleDeletePhoto = async () => {
+                if (!confirm("Êtes-vous sûr de vouloir supprimer votre photo de profil?")) return;
+                
+                try {
+                    const response = await fetch("http://localhost:5000/delete/profile-photo", {
+                        method: "POST",
+                        credentials: "include"
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        setUserData(prev => ({
+                            ...prev,
+                            photo: null // Retour à la photo par défaut
+                        }));
+                    } else {
+                        alert("Erreur lors de la suppression: " + data.message);
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la suppression:", error);
+                    alert("Erreur lors de la suppression de l'image");
+                }
+            };
+
     return (
         <BasePage title="Profile">
                     <h1>Mon Profil</h1>
@@ -91,64 +116,97 @@ export default function Profile() {
                                 position: "relative"
                             }}>
 
-                                <div style ={{
-                                    position: "relative",
-                                    height: "150px",
-                                    width: "150px",
-                                    borderRadius: "50%",
-                                    overflow: "hidden",
-                                    border: "1px, solid, rgb(51, 35, 143)",
-                                    objectFit: "cover",
-                                }}
+                                <div 
+                                    style={{
+                                        position: "relative",
+                                        height: "150px",
+                                        width: "150px",
+                                        borderRadius: "50%",
+                                        overflow: "hidden",
+                                        border: "3px solid rgb(51, 35, 143)",  // Correction de la syntaxe de bordure
+                                    }}
                                     onMouseEnter={() => setIsHoveringPhoto(true)}
                                     onMouseLeave={() => setIsHoveringPhoto(false)}
                                 >
-
-                                    <div style={{
-                                        position: "absolute",
-                                        top: "50%",
-                                        left: "50%",
-                                        transform: "translate(-50%, -50%)",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center"
-                                    }}>
-                                        <img
-                                            src={userData.photo ? `/uploads/profiles/${userData.photo}` : "/ano.png"}
-                                            alt="Photo de profil"
-                                            style={{
-                                                width: "100%",
-                                                height: "100%",
-                                                objectFit: "cover"
-                                            }}
-                                        />
-
-                                        <div style={{
-                                            position: "absolute",
-                                            bottom: "0",
-                                            left: "0",
-                                            right: "0",
-                                            background: "rgba(0, 0, 0, 0.6)",
-                                            padding: "8px",
-                                            textAlign: "center",
-                                            cursor: "pointer",
-                                            opacity: isHoveringPhoto ? 1 : 0,
-                                            transform: isHoveringPhoto ? "translateY(0)" : "translateY(10px)",
-                                            transition: "opacity 0.3s ease, transform 0.3s ease",
+                                    {/* Image directement dans le conteneur parent */}
+                                    <img
+                                        src={userData.photo ? `/uploads/profiles/${userData.photo}` : "/ano.png"}
+                                        alt="Photo de profil"
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover",
+                                            position: "absolute",  // Position absolue par rapport au parent
+                                            top: 0,
+                                            left: 0
                                         }}
-                                        onClick={() => document.getElementById("photoUpload").click()}
-                                        >
-                                            <span style={{ color: "white", fontSize: "0.8rem"}}>Modifier</span>
-                                        </div>
+                                    />
 
-                                        <input
-                                            type="file"
-                                            id="photoUpload"
-                                            style={{ display: "none" }}
-                                            accept="image/*"
-                                            onChange={handlePhotoChange}
-                                        />
-                                    </div>
+                                    {/* Overlay pour les boutons - couvre toute l'image avec effet de survol */}
+<div style={{
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: "rgba(0, 0, 0, 0.7)", // Fond plus foncé sur toute l'image
+    display: "flex",
+    alignItems: "center", // Centre verticalement
+    justifyContent: "center", // Centre horizontalement
+    opacity: isHoveringPhoto ? 1 : 0,
+    transition: "opacity 0.3s ease",
+}}>
+    <div style={{ 
+        display: "flex", 
+        flexDirection: "column", // Empile les boutons verticalement
+        gap: "10px", // Espace entre les boutons
+        width: "80%" // Limite la largeur des boutons
+    }}>
+        <button 
+            style={{ 
+                color: "white", 
+                fontSize: "14px",
+                cursor: "pointer", 
+                padding: "10px", 
+                background: "rgba(59, 130, 246, 0.8)", // Bleu plus visible
+                border: "none",
+                borderRadius: "5px",
+                fontWeight: "bold",
+                width: "100%"
+            }}
+            onClick={() => document.getElementById("photoUpload").click()}
+        >
+            Changer
+        </button>
+        {userData.photo && userData.photo !== "ano.png" && (
+            <button 
+                style={{ 
+                    color: "white", 
+                    fontSize: "14px",
+                    cursor: "pointer", 
+                    padding: "10px",
+                    background: "rgba(239, 68, 68, 0.8)", // Rouge plus visible
+                    border: "none",
+                    borderRadius: "5px",
+                    fontWeight: "bold",
+                    width: "100%"
+                }}
+                onClick={handleDeletePhoto}
+            >
+                Supprimer
+            </button>
+        )}
+    </div>
+</div>
+
+                                    <input
+                                        type="file"
+                                        id="photoUpload"
+                                        style={{ display: "none" }}
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                    />
+                                </div>
 
                                 </div>
 
@@ -158,8 +216,6 @@ export default function Profile() {
                                 }}>
                                     <p>Bienvenue {userData.nom} {userData.prenom} !</p>
                                 </div>
-
-                            </div>
 
                             <TabGroup 
                                 tabs={tabs} 
