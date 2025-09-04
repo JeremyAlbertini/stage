@@ -244,14 +244,14 @@ async function startServer() {
               const currentPhoto = rows[0].photo;
               
               // Ne pas supprimer ano.png qui est l'image par défaut
-              if (currentPhoto !== 'ano.png') {
+              if (currentPhoto !== 'ano.jpg') {
                   // Supprimer le fichier physiquement
                   await storage.deleteProfileImage(currentPhoto);
               }
           }
           
           // IMPORTANT: Modifier cette ligne - utiliser 'ano.png' au lieu de NULL
-          await db.query("UPDATE agentdata SET photo = 'ano.png' WHERE user_id = ?", [userId]);
+          await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
           
           res.json({
               success: true,

@@ -88,7 +88,7 @@ export default function Profile() {
                     if (data.success) {
                         setUserData(prev => ({
                             ...prev,
-                            photo: "ano.png" // Utiliser explicitement "ano.png" au lieu de null
+                            photo: "ano.jpg" // Utiliser explicitement "ano.png" au lieu de null
                         }));
                     } else {
                         alert("Erreur lors de la suppression: " + data.message);
@@ -123,81 +123,82 @@ export default function Profile() {
                                         width: "150px",
                                         borderRadius: "50%",
                                         overflow: "hidden",
-                                        border: "3px solid rgb(51, 35, 143)",  // Correction de la syntaxe de bordure
+                                        border: "3px solid rgb(51, 35, 143)",
                                     }}
                                     onMouseEnter={() => setIsHoveringPhoto(true)}
                                     onMouseLeave={() => setIsHoveringPhoto(false)}
                                 >
-                                    {/* Image directement dans le conteneur parent */}
-                                    <img
-                                        src={userData.photo ? `/uploads/profiles/${userData.photo}` : "/ano.png"}
-                                        alt="Photo de profil"
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            objectFit: "cover",
-                                            position: "absolute",  // Position absolue par rapport au parent
-                                            top: 0,
-                                            left: 0
-                                        }}
-                                    />
 
-                                    {/* Overlay pour les boutons - couvre toute l'image avec effet de survol */}
-<div style={{
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    background: "rgba(0, 0, 0, 0.7)", // Fond plus foncé sur toute l'image
-    display: "flex",
-    alignItems: "center", // Centre verticalement
-    justifyContent: "center", // Centre horizontalement
-    opacity: isHoveringPhoto ? 1 : 0,
-    transition: "opacity 0.3s ease",
-}}>
-    <div style={{ 
-        display: "flex", 
-        flexDirection: "column", // Empile les boutons verticalement
-        gap: "10px", // Espace entre les boutons
-        width: "80%" // Limite la largeur des boutons
-    }}>
-        <button 
-            style={{ 
-                color: "white", 
-                fontSize: "14px",
-                cursor: "pointer", 
-                padding: "10px", 
-                background: "rgba(59, 130, 246, 0.8)", // Bleu plus visible
-                border: "none",
-                borderRadius: "5px",
-                fontWeight: "bold",
-                width: "100%"
-            }}
-            onClick={() => document.getElementById("photoUpload").click()}
-        >
-            Changer
-        </button>
-        {userData.photo && userData.photo !== "ano.png" && (
-            <button 
-                style={{ 
-                    color: "white", 
-                    fontSize: "14px",
-                    cursor: "pointer", 
-                    padding: "10px",
-                    background: "rgba(239, 68, 68, 0.8)", // Rouge plus visible
-                    border: "none",
-                    borderRadius: "5px",
-                    fontWeight: "bold",
-                    width: "100%"
-                }}
-                onClick={handleDeletePhoto}
-            >
-                Supprimer
-            </button>
-        )}
-    </div>
-</div>
+                                <img
+                                    src={userData.photo && userData.photo !== "ano.jpg" 
+                                        ? `/uploads/profiles/${userData.photo}` 
+                                        : "/ano.jpg"}
+                                    alt="Photo de profil"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0
+                                    }}
+                                />
+
+                                    <div style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        background: "rgba(0, 0, 0, 0.7)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        opacity: isHoveringPhoto ? 1 : 0,
+                                        transition: "opacity 0.3s ease",
+                                    }}>
+                                        <div style={{ 
+                                            display: "flex", 
+                                            flexDirection: "column",
+                                            gap: "10px",
+                                            width: "80%"
+                                        }}>
+                                            <button 
+                                                style={{ 
+                                                    color: "white", 
+                                                    fontSize: "14px",
+                                                    cursor: "pointer", 
+                                                    padding: "10px", 
+                                                    background: "rgba(59, 130, 246, 0.8)", // Bleu plus visible
+                                                    border: "none",
+                                                    borderRadius: "5px",
+                                                    fontWeight: "bold",
+                                                    width: "100%"
+                                                }}
+                                                onClick={() => document.getElementById("photoUpload").click()}
+                                            >
+                                                Changer
+                                            </button>
+                                            {userData.photo && userData.photo !== "ano.jpg" && (
+                                                <button 
+                                                    style={{ 
+                                                        color: "white", 
+                                                        fontSize: "14px",
+                                                        cursor: "pointer", 
+                                                        padding: "10px",
+                                                        background: "rgba(239, 68, 68, 0.8)", // Rouge plus visible
+                                                        border: "none",
+                                                        borderRadius: "5px",
+                                                        fontWeight: "bold",
+                                                        width: "100%"
+                                                    }}
+                                                    onClick={handleDeletePhoto}
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
 
                                     <input
                                         type="file"
