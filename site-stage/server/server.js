@@ -116,10 +116,8 @@ async function startServer() {
 
 
         if (match) {
-          // Générer JWT
           const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
       
-          // Définir le cookie
           res.cookie("token", token, {
             httpOnly: true,
             secure: false,
@@ -127,7 +125,6 @@ async function startServer() {
             maxAge: 60 * 60 * 1000
           });
       
-          // UNE SEULE réponse qui contient à la fois les infos utilisateur et le message de succès
           return res.json({
             success: true,
             message: "Connexion réussie",
@@ -143,9 +140,7 @@ async function startServer() {
         } else {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
-        // Supprimer tout code après ce point
       } catch (err) {
-      // Gérer l'erreur
       console.error("Erreur de login:", err);
       return res.status(500).json({ 
         success: false, 
@@ -206,17 +201,25 @@ async function startServer() {
       try {
         const token = req.cookies.token;
         if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
-
+    
         if (!req.file) {
           return res.status(400).json({ success: false, message: "Aucune photo fournie" });
         }
-
+    
         const decoded = jwt.verify(token, secretKey);
         const userId = decoded.id;
+        
+        const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+        const oldPhoto = rows.length > 0 ? rows[0].photo : null;
         
         const filename = await storage.saveProfileImage(userId, req.file);
         
         await db.query("UPDATE agentdata SET photo = ? WHERE user_id = ?", [filename, userId]);
+        
+        if (oldPhoto && oldPhoto !== 'ano.jpg') {
+          await storage.deleteProfileImage(oldPhoto);
+          console.log(`Ancienne photo supprimée: ${oldPhoto}`);
+        }
         
         res.json({ 
           success: true, 
@@ -237,20 +240,16 @@ async function startServer() {
           const decoded = jwt.verify(token, secretKey);
           const userId = decoded.id;
           
-          // Récupérer la photo actuelle
           const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
           
           if (rows.length > 0 && rows[0].photo) {
               const currentPhoto = rows[0].photo;
               
-              // Ne pas supprimer ano.png qui est l'image par défaut
               if (currentPhoto !== 'ano.jpg') {
-                  // Supprimer le fichier physiquement
                   await storage.deleteProfileImage(currentPhoto);
               }
           }
           
-          // IMPORTANT: Modifier cette ligne - utiliser 'ano.png' au lieu de NULL
           await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
           
           res.json({
