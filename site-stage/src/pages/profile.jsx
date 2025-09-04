@@ -48,7 +48,7 @@ export default function Profile() {
             if (!e.target.files || e.target.files.length === 0) return;
 
             const file = e.target.files[0];
-            const formData = new formData();
+            const formData = new FormData();
             formData.append("photo", file);
 
             try {
@@ -114,7 +114,7 @@ export default function Profile() {
                                         alignItems: "center"
                                     }}>
                                         <img
-                                            src={userData.photo ? `/uploads/profiles/${userData.photo}` : "/default-avatar.png"}
+                                            src={userData.photo ? `/uploads/profiles/${userData.photo}` : "/ano.png"}
                                             alt="Photo de profil"
                                             style={{
                                                 width: "100%",
