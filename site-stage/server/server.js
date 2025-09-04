@@ -4,6 +4,10 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const storage = require('./services/storage');
+const multer = require("multer");
+const upload = multer({ dest: "tmp/uploads/" });
+const path = require('path');
 
 const PORT = 5000;
 const app = express();
@@ -13,6 +17,7 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
+app.use(express.static(path.join(__dirname, '../public')));
 
 const secretKey = "ifsuydgyufogifeglfueroiuhmugve";
 
@@ -111,10 +116,8 @@ async function startServer() {
 
 
         if (match) {
-          // Générer JWT
           const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
       
-          // Définir le cookie
           res.cookie("token", token, {
             httpOnly: true,
             secure: false,
@@ -122,7 +125,6 @@ async function startServer() {
             maxAge: 60 * 60 * 1000
           });
       
-          // UNE SEULE réponse qui contient à la fois les infos utilisateur et le message de succès
           return res.json({
             success: true,
             message: "Connexion réussie",
@@ -138,9 +140,7 @@ async function startServer() {
         } else {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
-        // Supprimer tout code après ce point
       } catch (err) {
-      // Gérer l'erreur
       console.error("Erreur de login:", err);
       return res.status(500).json({ 
         success: false, 
@@ -194,6 +194,71 @@ async function startServer() {
       } catch (err) {
         console.error(err);
         res.status(401).json({ success: false, message: "Token invalide" });
+      }
+    });
+
+    app.post('/upload/profile', upload.single('photo'), async (req, res) => {
+      try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
+    
+        if (!req.file) {
+          return res.status(400).json({ success: false, message: "Aucune photo fournie" });
+        }
+    
+        const decoded = jwt.verify(token, secretKey);
+        const userId = decoded.id;
+        
+        const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+        const oldPhoto = rows.length > 0 ? rows[0].photo : null;
+        
+        const filename = await storage.saveProfileImage(userId, req.file);
+        
+        await db.query("UPDATE agentdata SET photo = ? WHERE user_id = ?", [filename, userId]);
+        
+        if (oldPhoto && oldPhoto !== 'ano.jpg') {
+          await storage.deleteProfileImage(oldPhoto);
+          console.log(`Ancienne photo supprimée: ${oldPhoto}`);
+        }
+        
+        res.json({ 
+          success: true, 
+          message: "Photo de profil mise à jour", 
+          imageUrl: storage.getImageUrl(filename)
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'upload:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de l'upload" });
+      }
+    });
+
+    app.post('/delete/profile-photo', async (req, res) => {
+      try {
+          const token = req.cookies.token;
+          if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
+          
+          const decoded = jwt.verify(token, secretKey);
+          const userId = decoded.id;
+          
+          const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+          
+          if (rows.length > 0 && rows[0].photo) {
+              const currentPhoto = rows[0].photo;
+              
+              if (currentPhoto !== 'ano.jpg') {
+                  await storage.deleteProfileImage(currentPhoto);
+              }
+          }
+          
+          await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
+          
+          res.json({
+              success: true,
+              message: "Photo de profil supprimée"
+          });
+      } catch (error) {
+          console.error("Erreur lors de la suppression:", error);
+          res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
       }
     });
 
