@@ -175,6 +175,28 @@ async function startServer() {
       res.json({ success: true, message: "Déconnecté" });
     });
 
+    app.get("/agent/profile", async (req, res) => {
+      const token = req.cookies.token;
+      if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
+
+      try {
+        const decoded = jwt.verify(token, secretKey);
+        const [rows] = await db.query(
+          "SELECT * FROM agentdata WHERE user_id = ?",
+          [decoded.id]
+        );
+
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Profil non trouvé" });
+        }
+
+        res.json({ success: true, agentData: rows[0] });
+      } catch (err) {
+        console.error(err);
+        res.status(401).json({ success: false, message: "Token invalide" });
+      }
+    });
+
     // Lancer le serveur
     app.listen(PORT, () =>
       console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)
