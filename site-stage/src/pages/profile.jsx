@@ -7,6 +7,11 @@ import { useEffect, useState } from "react";
 export default function Profile() {
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");
+    const tabs = [
+        { id: "infos", label: "Informations personnelles" },
+        { id: "documents", label: "Documents" },
+        {id: "certificats", label: "Certificats" }
+    ];
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -98,40 +103,24 @@ export default function Profile() {
 
                             </div>
 
-                            <div style={{
-                                display: "flex",
-                                borderBottom: "1px solid #ddd",
-                                marginBottom: "1.5rem",
-                                width: "100%"
-                            }}>
+                            <TabGroup 
+                                tabs={tabs} 
+                                activeTab={activeTab} 
+                                onTabChange={setActiveTab} 
+                            />
 
-                                <div
-                                    onClick={() => setActiveTab("Informations personnelles")}
-                                    style={{
-                                        padding: "1rem 2rem",
-                                        cursor: "pointer",
-                                        borderBottom: activeTab === "Informations personnelles" ? "3px solid #4A25AA" : "none",
-                                        color: activeTab === "Informations personnelles" ? "#4A25AA" : "#666",
-                                        fontWeight: activeTab === "Informations personnelles" ? "bold" : "normal",
-                                        transition: "all 0.2s"
-                                    }}
-                                >
-                                    Informations personnelles
-                                </div>
-                            </div>
-
-                            <div className="admin-card">
+                            <TabContent id="infos" activeTab={activeTab}>
                                 <h2 className="admin-subtitle">Informations personnelles</h2>
                                 <p>Matricule: {userData.matricule}</p>
                                 <p>Nom: {userData.nom || "Non renseigné"}</p>
                                 <p>Prénom: {userData.prenom || "Non renseigné"}</p>
                                 <p>Email: {userData.mail_pro || userData.mail_perso || "Non renseigné"}</p>
                                 <p>Rôle: {userData.is_admin ? "Administrateur" : "Utilisateur"}</p>
-                                
+
                                 <h2 className="admin-subtitle" style={{marginTop: "1.5rem"}}>Coordonnées</h2>
                                 <p>Téléphone: {userData.tel_pro || userData.tel_perso || "Non renseigné"}</p>
                                 <p>Adresse: {userData.adresse ? `${userData.adresse}, ${userData.adresse_code} ${userData.adresse_ville}` : "Non renseignée"}</p>
-                                
+
                                 {userData.is_admin && (
                                     <div style={{marginTop: "1.5rem"}}>
                                         <h2 className="admin-subtitle">Administration</h2>
@@ -143,7 +132,17 @@ export default function Profile() {
                                         </button>
                                     </div>
                                 )}
-                            </div>
+                            </TabContent>
+
+                            <TabContent id="documents" activeTab={activeTab}>
+                                <h2 className="admin-subtitle">Mes documents</h2>
+                                <p>Aucun document disponible pour le moment.</p>
+                            </TabContent>
+
+                            <TabContent id="certificats" activeTab={activeTab}>
+                                <h2 className="admin-subtitle">Mes certificats</h2>
+                                <p>Aucun certificat disponible pour le moment.</p>
+                            </TabContent>
                         </>
                     ) : (
                         <p>Chargement des données...</p>
