@@ -48,7 +48,7 @@ export default function Header({ title, backgroundColor = "white" }) {
         >
           <span>Mon Compte</span>
           <img 
-            src="public/ano.jpg" 
+            src="/ano.jpg" 
             alt="Avatar" 
             className="avatar"
             style={{
