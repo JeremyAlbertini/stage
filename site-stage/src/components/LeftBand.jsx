@@ -1,33 +1,8 @@
 import { NavLink } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext"; // Ajustez le chemin selon votre structure
 
 export default function LeftBand() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/me", {
-          credentials: "include",
-        });
-        const data = await response.json();
-
-        if (data.loggedIn && data.user.isAdmin) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-      } catch (err) {
-        console.error("Erreur lors de la récupération de l'utilisateur :", err);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <nav style={{ padding: "1rem" }}>Chargement...</nav>;
@@ -36,7 +11,6 @@ export default function LeftBand() {
   const items = [
     { name: "Accueil", path: "/" },
     { name: "Utilisateurs", path: "/users" },
-    ...(isAdmin ? [{ name: "Administration", path: "/admin" }] : []),
     { name: "Paramètres", path: "/settings" },
   ];
 
