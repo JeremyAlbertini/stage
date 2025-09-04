@@ -41,84 +41,55 @@ async function startServer() {
     
     // Endpoint pour créer un utilisateur
     app.post("/users/create", async (req, res) => {
-      const { matricule, password, isAdmin } = req.body;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-    
-      if (!matricule || !password) {
-        return res.status(400).json({
-          success: false,
-          message: "Le matricule et le mot de passe sont requis."
-        });
-      }
-    
-      try {
-        await db.beginTransaction();
-
-        const [loginResult] = await db.query(
-          "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
-          [matricule, hashedPassword],
-        );
-    
-        const userId = loginResult.insertId;
-
-        await db.query(
-          `INSERT INTO agentdata (
-            matricule, nom, prenom, civilite, date_naiss, lieu_naiss, 
-            dpt_naiss, pays_naiss, photo, adresse, adresse_code, adresse_ville, 
-            tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro, 
-            mail_pro, user_id, is_admin
-          ) VALUES (
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-          )`,
-          [
-            matricule,                          // matricule
-            matricule,                          // nom
-            "",                                 // prenom
-            "Monsieur",                         // civilite
-            "1990-01-01",                       // date_naiss
-            "Ville",                            // lieu_naiss
-            "06",                               // dpt_naiss
-            "France",                           // pays_naiss
-            "ano.jpg",                          // photo
-            "1 rue exemple",                    // adresse
-            "06000",                            // adresse_code
-            "Nice",                             // adresse_ville
-            "0600000000",                       // tel_perso
-            matricule + "@perso.com",           // mail_perso
-            "Actif",                            // statut
-            "Agent",                            // grade
-            "Animateur",                        // poste (valeur de l'enum)
-            "0400000000",                       // tel_fixe
-            "0700000000",                       // tel_pro
-            matricule + "@pro.com",             // mail_pro
-            userId,                             // user_id
-            isAdmin ? 1 : 0                     // is_admin
-          ]
-        );
-
-        await db.commit();
-
-        res.status(201).json({
-          success: true,
-          message: "Compte créé avec succès.",
-          userId: loginResult.insertId
-        });
-      } catch (err) {
-        await db.rollback();
-        console.error(err);
-        if (err.code === 'ER_DUP_ENTRY') {
-          return res.status(400).json({
-            success: false,
-            message: "Ce matricule existe déjà"
-          });
+        const {
+            matricule, password, isAdmin,
+            nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
+            adresse, adresse_code, adresse_ville,
+            tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro, mail_pro
+        } = req.body;
+      
+        if (!matricule || !password) {
+            return res.status(400).json({ success: false, message: "Le matricule et le mot de passe sont requis." });
         }
-    
-        res.status(500).json({
-          success: false,
-          message: "Erreur lors de la création de compte"
-        });
-      }
+      
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+      
+        try {
+            await db.beginTransaction();
+        
+            const [loginResult] = await db.query(
+                "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
+                [matricule, hashedPassword]
+            );
+          
+            const userId = loginResult.insertId;
+          
+            await db.query(
+                `INSERT INTO agentdata (
+                    matricule, nom, prenom, civilite, date_naiss, lieu_naiss,
+                    dpt_naiss, pays_naiss, photo, adresse, adresse_code, adresse_ville,
+                    tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro,
+                    mail_pro, user_id, is_admin
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    matricule, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
+                    "ano.jpg", adresse, adresse_code, adresse_ville, tel_perso, mail_perso,
+                    statut, grade, poste, tel_fixe, tel_pro, mail_pro, userId, isAdmin ? 1 : 0
+                ]
+            );
+          
+            await db.commit();
+          
+            res.status(201).json({ success: true, message: "Compte créé avec succès.", userId });
+        } catch (err) {
+            await db.rollback();
+            console.error(err);
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ success: false, message: "Ce matricule existe déjà" });
+            }
+            res.status(500).json({ success: false, message: "Erreur lors de la création de compte" });
+        }
     });
 
     app.post("/login", async (req, res) => {
