@@ -19,7 +19,7 @@ export default function LeftBand() {
       style={{
         display: "flex",
         flexDirection: "column",
-        width: "22%",
+        width: "18%",
         gap: "1rem",
         padding: "1rem",
         backgroundColor: "#f0f0f0",
