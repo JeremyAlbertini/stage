@@ -25,6 +25,8 @@ function CreateUser({ onUserCreated }) {
     const [telFixe, setTelFixe] = useState("");
     const [telPro, setTelPro] = useState("");
     const [mailPro, setMailPro] = useState("");
+    const [adressePro, setAdressePro] = useState("");
+    const [stage, setStage] = useState("");
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
@@ -47,7 +49,9 @@ function CreateUser({ onUserCreated }) {
             statut, grade, poste,
             tel_fixe: telFixe,
             tel_pro: telPro,
-            mail_pro: mailPro
+            mail_pro: mailPro,
+            adresse_pro: adressePro,
+            stage: stage
         };
 
         try {
@@ -154,10 +158,7 @@ function CreateUser({ onUserCreated }) {
                     <label>Grade :</label>
                     <input type="text" value={grade} onChange={(e) => setGrade(e.target.value)} />
                 </div>
-                <div className="form-group">
-                    <label>Poste :</label>
-                    <input type="text" value={poste} onChange={(e) => setPoste(e.target.value)} />
-                </div>
+
                 <div className="form-group">
                     <label>Téléphone fixe :</label>
                     <input type="text" value={telFixe} onChange={(e) => setTelFixe(e.target.value)} />
@@ -170,7 +171,42 @@ function CreateUser({ onUserCreated }) {
                     <label>Email pro :</label>
                     <input type="email" value={mailPro} onChange={(e) => setMailPro(e.target.value)} />
                 </div>
+                <div className="form-group">
+                    <label>Poste :</label>
+                    <select value={poste} onChange={(e) => setPoste(e.target.value)}>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Chef de Service">Chef de Service</option>
+                        <option value="Direction">Direction</option>
+                        <option value="Coordinateur">Coordinateur</option>
+                        <option value="Directeur">Directeur</option>
+                        <option value="Adjoint de Direction">Adjoint de Direction</option>
+                        <option value="Animateur">Animateur</option>
+                    </select>
+                </div>
 
+                <div className="form-group">
+                    <label>Adresse professionnelle :</label>
+                    <select value={adressePro} onChange={(e) => setAdressePro(e.target.value)}>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Néo">Néo</option>
+                        <option value="Impé">Impératrice Eugénie</option>
+                        <option value="Sclos">Sclos de Contes</option>
+                        <option value="Auberge">Auberge de Jeunesse Mont Boron</option>
+                    </select>
+                </div>
+
+                <div className="form-group">
+                    <label>Stage :</label>
+                    <select value={stage} onChange={(e) => setStage(e.target.value)}>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Terra">Terra'Venture</option>
+                        <option value="Mare">Mare'Ventura</option>
+                        <option value="Boulega">Boulega'Zic</option>
+                        <option value="Nice Chef">Nice Chef</option>
+                        <option value="Découverte">Ados Découverte</option>
+                        <option value="Ski">Samedi Ski</option>
+                    </select>
+                </div>
                 <button type="submit" className="admin-button">
                     Créer le compte
                 </button>
