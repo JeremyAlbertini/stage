@@ -98,12 +98,24 @@ export default function Profile() {
 
                             <div style={{
                                 display: "flex",
-                                height: "50px",
-                                width: "300px",
+                                borderBottom: "1px solid #ddd",
                                 marginBottom: "1.5rem",
-                                marginTop: "1.5rem",
-                                backgroundColor: "rgb(0, 0, 0)",
+                                width: "100%"
                             }}>
+
+                                <div
+                                    onClick={() => setActiveTab("Informations personnelles")}
+                                    style={{
+                                        padding: "1rem 2rem",
+                                        cursor: "pointer",
+                                        borderBottom: activeTab === "Informations personnelles" ? "3px solid #4A25AA" : "none",
+                                        color: activeTab === "Informations personnelles" ? "#4A25AA" : "#666",
+                                        fontWeight: activeTab === "Informations personnelles" ? "bold" : "normal",
+                                        transition: "all 0.2s"
+                                    }}
+                                >
+                                    Informations personnelles
+                                </div>
                             </div>
 
                             <div className="admin-card">
