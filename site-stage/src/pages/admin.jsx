@@ -1,14 +1,14 @@
 import Header from "../components/Header.jsx";
 import { Link, Routes, Route, useNavigate } from "react-router-dom";
 import CreateUser from "../components/create_user.jsx";
-import "../styles/admin.css";
+import LeftBand from "../components/LeftBand.jsx";
+import BasePage from "../components/BasePage.jsx";
 
 export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
 
     return (
-        <div>
-
+        <BasePage title="Administration">
         <div className="back-nav">
             <button
             onClick={() => navigate("/")}
@@ -57,6 +57,6 @@ export default function AdminPage({ users, loadUsers }) {
                 } />
             </Routes>
             </div>
-        </div>
+        </BasePage>
     );
 }

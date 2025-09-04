@@ -13,11 +13,19 @@
     z-index: 1000;
     color: white;
 }
+.avatar {
+    width: 1.8rem;      /* largeur de l’image */
+    height: 1.8rem;     /* hauteur identique pour garder le carré */
+    border-radius: 50%; /* ⚡ rend le carré en cercle */
+    object-fit: cover;  /* ⚡ ajuste l’image pour remplir le cercle sans déformation */
+  }
+  
 
 .main-header h1 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
+    color: blue;
 }
 
   /* CSS pour le Dropdown (si non défini ailleurs) */

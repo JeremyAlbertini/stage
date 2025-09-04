@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../styles/admin.css";
+// import "../styles/admin.css";
 
 function CreateUser({ onUserCreated }) {
     const [matricule, setMatricule] = useState("");
