@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function Profile() {
     const [userData, setUserData] = useState(null);
+    const [activeTab, setActiveTab] = useState("infos");
 
     useEffect(() => {
         const loadUserData = async () => {
@@ -63,6 +64,7 @@ export default function Profile() {
                                     border: "1.5px, solid, rgb(0, 0, 0)",
                                     objectFit: "cover",
                                 }}>
+
                                     <div style={{
                                         position: "absolute",
                                         top: "50%",
@@ -82,6 +84,7 @@ export default function Profile() {
                                             }}
                                         />
                                     </div>
+
                                 </div>
 
                                 <div style={{
@@ -93,7 +96,16 @@ export default function Profile() {
 
                             </div>
 
-                        
+                            <div style={{
+                                display: "flex",
+                                height: "50px",
+                                width: "300px",
+                                marginBottom: "1.5rem",
+                                marginTop: "1.5rem",
+                                backgroundColor: "rgb(0, 0, 0)",
+                            }}>
+                            </div>
+
                             <div className="admin-card">
                                 <h2 className="admin-subtitle">Informations personnelles</h2>
                                 <p>Matricule: {userData.matricule}</p>
