@@ -4,6 +4,9 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const storage = require('./services/storage');
+const multer = require("multer");
+const upload = multer({ dest: "tmp/uploads/" });
 
 const PORT = 5000;
 const app = express();
@@ -194,6 +197,33 @@ async function startServer() {
       } catch (err) {
         console.error(err);
         res.status(401).json({ success: false, message: "Token invalide" });
+      }
+    });
+
+    app.post('/upload/profile', upload.single('photo'), async (req, res) => {
+      try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
+
+        if (!req.file) {
+          return res.status(400).json({ success: false, message: "Aucune photo fournie" });
+        }
+
+        const decoded = jwt.verify(token, secretKey);
+        const userId = decoded.id;
+        
+        const filename = await storage.saveProfileImage(userId, req.file);
+        
+        await db.query("UPDATE agentdata SET photo = ? WHERE user_id = ?", [filename, userId]);
+        
+        res.json({ 
+          success: true, 
+          message: "Photo de profil mise à jour", 
+          imageUrl: storage.getImageUrl(filename)
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'upload:", error);
+        res.status(500).json({ success: false, message: "Erreur lors de l'upload" });
       }
     });
 

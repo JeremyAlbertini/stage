@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 class ImageStorage {
     constructor(type = 'local') {
         this.type = type;
@@ -31,7 +34,7 @@ class ImageStorage {
     }
 
     getImageUrl(filename) {
-        if (!fllename) return null;
+        if (!filename) return null;
 
         if (this.type === 'local') {
             return `/uploads/profiles/${filename}`;
