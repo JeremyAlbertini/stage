@@ -8,7 +8,7 @@ const Tab = ({ label, isActive, onClick}) => {
                 borderBottom: isActive ? "3px solid #4A25AA" : "none",
                 color: isActive ? "4A25AA" : "#666",
                 fontWeight: isActive ? "bold" : "normal",
-                transition: "all 0.2s"
+                transition: "all 0.1s"
             }}
         >
             {label}
