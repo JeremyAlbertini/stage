@@ -8,6 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true); // <-- AJOUT
   const navigate = useNavigate();
 
+  const refreshUserData = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/me", {
+        credentials: "include"
+      });
+      const data = await response.json();
+      if (data.loggedIn) {
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des données:", error);
+    }
+  };
+
   const handleLogout = () => {
     fetch("http://localhost:5000/logout", {
       method: "POST",
@@ -27,7 +41,13 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, handleLogout, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      setUser,
+      handleLogout,
+      loading,
+      refreshUserData
+      }}>
       {children}
     </AuthContext.Provider>
   );
