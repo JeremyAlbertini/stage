@@ -150,18 +150,27 @@ async function startServer() {
   });
 
     // Check current user
-    app.get("/me", (req, res) => {
+    app.get("/me", async (req, res) => {
       const token = req.cookies.token;
       if (!token) return res.status(401).json({ loggedIn: false });
 
       try {
         const decoded = jwt.verify(token, secretKey);
+
+        const [rows] = await db.query(
+          "SELECT photo FROM agentdata WHERE user_id = ?",
+          [decoded.id]
+        );
+
+        const photo = rows.length > 0 ? rows[0].photo : 'ano.jpg';
+
         return res.json({
           loggedIn: true,
           user:{
             id: decoded.id,
             matricule: decoded.matricule,
             isAdmin: decoded.isAdmin,
+            avatar: photo !== 'ano.jpg' ? `/uploads/profiles/${photo}` : '/ano.jpg'
           }
         });
       } catch {
