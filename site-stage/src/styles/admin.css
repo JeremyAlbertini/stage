@@ -1,0 +1,89 @@
+/* Conteneur principal */
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 30px;
+    background-color: #f8fafc; /* gris très clair */
+    min-height: 100vh;
+    border-radius: 12px;
+  }
+  
+  /* Carte de contenu */
+  .admin-card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+  }
+  
+  .admin-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Titres */
+  .admin-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e293b; /* bleu foncé */
+    margin-bottom: 10px;
+  }
+  
+  .admin-subtitle {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 15px;
+  }
+  
+  .admin-text {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 20px;
+  }
+  
+  /* Boutons */
+  .admin-button {
+    background-color: #2563eb; /* bleu */
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  
+  .admin-button:hover {
+    background-color: #1d4ed8;
+    transform: scale(1.02);
+  }
+  
+  .admin-button-secondary {
+    background-color: #e2e8f0; /* gris clair */
+    color: #1e293b;
+  }
+  
+  .admin-button-secondary:hover {
+    background-color: #cbd5e1;
+  }
+  
+  /* Liste utilisateurs */
+  .user-list {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  .user-list li {
+    padding: 10px 14px;
+    background: #f1f5f9;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+  
+  .user-list li:hover {
+    background: #e2e8f0;
+  }
+  
