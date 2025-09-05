@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // Ajustez le chemin selon votre structure
+import { useAuth } from "../context/AuthContext";
+import "../styles/LeftBand.css"; // on importe le fichier CSS
 
 export default function LeftBand() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <nav style={{ padding: "1rem" }}>Chargement...</nav>;
+    return <p>Chargement...</p>;
   }
 
   const items = [
@@ -15,30 +16,14 @@ export default function LeftBand() {
   ];
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "18%",
-        gap: "1rem",
-        padding: "1rem",
-        backgroundColor: "#f0f0f0",
-      }}
-    >
+    <nav className="left-band">
       {items.map((item, index) => (
         <NavLink
           key={index}
           to={item.path}
-          style={({ isActive }) => ({
-            border: "none",
-            cursor: "pointer",
-            textDecoration: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
-            backgroundColor: isActive ? "blue" : "transparent",
-            color: isActive ? "white" : "black",
-            fontWeight: isActive ? "bold" : "normal",
-          })}
+          className={({ isActive }) =>
+            `nav-link ${isActive ? "active" : ""}`
+          }
         >
           {item.name}
         </NavLink>

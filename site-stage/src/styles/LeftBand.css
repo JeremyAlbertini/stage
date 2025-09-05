@@ -1,0 +1,63 @@
+/* ====== Container (taille + background) ====== */
+.left-band {
+    /* largeur de la barre (modifiable) */
+    width: 240px;
+  
+    /* background du container */
+    background-color: #f5f7fb;
+  
+    /* layout + séparation visuelle */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-right: 1px solid #e5e7eb;
+  }
+  
+  /* ====== Liens (style de base que tu avais) ====== */
+  .nav-link {
+    display: block;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  
+    /* padding et arrondi comme ton inline */
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+  
+    /* couleurs de base */
+    background-color: transparent; /* avant: transparent */
+    color: black;                  /* avant: black */
+  
+    /* taille du texte (ajout) */
+    font-size: 1rem; /* ≈16px */
+    font-weight: normal;
+    line-height: 1.4;
+  
+    /* transitions pour le confort */
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.05s ease;
+  }
+  
+  /* Hover (ajout explicite du bg au survol) */
+  .nav-link:hover {
+    background-color: lightgray;
+  }
+  
+  /* Actif (reprend exactement ta logique isActive) */
+  .nav-link.active {
+    background-color: blue; /* avant: blue */
+    color: white;           /* avant: white */
+    font-weight: bold;      /* avant: bold */
+  }
+  
+  /* Accessibilité focus clavier (optionnel mais utile) */
+  .nav-link:focus-visible {
+    outline: 2px solid blue;
+    outline-offset: 2px;
+  }
+  
+  /* (Optionnel) micro feedback au clic */
+  .nav-link:active {
+    transform: scale(0.99);
+  }
+  

@@ -1,12 +1,18 @@
 import { useState } from "react";
-// import "../styles/admin.css";
+import "../styles/CreateUser.css";
+import { useAuth } from "../context/AuthContext";
 
 function CreateUser({ onUserCreated }) {
+    const { user } = useAuth();
+
+    if (!user || !user.isAdmin) {
+        return <p>Vous n'avez pas la permission de créer un compte.</p>;
+    }
+
     const [matricule, setMatricule] = useState("");
     const [password, setPassword] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // Agent data fields
     const [nom, setNom] = useState("");
     const [prenom, setPrenom] = useState("");
     const [civilite, setCivilite] = useState("Monsieur");
@@ -38,20 +44,27 @@ function CreateUser({ onUserCreated }) {
             matricule,
             password,
             isAdmin,
-            nom, prenom, civilite,
+            nom,
+            prenom,
+            civilite,
             date_naiss: dateNaiss,
             lieu_naiss: lieuNaiss,
             dpt_naiss: dptNaiss,
             pays_naiss: paysNaiss,
-            adresse, adresse_code: adresseCode, adresse_ville: adresseVille,
+            adresse,
+            adresse_code: adresseCode,
+            adresse_ville: adresseVille,
             tel_perso: telPerso,
             mail_perso: mailPerso,
-            statut, grade, poste,
+            statut,
+            grade,
+            poste,
             tel_fixe: telFixe,
             tel_pro: telPro,
             mail_pro: mailPro,
             adresse_pro: adressePro,
-            stage: stage
+            stage,
+            createdBy: user.matricule,
         };
 
         try {
@@ -73,6 +86,7 @@ function CreateUser({ onUserCreated }) {
             }
         } catch (err) {
             setError("Erreur de connexion au serveur");
+            setMessage("");
         }
     };
 
@@ -93,7 +107,7 @@ function CreateUser({ onUserCreated }) {
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <div className="form-group">
-                    <label>Compte administrateur:</label>
+                    <label>Compte administrateur :</label>
                     <input type="checkbox" checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />
                 </div>
 
@@ -158,7 +172,6 @@ function CreateUser({ onUserCreated }) {
                     <label>Grade :</label>
                     <input type="text" value={grade} onChange={(e) => setGrade(e.target.value)} />
                 </div>
-
                 <div className="form-group">
                     <label>Téléphone fixe :</label>
                     <input type="text" value={telFixe} onChange={(e) => setTelFixe(e.target.value)} />
@@ -183,7 +196,6 @@ function CreateUser({ onUserCreated }) {
                         <option value="Animateur">Animateur</option>
                     </select>
                 </div>
-
                 <div className="form-group">
                     <label>Adresse professionnelle :</label>
                     <select value={adressePro} onChange={(e) => setAdressePro(e.target.value)}>
@@ -194,7 +206,6 @@ function CreateUser({ onUserCreated }) {
                         <option value="Auberge">Auberge de Jeunesse Mont Boron</option>
                     </select>
                 </div>
-
                 <div className="form-group">
                     <label>Stage :</label>
                     <select value={stage} onChange={(e) => setStage(e.target.value)}>
@@ -207,6 +218,7 @@ function CreateUser({ onUserCreated }) {
                         <option value="Ski">Samedi Ski</option>
                     </select>
                 </div>
+
                 <button type="submit" className="admin-button">
                     Créer le compte
                 </button>
