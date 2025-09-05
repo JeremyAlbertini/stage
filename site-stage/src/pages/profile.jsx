@@ -212,14 +212,14 @@ export default function Profile() {
                                         onChange={handlePhotoChange}
                                     />
                                 </div>
-
-                                </div>
-
+                                
                                 <div style={{
                                     marginTop: "1rem",
                                     textAlign: "center"
                                 }}>
                                     <p>Bienvenue {userData.nom} {userData.prenom} !</p>
+                                </div>
+
                                 </div>
 
                             <TabGroup 
