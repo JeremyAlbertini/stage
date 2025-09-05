@@ -37,20 +37,24 @@ function Log() {
   };
 
   return (
-    <div className="log-page">
-      <div className="app-container">
-        {user ? (
-          <>
-            <h1 className="title-log">Bienvenue {user.matricule}</h1>
-            <p>Vous êtes déjà connecté.</p>
-          </>
-        ) : (
-          <>
-            <h1 className="title-log">
-              {page === "login" ? "Connexion" : "Inscription"}
-            </h1>
-
-            {page === "login" && (
+    <div className="login-container">
+      {/* Colonne gauche (1/3) - Formulaire de connexion */}
+      <div className="login-form-column">
+        <div className="login-form-wrapper">
+          <h1 className="login-title">Connexion</h1>
+          {user ? (
+            <div className="login-welcome">
+              <h2>Bienvenue {user.matricule}</h2>
+              <p>Vous êtes déjà connecté.</p>
+              <button 
+                onClick={() => navigate("/")} 
+                className="btn-primary"
+              >
+                Accéder à l'application
+              </button>
+            </div>
+          ) : (
+            <>
               <form onSubmit={handleLoginSubmit} className="auth-form">
                 <input
                   type="text"
@@ -72,11 +76,17 @@ function Log() {
                   Se connecter
                 </button>
               </form>
-            )}
+              {message && <p className="message">{message}</p>}
+            </>
+          )}
+        </div>
+      </div>
 
-            {message && <p className="message">{message}</p>}
-          </>
-        )}
+      {/* Colonne droite (2/3) - Fond animé */}
+      <div className="login-background-column">
+        <div className="login-overlay">
+          <h2 className="login-quote">Bienvenue sur l'application de gestion des agents</h2>
+        </div>
       </div>
     </div>
   );
