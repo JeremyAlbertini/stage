@@ -38,3 +38,71 @@ CREATE TABLE IF NOT EXISTS agentdata (
     is_admin INT,
     FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS contrats (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    matricule VARCHAR(50) NOT NULL,
+    type_contrat ENUM('Vacataire', 'Stage', 'Titulaire', 'Contractuel', 'Stagiaire', 'CDI') NOT NULL,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    duree_contrat INT NOT NULL,
+    ca INT NOT NULL DEFAULT 0,
+    cf INT NOT NULL DEFAULT 0,
+    js INT NOT NULL DEFAULT 0,
+    rca INT NOT NULL DEFAULT 0,
+    heure INT NOT NULL DEFAULT 0,
+    statut ENUM('Actif', 'Inactif') NOT NULL DEFAULT 'Actif',
+    FOREIGN KEY (matricule) REFERENCES agentdata(matricule) ON DELETE CASCADE
+);
+
+DELIMITER $$
+
+CREATE TRIGGER after_insert_contrat
+AFTER INSERT ON contrats
+FOR EACH ROW
+BEGIN
+    IF NEW.statut = 'Actif' THEN
+        UPDATE agentdata
+        SET statut = NEW.type_contrat
+        WHERE matricule = NEW.matricule;
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER after_update_contrat
+AFTER UPDATE ON contrats
+FOR EACH ROW
+BEGIN
+    IF NEW.statut = 'Actif' THEN
+        UPDATE agentdata
+        SET statut = NEW.type_contrat
+        WHERE matricule = NEW.matricule;
+    END IF;
+
+    IF NEW.statut = 'Inactif' AND OLD.statut = 'Actif' THEN
+        IF (SELECT COUNT(*) FROM contrats WHERE matricule = NEW.matricule AND statut = 'Actif') = 0 THEN
+            UPDATE agentdata
+            SET statut = 'Sans contrat actif'
+            WHERE matricule = NEW.matricule;
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+CREATE TABLE IF NOT EXISTS conges (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    matricule VARCHAR(50) NOT NULL,
+    type_conge ENUM('CA', 'CF', 'JS', 'RCA', 'CET', 'Congé Exceptionnel', 'Congé Enant Malade') NOT NULL,
+    commentaire TEXT,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    duree INT NOT NULL,
+    statut ENUM('En Attente', 'Approuvé', 'Rejeté') NOT NULL DEFAULT 'En Attente',
+    date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (matricule) REFERENCES agentdata(matricule) ON DELETE CASCADE
+);

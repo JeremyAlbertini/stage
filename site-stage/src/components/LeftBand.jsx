@@ -11,7 +11,10 @@ export default function LeftBand() {
   const items = [
     { name: "Accueil", path: "/" },
     { name: "Utilisateurs", path: "/users" },
-    { name: "Paramètres", path: "/settings" },
+    { name: "Calendrier", path: "/calendar" },
+    { name: "Mes Congés", path: "/conges" },
+    { name: "Fiches Horaires", path: "/horaire" },
+    { name: "Mes Contrats", path: "/contrat" },
   ];
 
   return (
