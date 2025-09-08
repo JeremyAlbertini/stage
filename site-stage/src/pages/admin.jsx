@@ -7,14 +7,13 @@ import "../styles/admin.css"
 import TabGroup from "../components/TabGroup.jsx";
 import { useState } from "react";
 import TabContent from "../components/TabContent.jsx";
-import ModifierUser from "../components/modifyUser.jsx";
+import SearchList from "../components/searchList.jsx";
 
 export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("create");
     const tabs = [
         { id: "create", label: "Créer Un Utilisateur" },
-        { id: "change", label: "Modifier Un Utilisateur" },
         { id: "liste", label: "Liste d'utilisateur" }
     ];
 
@@ -32,16 +31,8 @@ export default function AdminPage({ users, loadUsers }) {
                     <TabContent id="create" activeTab={activeTab}>
             <CreateUser onUserCreated={loadUsers} />
         </TabContent>
-        <TabContent id="change" activeTab={activeTab}>
-            <ModifierUser users={users} loadUsers={loadUsers}/>
-        </TabContent>
         <TabContent id="liste" activeTab={activeTab}>
-                        <h2 className="admin-subtitle">Liste des utilisateurs</h2>
-                        <ul className="user-list">
-                        {users.map(user => (
-                        <li key={user.id}>{user.matricule}</li>
-                        ))}
-                    </ul>
+            <SearchList />
         </TabContent>
             </div>
             </div>

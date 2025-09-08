@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound.jsx";
 import Profile from "./pages/profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import { useState, useEffect } from "react";
+import AgentsProfile from "./pages/AgentsProfile.jsx";
 
 export default function AppRoutes() {
   const [users, setUsers] = useState([]);
@@ -43,6 +44,11 @@ export default function AppRoutes() {
       <Route path="/admin/*" element={
         <ProtectedRoute requireAdmin={true}>
           <AdminPage users={users} loadUsers={loadUsers} />
+        </ProtectedRoute>
+      } />
+      <Route path="/agents-profile" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AgentsProfile />
         </ProtectedRoute>
       } />
       <Route path="/login" element={<Log />} />

@@ -262,6 +262,78 @@ async function startServer() {
       }
     });
 
+    app.get("/agents", async (req, res) => {
+      const { page = 1, limit = 20, search = "", civilite = "", poste = "", adresse_pro = "", stage = "" } = req.query;
+      const offset = (page - 1) * limit;
+    
+      try {
+        // Requête principale pour récupérer les agents avec les filtres
+        let query = `SELECT * FROM agentdata WHERE (nom LIKE ? OR prenom LIKE ? OR matricule LIKE ?)`;
+        const params = [`%${search}%`, `%${search}%`, `%${search}%`];
+    
+        if (civilite) {
+          query += ` AND civilite = ?`;
+          params.push(civilite);
+        }
+    
+        if (poste) {
+          query += ` AND poste = ?`;
+          params.push(poste);
+        }
+    
+        if (adresse_pro) {
+          query += ` AND adresse_pro = ?`;
+          params.push(adresse_pro);
+        }
+    
+        if (stage) {
+          query += ` AND stage = ?`;
+          params.push(stage);
+        }
+    
+        query += ` LIMIT ? OFFSET ?`;
+        params.push(parseInt(limit), parseInt(offset));
+    
+        const [rows] = await db.query(query, params);
+    
+        // Requête pour calculer le total des agents avec les mêmes filtres
+        let countQuery = `SELECT COUNT(*) as total FROM agentdata WHERE (nom LIKE ? OR prenom LIKE ? OR matricule LIKE ?)`;
+        const countParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+    
+        if (civilite) {
+          countQuery += ` AND civilite = ?`;
+          countParams.push(civilite);
+        }
+    
+        if (poste) {
+          countQuery += ` AND poste = ?`;
+          countParams.push(poste);
+        }
+    
+        if (adresse_pro) {
+          countQuery += ` AND adresse_pro = ?`;
+          countParams.push(adresse_pro);
+        }
+    
+        if (stage) {
+          countQuery += ` AND stage = ?`;
+          countParams.push(stage);
+        }
+    
+        const [[{ total }]] = await db.query(countQuery, countParams);
+    
+        res.json({
+          data: rows,
+          total,
+          page: parseInt(page),
+          totalPages: Math.ceil(total / limit),
+        });
+      } catch (err) {
+        console.error("Erreur lors de la récupération des agents:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
     // Lancer le serveur
     app.listen(PORT, () =>
       console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)
