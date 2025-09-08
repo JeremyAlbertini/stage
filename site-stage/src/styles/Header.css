@@ -1,82 +1,127 @@
-/* Header.css */
+/* Header principal */
 .main-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    height: 60px;
-    width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    color: white;
-}
-
-.main-header h1 {
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative; /* important pour z-index */
+    z-index: 1000; /* forcer devant */
+  }
+  
+  .title-header {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
-}
-
-  /* CSS pour le Dropdown (si non défini ailleurs) */
-.dropdown-container {
+    color: #007bff;
+  }
+  
+  .loading {
+    padding: 0.75rem 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+  
+  /* Menu utilisateur */
+  .user-menu {
     position: relative;
-}
-
-.dropdown-container > div > .app-button {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    font-weight: 500;
-}
-
-.dropdown-container > div > .app-button:hover {
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background-color: #3d3d3d;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 180px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    margin-top: 8px;
-}
-
-.dropdown-menu .app-button {
-    color: #444; /* Gris foncé pour le texte */
-    background-color: transparent;
-    text-align: left;
-    padding: 12px 16px;
-    border-radius: 0;
-    width: 100%;
-    transition: background-color 0.2s;
-}
-
-  /* CSS pour les boutons (si non défini ailleurs) */
-.app-button {
-    background-color: rgba(117, 49, 49, 0.2);
-    color: white;
-    border: none;
-    padding: 8px 16px;
+    align-items: flex-start;
+  }
+  
+  .user-menu-button {
+    width: 150px;
+    max-height: 40px;
+    padding: 0.75rem 1rem;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
-
-.app-button:hover {
-    background-color: rgba(235, 37, 37, 0.3);
-}
-
-.dropdown-menu .app-button:hover {
-    background-color: #e0e0e0;
-    color: #222;
-}
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+  }
+  
+  .user-menu-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  }
+  
+  .avatar {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Menu déroulant */
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 150px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1001;
+    margin-top: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Item de menu */
+  .menu-item {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  
+  .menu-item:first-child {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+  }
+  
+  .menu-item:last-child {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+  
+  .menu-item span:first-child {
+    font-size: 1rem;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main-header {
+      padding: 0.8rem 1rem;
+    }
+    
+    .title-header {
+      font-size: 1.25rem;
+    }
+    
+    .user-menu-button {
+      width: 120px;
+      padding: 0.6rem 0.8rem;
+    }
+    
+    .dropdown-menu {
+      width: 120px;
+    }
+  }

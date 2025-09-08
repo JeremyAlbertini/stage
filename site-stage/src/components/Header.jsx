@@ -1,25 +1,30 @@
-import Button from './Button';
-import Dropdown from './Dropdown';
 import '../styles/Header.css';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
+import UserMenu from './UserMenu';
 
-export default function Header({ title, backgroundColor }) {
-  const navigate = useNavigate();
-  
+export default function Header({ 
+  title, 
+  backgroundColor = "white",
+  userMenuItems = []
+}) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <header className="main-header" style={{ backgroundColor }}>
+        <h1 className="title-header">{title}</h1>
+        <div className="loading">Chargement...</div>
+      </header>
+    );
+  }
+
   return (
     <header className="main-header" style={{ backgroundColor }}>
-      <h1>{title}</h1>
+      <h1 className="title-header">{title}</h1>
       
-      <Dropdown 
-        trigger={<Button>Mon Compte</Button>}
-      >
-        <Button onClick={() => navigate('/profile'
-        )}>Mon Compte</Button>
-        <Button onClick={() => { 
-          localStorage.removeItem('user');
-          navigate('/login');
-        }}>Déconnexion</Button>
-      </Dropdown>
+      {user && (
+        <UserMenu userMenuItems={userMenuItems} />
+      )}
     </header>
   );
 }

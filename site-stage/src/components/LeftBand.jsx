@@ -1,10 +1,16 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // Ajustez le chemin selon votre structure
 
-export default function leftBand() {
+export default function LeftBand() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <nav style={{ padding: "1rem" }}>Chargement...</nav>;
+  }
+
   const items = [
     { name: "Accueil", path: "/" },
     { name: "Utilisateurs", path: "/users" },
-    { name: "Administration", path: "/admin" },
     { name: "Paramètres", path: "/settings" },
   ];
 
@@ -13,7 +19,7 @@ export default function leftBand() {
       style={{
         display: "flex",
         flexDirection: "column",
-        width: "22%",
+        width: "18%",
         gap: "1rem",
         padding: "1rem",
         backgroundColor: "#f0f0f0",
@@ -29,7 +35,7 @@ export default function leftBand() {
             textDecoration: "none",
             padding: "0.5rem 1rem",
             borderRadius: "6px",
-            backgroundColor: isActive ? "#4CAF50" : "transparent",
+            backgroundColor: isActive ? "blue" : "transparent",
             color: isActive ? "white" : "black",
             fontWeight: isActive ? "bold" : "normal",
           })}
@@ -40,4 +46,3 @@ export default function leftBand() {
     </nav>
   );
 }
-
