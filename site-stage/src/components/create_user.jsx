@@ -199,7 +199,7 @@ function CreateUser({ onUserCreated }) {
                     <label>Stage :</label>
                     <select value={stage} onChange={(e) => setStage(e.target.value)}>
                         <option value="">-- Sélectionner --</option>
-                        <option value="Terra">Terra'Venture</option>
+                        <option value="Terra">Terra'Ventura</option>
                         <option value="Mare">Mare'Ventura</option>
                         <option value="Boulega">Boulega'Zic</option>
                         <option value="Nice Chef">Nice Chef</option>
