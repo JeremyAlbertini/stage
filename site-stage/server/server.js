@@ -97,6 +97,61 @@ async function startServer() {
         }
     });
 
+    app.put("/users/:id", async (req, res) => {
+      const userId = req.params.id;
+      const {
+        matricule, password, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
+        adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
+        adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
+      } = req.body;
+    
+      console.log("Requête reçue pour modifier l'utilisateur :", userId);
+      console.log("Données reçues :", req.body);
+    
+      try {
+        await db.beginTransaction();
+    
+        // Mettre à jour les informations dans la table `logindata`
+        if (password) {
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash(password, salt);
+          console.log("Mise à jour du mot de passe pour l'utilisateur :", userId);
+          await db.query(
+            "UPDATE logindata SET password = ? WHERE id = ?",
+            [hashedPassword, userId]
+          );
+        }
+    
+        // Mettre à jour les informations dans la table `agentdata`
+        const [result] = await db.query(
+          `UPDATE agentdata SET 
+            matricule = ?, nom = ?, prenom = ?, civilite = ?, date_naiss = ?, lieu_naiss = ?, 
+            dpt_naiss = ?, pays_naiss = ?, adresse = ?, adresse_code = ?, adresse_ville = ?, 
+            tel_perso = ?, mail_perso = ?, statut = ?, grade = ?, poste = ?, adresse_pro = ?, 
+            stage = ?, tel_fixe = ?, tel_pro = ?, mail_pro = ?, is_admin = ?
+          WHERE user_id = ?`,
+          [
+            matricule, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
+            adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
+            adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin ? 1 : 0, userId
+          ]
+        );
+    
+        console.log("Résultat de la mise à jour :", result);
+    
+        if (result.affectedRows === 0) {
+          throw new Error("Aucune ligne mise à jour. Vérifiez l'ID de l'utilisateur.");
+        }
+    
+        await db.commit();
+        res.json({ success: true, message: "Utilisateur modifié avec succès." });
+      } catch (err) {
+        await db.rollback();
+        console.error("Erreur lors de la modification de l'utilisateur :", err);
+        res.status(500).json({ success: false, message: "Erreur lors de la modification de l'utilisateur." });
+      }
+    });
+
     app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
     

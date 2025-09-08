@@ -1,5 +1,3 @@
-import Header from "../components/Header";
-import LeftBand from "../components/LeftBand";
 import TabGroup from "../components/TabGroup";
 import TabContent from "../components/TabContent";
 import { useEffect, useState } from "react";
