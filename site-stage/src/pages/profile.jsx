@@ -4,8 +4,10 @@ import TabGroup from "../components/TabGroup";
 import TabContent from "../components/TabContent";
 import { useEffect, useState } from "react";
 import BasePage from "../components/BasePage";
+import { useAuth } from "../context/AuthContext";
 
 export default function Profile() {
+    const { refreshUserData } = useAuth(); 
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");
     const [isHoveringPhoto, setIsHoveringPhoto] = useState(false);
@@ -65,6 +67,7 @@ export default function Profile() {
                         ...prev,
                         photo: data.imageUrl.split("/").pop()
                     }));
+                    await refreshUserData();
                 } else {
                     alert("Erreur lors de l'upload: " + data.message);
                 } 
@@ -90,6 +93,7 @@ export default function Profile() {
                             ...prev,
                             photo: "ano.jpg" // Utiliser explicitement "ano.png" au lieu de null
                         }));
+                        await refreshUserData();
                     } else {
                         alert("Erreur lors de la suppression: " + data.message);
                     }
@@ -208,14 +212,14 @@ export default function Profile() {
                                         onChange={handlePhotoChange}
                                     />
                                 </div>
-
-                                </div>
-
+                                
                                 <div style={{
                                     marginTop: "1rem",
                                     textAlign: "center"
                                 }}>
                                     <p>Bienvenue {userData.nom} {userData.prenom} !</p>
+                                </div>
+
                                 </div>
 
                             <TabGroup 
