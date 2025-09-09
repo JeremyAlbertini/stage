@@ -1,5 +1,5 @@
 import Header from "../components/Header.jsx";
-import { Link, Routes, Route, useNavigate } from "react-router-dom";
+import { Link, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import CreateUser from "../components/create_user.jsx";
 import LeftBand from "../components/LeftBand.jsx";
 import BasePage from "../components/BasePage.jsx";
@@ -11,7 +11,8 @@ import SearchList from "../components/searchList.jsx";
 
 export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState("create");
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.defaultTab || "create");
     const tabs = [
         { id: "create", label: "Créer Un Utilisateur" },
         { id: "liste", label: "Liste d'utilisateur" }
