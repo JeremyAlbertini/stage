@@ -14,7 +14,8 @@ export default function AgentsProfile() {
     const tabs = [
         { id: "Demandes", label: "Demandes" },
         { id: "Informations", label: "Informations" },
-        { id: "Calendrier", label: "Calendrier" }
+        { id: "Calendrier", label: "Calendrier" },
+        { id: "Contrats", label: "Contrats" }
     ];
 
     const updateAgentData = (updatedAgent) => {
@@ -78,6 +79,9 @@ export default function AgentsProfile() {
                 </TabContent>
                 <TabContent id="Calendrier" activeTab={activeTab}>
                     <p>Contenu du calendrier de {agent.nom}</p>
+                </TabContent>
+                <TabContent id="Contrats" activeTab={activeTab}>
+                    <p>Liste des contrats de {agent.nom}</p>
                 </TabContent>
             </>
         </BasePage>

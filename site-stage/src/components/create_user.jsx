@@ -203,7 +203,7 @@ function CreateUser({ onUserCreated }) {
                         <option value="Néo">Néo</option>
                         <option value="Impé">Impératrice Eugénie</option>
                         <option value="Sclos">Sclos de Contes</option>
-                        <option value="Auberge">Auberge de Jeunesse Mont Boron</option>
+                        <option value="Auberge">Auberge de Jeunesse du Mont Boron</option>
                     </select>
                 </div>
                 <div className="form-group">

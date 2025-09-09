@@ -354,7 +354,7 @@ const Calendar = () => {
   };
 
   return (
-    <BasePage title='Calendar'>
+    <BasePage title='Hébésoft'>
         <h1>Calendrier</h1>
         <div className="calendar-page">
             <div className="calendar-container">

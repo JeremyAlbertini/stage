@@ -47,10 +47,9 @@ async function startServer() {
     // Endpoint pour créer un utilisateur
     app.post("/users/create", async (req, res) => {
         const {
-            matricule, password, isAdmin,
-            nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
-            adresse, adresse_code, adresse_ville,
-            tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro, mail_pro
+            matricule, password, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
+          adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
+          adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
         } = req.body;
       
         if (!matricule || !password) {
@@ -74,13 +73,13 @@ async function startServer() {
                 `INSERT INTO agentdata (
                     matricule, nom, prenom, civilite, date_naiss, lieu_naiss,
                     dpt_naiss, pays_naiss, photo, adresse, adresse_code, adresse_ville,
-                    tel_perso, mail_perso, statut, grade, poste, tel_fixe, tel_pro,
-                    mail_pro, user_id, is_admin
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    tel_perso, mail_perso, statut, grade, poste, adresse_pro, stage,
+                    tel_fixe, tel_pro, mail_pro, user_id, is_admin
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     matricule, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
                     "ano.jpg", adresse, adresse_code, adresse_ville, tel_perso, mail_perso,
-                    statut, grade, poste, tel_fixe, tel_pro, mail_pro, userId, isAdmin ? 1 : 0
+                    statut, grade, poste, adresse_pro, stage, tel_fixe, tel_pro, mail_pro, userId, isAdmin ? 1 : 0
                 ]
             );
           

@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home.jsx";
 import Users from "./pages/user.jsx";
 import Calendar from "./pages/calendar.jsx";
+import Conges from "./pages/conges.jsx";
+import Horaire from "./pages/horaire.jsx";
 import Contrat from "./pages/contrat.jsx";
 import Log from "./pages/log.jsx";
 import AdminPage from "./pages/admin.jsx";
@@ -46,6 +48,16 @@ export default function AppRoutes() {
       <Route path="/calendar" element={
         <ProtectedRoute>
           <Calendar />
+        </ProtectedRoute>
+      } />
+      <Route path="/conges" element={
+        <ProtectedRoute>
+          <Conges />
+        </ProtectedRoute>
+      } />
+      <Route path="/horaire" element={
+        <ProtectedRoute>
+          <Horaire />
         </ProtectedRoute>
       } />
       <Route path="/contrat" element={
