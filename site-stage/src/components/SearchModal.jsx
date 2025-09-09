@@ -1,69 +1,139 @@
-import '../styles/Header.css';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
-import UserMenu from './UserMenu';
-import SearchModal from './SearchModal';
-import { useState, useEffect } from 'react';
 
-export default function Header({ 
-  title, 
-  backgroundColor = "white",
-  userMenuItems = []
-}) {
-  const [showSearchModal, setShowSearchModal] = useState(false);
-  const { user, loading } = useAuth();
+export default function SearchModal({ isVisible, onClose }) {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
+  const modalRef = useRef(null);
+  const { user } = useAuth();
 
-  // Ouvrir la modal de recherche
-  const openSearchModal = () => {
-    setShowSearchModal(true);
-  };
+  const searchItems = [
+    { page: "/admin", label: "Création de compte", subtitle: "Administration -> Création de compte", tab: "create", is_admin: true },
+    { page: "/admin", label: "Gestion des agents", subtitle: "Administration -> Gestion des agents", tab: "liste", is_admin: true },
+    { page: "/users", label: "Utilisateurs", subtitle: "Liste des utilisateurs", is_admin: false },
+    { page: "/profile", label: "Mon profil", subtitle: "Voir et modifier mon profil", is_admin: false },
+  ];
 
-  // Fermer la modal de recherche
-  const closeSearchModal = () => {
-    setShowSearchModal(false);
-  };
+  const filteredResults = searchItems.filter(item => {
+    const hasPermission = !item.is_admin || (user && user.isAdmin);
+    if (!hasPermission) return false;
+    if (!searchQuery) return true;
+    return item.label.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
-  // Gérer le raccourci clavier global Ctrl+K / Cmd+K
+  // Focus sur l'input quand la modal s'ouvre
+  useEffect(() => {
+    if (isVisible) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isVisible]);
+
+  // Gérer les clics en dehors de la modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        handleClose();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isVisible]);
+
+  // Gérer les touches du clavier
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-        event.preventDefault();
-        openSearchModal();
+      if (!isVisible) return;
+      
+      if (event.key === 'Escape') {
+        handleClose();
+      }
+      
+      // Navigation avec Enter
+      if (event.key === 'Enter' && filteredResults.length > 0) {
+        handleResultClick(filteredResults[0]);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isVisible, filteredResults]);
 
-  if (loading) {
-    return (
-      <header className="main-header" style={{ backgroundColor }}>
-        <h1 className="title-header">{title}</h1>
-        <div className="loading">Chargement...</div>
-      </header>
-    );
-  }
+  const handleClose = () => {
+    setSearchQuery('');
+    onClose();
+  };
+
+  const handleResultClick = (result) => {
+    if (result.tab) {
+      navigate(result.page, { state: { defaultTab: result.tab } });
+    } else {
+      navigate(result.page);
+    }
+    handleClose();
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  if (!isVisible) return null;
 
   return (
-    <>
-      <header className="main-header" style={{ backgroundColor }}>
-        {/* Groupe titre + loupe */}
-        <div className="header-left">
-          <h1 className="title-header">{title}</h1>
-          <div className="search-trigger" onClick={openSearchModal}>
-            <div className="search-icon">🔍</div>
-          </div>
+    <div className="search-modal-overlay">
+      <div className="search-modal" ref={modalRef}>
+        <div className="search-modal-header">
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search here"
+            className="search-modal-input"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          <button className="search-modal-close" onClick={handleClose}>
+            ✕
+          </button>
         </div>
-  
-        {user && (
-          <UserMenu userMenuItems={userMenuItems} />
-        )}
-      </header>
-  
-      <SearchModal 
-        isVisible={showSearchModal} 
-        onClose={closeSearchModal} 
-      />
-    </>
+        
+        <div className="search-modal-body">
+          {filteredResults.length > 0 ? (
+            filteredResults.map((result, index) => (
+              <div
+                key={index}
+                className="search-modal-item"
+                onClick={() => handleResultClick(result)}
+              >
+                <div className="search-item-content">
+                  <div className="search-item-title">{result.label}</div>
+                  {result.subtitle && (
+                    <div className="search-item-subtitle">{result.subtitle}</div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : searchQuery ? (
+            <div className="search-no-results">
+              Aucun résultat trouvé pour "{searchQuery}"
+            </div>
+          ) : (
+            <div className="search-placeholder">
+              Tapez pour rechercher...
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
