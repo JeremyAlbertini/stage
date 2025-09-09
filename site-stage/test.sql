@@ -106,3 +106,13 @@ CREATE TABLE IF NOT EXISTS conges (
     date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (matricule) REFERENCES agentdata(matricule) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS perms (
+    user_id INT AUTO ICREMENT,
+    change_perms BOOLEAN DEFAULT FALSE,
+    create_account BOOLEAN DEFAULT FALSE,
+    request BOOLEAN DEFAULT FALSE,
+    modify_account BOOLEAN DEFAULT FALSE,
+    all_users BOOLEAN DEFAULT FALSE,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(user_id)
+);

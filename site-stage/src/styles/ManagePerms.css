@@ -1,0 +1,192 @@
+/* Container principal pour la gestion des permissions */
+.manage-perms {
+    padding: 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  
+  /* Titre principal */
+  .admin-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #007bff;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e5e5;
+  }
+  
+  /* Formulaire */
+  .manage-perms form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  /* Container pour chaque permission (maintenant un label) */
+  .perm-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  .perm-checkbox:hover {
+    background-color: #e9ecef;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+  }
+  
+  /* Checkbox personnalisée */
+  .perm-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #007bff;
+    cursor: pointer;
+    transform: scale(1.1);
+  }
+  
+  /* Texte du label */
+  .perm-checkbox span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+  }
+  
+  /* Bouton de sauvegarde */
+  .manage-perms button {
+    padding: 0.875rem 2rem;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    align-self: center;
+    min-width: 160px;
+  }
+  
+  .manage-perms button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+  }
+  
+  .manage-perms button:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  }
+  
+  .manage-perms button:disabled {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* État de chargement */
+  .manage-perms > div {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  /* Animation pour l'état de chargement */
+  .manage-perms > div::before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e5e5;
+    border-top-color: #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .manage-perms {
+      padding: 1.5rem;
+      margin: 1rem;
+      border-radius: 8px;
+    }
+    
+    .admin-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .manage-perms form {
+      gap: 1rem;
+    }
+    
+    .perm-checkbox {
+      padding: 0.75rem;
+      gap: 0.5rem;
+    }
+    
+    .perm-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .perm-checkbox label {
+      font-size: 0.9rem;
+    }
+    
+    .manage-perms button {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      min-width: 140px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .manage-perms {
+      padding: 1rem;
+      margin: 0.5rem;
+    }
+    
+    .admin-title {
+      font-size: 1.25rem;
+    }
+    
+    .perm-checkbox {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      text-align: left;
+    }
+    
+    .perm-checkbox input[type="checkbox"] {
+      align-self: flex-start;
+    }
+  }

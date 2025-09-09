@@ -14,6 +14,10 @@ export default function SearchModal({ isVisible, onClose }) {
     { page: "/admin", label: "Gestion des agents", subtitle: "Administration -> Gestion des agents", tab: "liste", is_admin: true },
     { page: "/users", label: "Utilisateurs", subtitle: "Liste des utilisateurs", is_admin: false },
     { page: "/profile", label: "Mon profil", subtitle: "Voir et modifier mon profil", is_admin: false },
+    {page: "/calendar", label: "Calendrier", subtitle: "Voir le calendrier des interventions", is_admin: false},
+    { page: "/conges", label: "Congés", subtitle: "Voir et gérer les congés", is_admin: false },
+    { page: "/horaires", label: "Horaires", subtitle: "Voir et gérer les horaires", is_admin: false },
+    { page: "/contrat", label: "Contrats", subtitle: "Voir et gérer les contrats", is_admin: false },
   ];
 
   const filteredResults = searchItems.filter(item => {

@@ -4,6 +4,7 @@ import TabContent from "../components/TabContent";
 import TabGroup from "../components/TabGroup";
 import { useState } from "react";
 import ModifyAgents from "../components/modifyAgents";
+import ManagePerms from "../components/managePerms";
 
 export default function AgentsProfile() {
     const location = useLocation();
@@ -14,11 +15,13 @@ export default function AgentsProfile() {
     const tabs = [
         { id: "Demandes", label: "Demandes" },
         { id: "Informations", label: "Informations" },
-        { id: "Calendrier", label: "Calendrier" }
+        { id: "Calendrier", label: "Calendrier" },
+        { id: "Perms", label: "Permission" }
     ];
 
     const updateAgentData = (updatedAgent) => {
-        setAgent(updatedAgent);
+        // Vérifie que updatedAgent existe avant de setAgent
+        if (updatedAgent) setAgent(updatedAgent);
     };
 
     return (
@@ -78,6 +81,9 @@ export default function AgentsProfile() {
                 </TabContent>
                 <TabContent id="Calendrier" activeTab={activeTab}>
                     <p>Contenu du calendrier de {agent.nom}</p>
+                </TabContent>
+                <TabContent id="Perms" activeTab={activeTab}>
+                    <ManagePerms agent={agent} onUpdate={updateAgentData}/>
                 </TabContent>
             </>
         </BasePage>

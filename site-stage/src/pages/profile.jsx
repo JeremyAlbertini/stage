@@ -24,7 +24,7 @@ export default function Profile() {
                 const meData = await meResponse.json();
 
                 if (meData.loggedIn) {
-                    const profileResponse = await fetch("http://localhost:5000/agent/profile", {
+                    const profileResponse = await fetch("http://localhost:5000/perm/profile", {
                         credentials: "include"
                     });
                     const profileData = await profileResponse.json();

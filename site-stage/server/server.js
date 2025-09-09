@@ -239,7 +239,7 @@ async function startServer() {
       res.json({ success: true, message: "Déconnecté" });
     });
 
-    app.get("/agent/profile", async (req, res) => {
+    app.get("/perm/profile", async (req, res) => {
       const token = req.cookies.token;
       if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
 
@@ -394,6 +394,87 @@ async function startServer() {
         });
       } catch (err) {
         console.error("Erreur lors de la récupération des agents:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/perms/:id/:nameofperms", async (req, res) => {
+      const { id, nameofperms } = req.params;
+      const allowedPerms = [
+        "change_perms",
+        "create_account",
+        "request",
+        "modify_account",
+        "all_users"
+      ];
+    
+      if (!allowedPerms.includes(nameofperms)) {
+        return res.status(400).json({ success: false, message: "Permission inconnue" });
+      }
+    
+      try {
+        const [rows] = await db.query(
+          `SELECT ?? FROM perms WHERE user_id = ?`,
+          [nameofperms, id]
+        );
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Utilisateur ou permission non trouvée" });
+        }
+        res.json({ success: true, value: rows[0][nameofperms] });
+      } catch (err) {
+        console.error("Erreur lors de la récupération des permissions:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/perm/:id", async (req, res) => {
+      const userId = req.params.id;
+      try {
+        const [rows] = await db.query(`
+          SELECT 
+            a.*, 
+            l.password, 
+            p.change_perms, p.create_account, p.request, p.modify_account, p.all_users
+          FROM agentdata a
+          LEFT JOIN logindata l ON a.user_id = l.id
+          LEFT JOIN perms p ON a.user_id = p.user_id
+          WHERE a.user_id = ?
+          LIMIT 1
+        `, [userId]);
+    
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Agent non trouvé" });
+        }
+    
+        res.json({
+          success: true,
+          agent: rows[0]
+        });
+      } catch (err) {
+        console.error("Erreur /perm/:id :", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Ajoute ce endpoint dans ton serveur Express
+    app.get("/perms/:id", async (req, res) => {
+      try {
+        const [rows] = await db.query("SELECT * FROM perms WHERE user_id = ?", [req.params.id]);
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+        res.json({ success: true, perms: rows[0] });
+      } catch (err) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Ajoute ce endpoint dans ton serveur Express
+    app.put("/perms/:id", async (req, res) => {
+      try {
+        await db.query("UPDATE perms SET ? WHERE user_id = ?", [req.body, req.params.id]);
+        res.json({ success: true });
+      } catch (err) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });

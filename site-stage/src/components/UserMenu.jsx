@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import DropdownMenu from './DropdownMenu';
+import { hasAnyUserPerm, hasUserPerms } from "../utils/permsApi";
 
 export default function UserMenu({ userMenuItems = [] }) {
   const navigate = useNavigate();
   const { user, handleLogout } = useAuth();
   const [hovered, setHovered] = useState(false);
   const [buttonHovered, setButtonHovered] = useState(false);
+  const [ok, setOk] = useState(false); // Ajout d'un état pour la permission
+
+  useEffect(() => {
+    hasAnyUserPerm(user.id, ["create_account", "all_users"]).then(result => {
+      setOk(result); // Stocke le résultat dans l'état
+    });
+  }, [user.id]);
 
   const getDefaultMenuItems = () => {
     const items = [];
-    
-    if (user?.isAdmin) {
+    if (ok) {
       items.push({
         id: 'admin',
         label: 'Administration',
@@ -22,7 +29,6 @@ export default function UserMenu({ userMenuItems = [] }) {
         onClick: () => navigate('/admin')
       });
     }
-    
     items.push({
       id: 'logout',
       label: 'Déconnexion',
@@ -31,7 +37,6 @@ export default function UserMenu({ userMenuItems = [] }) {
       hoverColor: '#c82333',
       onClick: handleLogout
     });
-    
     return items;
   };
 
