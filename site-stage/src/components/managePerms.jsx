@@ -17,6 +17,7 @@ function ManagePerms({ agent, onUpdate }) {
   const [perms, setPerms] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '', visible: false });
 
   useEffect(() => {
     if (agent && agent.user_id) {
@@ -27,6 +28,14 @@ function ManagePerms({ agent, onUpdate }) {
       });
     }
   }, [agent?.user_id]);
+
+  // Fonction pour afficher un message temporaire
+  const showMessage = (type, text) => {
+    setMessage({ type, text, visible: true });
+    setTimeout(() => {
+      setMessage(prev => ({ ...prev, visible: false }));
+    }, 4000);
+  };
 
   // Gestion du changement de checkbox
   const handleChange = (e) => {
@@ -46,12 +55,20 @@ function ManagePerms({ agent, onUpdate }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(perms)
       });
+      
       const result = await response.json();
-      if (result.success && onUpdate) {
-        onUpdate(agent);
+      
+      if (response.ok && result.success) {
+        showMessage('success', 'Permissions mises à jour avec succès !');
+        if (onUpdate) {
+          onUpdate(agent);
+        }
+      } else {
+        showMessage('error', result.message || 'Erreur lors de la sauvegarde des permissions');
       }
     } catch (err) {
-      alert("Erreur lors de la sauvegarde des permissions");
+      showMessage('error', 'Erreur de connexion au serveur');
+      console.error('Erreur:', err);
     }
     setSaving(false);
   };
@@ -61,19 +78,21 @@ function ManagePerms({ agent, onUpdate }) {
   return (
     <div className="manage-perms">
       <h1 className="admin-title">Gestion des Permissions</h1>
+      
       <form>
-      {PERMS_LIST.map(perm => (
-        <label key={perm.key} className="perm-checkbox" htmlFor={perm.key}>
+        {PERMS_LIST.map(perm => (
+          <label key={perm.key} className="perm-checkbox" htmlFor={perm.key}>
             <input
-            type="checkbox"
-            id={perm.key}
-            name={perm.key}
-            checked={!!perms[perm.key]}
-            onChange={handleChange}
+              type="checkbox"
+              id={perm.key}
+              name={perm.key}
+              checked={!!perms[perm.key]}
+              onChange={handleChange}
             />
             <span>{perm.label}</span>
-        </label>
+          </label>
         ))}
+        
         <button
           type="button"
           onClick={handleSave}
@@ -83,6 +102,14 @@ function ManagePerms({ agent, onUpdate }) {
           {saving ? "Sauvegarde..." : "Enregistrer"}
         </button>
       </form>
+      {message.visible && (
+        <div className={`status-message ${message.type}`}>
+          {/* <span className="message-icon">
+            {message.type === 'success' ? '✓' : '⚠'}
+          </span> */}
+          {message.text}
+        </div>
+      )}
     </div>
   );
 }
