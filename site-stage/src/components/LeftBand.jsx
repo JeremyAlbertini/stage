@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import "../styles/LeftBand.css"; // on importe le fichier CSS
+import { Home, Users, Calendar, Palmtree, Clock, FileText } from "lucide-react";
+import "../styles/LeftBand.css";
 
 export default function LeftBand() {
   const { user, loading } = useAuth();
@@ -10,27 +11,31 @@ export default function LeftBand() {
   }
 
   const items = [
-    { name: "Accueil", path: "/" },
-    { name: "Utilisateurs", path: "/users" },
-    { name: "Calendrier", path: "/calendar" },
-    { name: "Mes Congés", path: "/conges" },
-    { name: "Fiches Horaires", path: "/horaire" },
-    { name: "Mes Contrats", path: "/contrat" },
+    { name: "Accueil", path: "/", icon: Home },
+    { name: "Agents", path: "/users", icon: Users },
+    { name: "Calendrier", path: "/calendar", icon: Calendar },
+    { name: "Mes Congés", path: "/conges", icon: Palmtree },
+    { name: "Fiches Horaires", path: "/horaire", icon: Clock },
+    { name: "Mes Contrats", path: "/contrat", icon: FileText },
   ];
 
   return (
     <nav className="left-band">
-      {items.map((item, index) => (
-        <NavLink
-          key={index}
-          to={item.path}
-          className={({ isActive }) =>
-            `nav-link ${isActive ? "active" : ""}`
-          }
-        >
-          {item.name}
-        </NavLink>
-      ))}
+      {items.map((item, index) => {
+        const IconComponent = item.icon;
+        return (
+          <NavLink
+            key={index}
+            to={item.path}
+            className={({ isActive }) =>
+              `nav-link ${isActive ? "active" : ""}`
+            }
+          >
+            <IconComponent className="nav-icon" size={18} />
+            <span className="nav-text">{item.name}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

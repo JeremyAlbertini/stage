@@ -4,6 +4,7 @@ import TabContent from "../components/TabContent";
 import TabGroup from "../components/TabGroup";
 import { useState } from "react";
 import ModifyAgents from "../components/modifyAgents";
+import Contract from "../components/contrats.jsx";
 
 export default function AgentsProfile() {
     const location = useLocation();
@@ -81,7 +82,7 @@ export default function AgentsProfile() {
                     <p>Contenu du calendrier de {agent.nom}</p>
                 </TabContent>
                 <TabContent id="Contrats" activeTab={activeTab}>
-                    <p>Liste des contrats de {agent.nom}</p>
+                    <Contract agent={agent} onUpdate={updateAgentData} />
                 </TabContent>
             </>
         </BasePage>

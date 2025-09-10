@@ -12,28 +12,34 @@ const path = require('path');
 const PORT = 5000;
 const app = express();
 app.use(express.json());
+// Mise en Place de cookies pour garder JWT connecté
 app.use(cookieParser());
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
+
+// Pour l'utilisation des Photos ([~] a possiblement changer pour sécurisation)
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Clé JWT
 const secretKey = "ifsuydgyufogifeglfueroiuhmugve";
 
+// Connection mysql-promise
 async function startServer() {
   try {
-    // Connexion MySQL avec await (version promise)
     const db = await mysql.createConnection({
       host: "localhost",
       user: "appuser",
       password: "motdepasse",
       database: "userdata"
     });
-    
     console.log("✅ Connecté à la base de données MySQL");
     
-    // Endpoint pour récupérer tous les utilisateurs
+// Commandes BackEnd
+
+    // Récupération de la liste de tous les utilisateurs
+    // Simple requête SQL
     app.get("/users", async (req, res) => {
       try {
         const [rows] = await db.query("SELECT * FROM logindata");
@@ -44,7 +50,8 @@ async function startServer() {
       }
     });
     
-    // Endpoint pour créer un utilisateur
+    // Création d'agent
+    // Creation d'une nouvelle entrée dans la base SQL ainsi que Hashage du mot de passe pour éviter de l'avoir écrit en dur dans la DB
     app.post("/users/create", async (req, res) => {
         const {
             matricule, password, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
@@ -55,7 +62,7 @@ async function startServer() {
         if (!matricule || !password) {
             return res.status(400).json({ success: false, message: "Le matricule et le mot de passe sont requis." });
         }
-      
+        // Hashage ici
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
       
@@ -96,6 +103,7 @@ async function startServer() {
         }
     });
 
+    // Le app.put vient mettre les infos demandé dans la base de donnée
     app.put("/users/:id", async (req, res) => {
       const userId = req.params.id;
       const {
@@ -151,6 +159,8 @@ async function startServer() {
       }
     });
 
+    // Verification pour une connection utilisateur en 3 étapes. 
+    // On vérifie le matricule saisie ainsi que le mot de passe et le mot de passe hashé.
     app.post("/login", async (req, res) => {
       const { matricule, password } = req.body;
     
@@ -164,14 +174,13 @@ async function startServer() {
         if (users.length === 0) {
           return res.json({ success: false, message: "Utilisateur non trouvé" });
         }
-
+        // Juste ici
         const user = users[0];
         const match = await bcrypt.compare(password, user.password);
-
-
+        // Dans le cas ou les 2 sont correctes, on verifie aussi si l'utilisateur a les droits Administrateurs.
         if (match) {
+          // Enfin on ajoute le JWT dans les cookies pour que pendant une heure nous puissiont rester connecté ([~] Modification Horaire 1h++)
           const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
-      
           res.cookie("token", token, {
             httpOnly: true,
             secure: false,
@@ -203,7 +212,7 @@ async function startServer() {
     }
   });
 
-    // Check current user
+    // Verification sur le reste des pages de qui est connecté via le JWT stocké dans les cookies.
     app.get("/me", async (req, res) => {
       const token = req.cookies.token;
       if (!token) return res.status(401).json({ loggedIn: false });
@@ -232,27 +241,25 @@ async function startServer() {
       }
     });
 
-    // Logout
+    // Deconnection effectuer en supprimant les cookies.
     app.post("/logout", (req, res) => {
       res.clearCookie("token");
       res.json({ success: true, message: "Déconnecté" });
     });
 
+    // Récuperation du profil utilisateur. 
     app.get("/agent/profile", async (req, res) => {
       const token = req.cookies.token;
       if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
-
       try {
         const decoded = jwt.verify(token, secretKey);
         const [rows] = await db.query(
           "SELECT * FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
-
         if (rows.length === 0) {
           return res.status(404).json({ success: false, message: "Profil non trouvé" });
         }
-
         res.json({ success: true, agentData: rows[0] });
       } catch (err) {
         console.error(err);
@@ -260,6 +267,7 @@ async function startServer() {
       }
     });
 
+    // Mise en place d'une photo de profil pour l'utilisateur.
     app.post('/upload/profile', upload.single('photo'), async (req, res) => {
       try {
         const token = req.cookies.token;
@@ -393,6 +401,134 @@ async function startServer() {
         });
       } catch (err) {
         console.error("Erreur lors de la récupération des agents:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+        // ---------------- Contrats Management ----------------
+      
+    // Get all contracts for a given matricule
+    app.get("/contrats/:matricule", async (req, res) => {
+      try {
+        const { matricule } = req.params;
+        console.log('Fetching contracts for matricule:', matricule); // Add this
+
+        const [rows] = await db.query(
+          "SELECT * FROM contrats WHERE matricule = ? ORDER BY date_debut DESC",
+          [matricule]
+        );
+
+        console.log('Found contracts:', rows); // Add this
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des contrats:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Create a new contract
+// Replace your contract creation endpoint in server.js with this:
+
+    app.post("/contrats", async (req, res) => {
+      try {
+        // Get user ID from JWT token
+        const token = req.cookies.token;
+        if (!token) {
+          return res.status(401).json({ success: false, message: "Non authentifié" });
+        }
+      
+        let decoded;
+        try {
+          decoded = jwt.verify(token, secretKey);
+        } catch (err) {
+          return res.status(401).json({ success: false, message: "Token invalide" });
+        }
+      
+        const {
+          matricule,
+          type_contrat,
+          date_debut,
+          date_fin,
+          ca = 0,
+          cf = 0,
+          js = 0,
+          rca = 0,
+          heure = 0
+        } = req.body;
+      
+        if (!matricule || !type_contrat || !date_debut || !date_fin) {
+          return res.status(400).json({ success: false, message: "Champs requis manquants" });
+        }
+      
+        // Calcul de la durée en jours
+        const duree_contrat = Math.ceil(
+          (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
+        );
+      
+        await db.query(
+          `INSERT INTO contrats 
+            (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, decoded.id] // Use decoded.id here!
+        );
+      
+        res.status(201).json({ success: true, message: "Contrat créé avec succès" });
+      } catch (err) {
+        console.error("Erreur lors de la création du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Update contract values (CA, CF, JS, heures, etc.)
+    app.put("/contrats/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { ca, cf, js, rca, heure } = req.body;
+      
+        await db.query(
+          `UPDATE contrats SET ca = ?, cf = ?, js = ?, rca = ?, heure = ? WHERE id = ?`,
+          [ca, cf, js, rca, heure, id]
+        );
+      
+        res.json({ success: true, message: "Contrat mis à jour" });
+      } catch (err) {
+        console.error("Erreur lors de la mise à jour du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Contrat Actif
+    app.patch("/contrats/:id/activate", async (req, res) => {
+      try {
+        const { id } = req.params;
+        await db.query(`UPDATE contrats SET statut = 'Actif' WHERE id = ?`, [id]);
+        res.json({ success: true, message: "Contrat activé" });
+      } catch (err) {
+        console.error("Erreur lors de l'activation du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Archive a contract
+    app.patch("/contrats/:id/archive", async (req, res) => {
+      try {
+        const { id } = req.params;
+        await db.query(`UPDATE contrats SET statut = 'Inactif' WHERE id = ?`, [id]);
+        res.json({ success: true, message: "Contrat archivé" });
+      } catch (err) {
+        console.error("Erreur lors de l'archivage du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Delete a contract
+    app.delete("/contrats/:id", async (req, res) => {
+      try {
+        const { id } = req.params;
+        await db.query("DELETE FROM contrats WHERE id = ?", [id]);
+        res.json({ success: true, message: "Contrat supprimé" });
+      } catch (err) {
+        console.error("Erreur lors de la suppression du contrat:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });

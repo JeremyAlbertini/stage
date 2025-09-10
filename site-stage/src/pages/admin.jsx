@@ -19,7 +19,7 @@ export default function AdminPage({ users, loadUsers }) {
     ];
 
     return (
-        <BasePage title="Administration">
+        <BasePage title="Hébésoft">
         <div className="admin-container">
             <div className="admin-card">
                 <h1 className="admin-title">Bienvenue sur la page administration</h1>
