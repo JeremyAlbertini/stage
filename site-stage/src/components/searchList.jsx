@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // Importer useNavigate
 import "../styles/SearchList.css";
+import { useApi } from "../hooks/useApi";
 
 export default function SearchList() {
+  const api = useApi();
   const [agents, setAgents] = useState([]);
   const [search, setSearch] = useState("");
   const [civilite, setCivilite] = useState("");
@@ -16,10 +18,10 @@ export default function SearchList() {
   const navigate = useNavigate(); // Initialiser useNavigate
 
   const fetchAgents = async (page = 1, limit = 20, search = "", civilite = "", poste = "", adressePro = "", stage = "") => {
-    const response = await fetch(
+    const response = await api.get(
       `http://localhost:5000/agents?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&civilite=${encodeURIComponent(civilite)}&poste=${encodeURIComponent(poste)}&adresse_pro=${encodeURIComponent(adressePro)}&stage=${encodeURIComponent(stage)}`
     );
-    const data = await response.json();
+    const data = response;
     return data;
   };
 
@@ -72,7 +74,7 @@ export default function SearchList() {
 
   const handleAgentClick = (agent) => {
     // Naviguer vers la page AgentsProfile avec l'état contenant les informations de l'agent
-    navigate("/agents-profile", { state: { agent } });
+    navigate(`/agents/${agent.user_id}`);
   };
 
   return (

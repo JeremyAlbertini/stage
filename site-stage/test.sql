@@ -69,3 +69,14 @@ CREATE TABLE IF NOT EXISTS conges (
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS perms (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    change_perms BOOLEAN DEFAULT FALSE,
+    create_account BOOLEAN DEFAULT FALSE,
+    request BOOLEAN DEFAULT FALSE,
+    modify_account BOOLEAN DEFAULT FALSE,
+    all_users BOOLEAN DEFAULT FALSE,
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(user_id) ON DELETE CASCADE
+);

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import '../styles/ModifyAgents.css'
+import { useApi } from "../hooks/useApi";
 
 function ModifyAgents({ agent, onUpdate }) {
+    const api = useApi();
     const initialFormData = {
         matricule: agent.matricule || "",
         nom: agent.nom || "",
@@ -41,13 +43,7 @@ function ModifyAgents({ agent, onUpdate }) {
         e.preventDefault();
 
         try {
-            const response = await fetch(`http://localhost:5000/users/${agent.user_id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            });
+            const response = await api.put(`http://localhost:5000/users/${agent.user_id}`, formData);
 
             if (response.ok) {
                 const result = await response.json();

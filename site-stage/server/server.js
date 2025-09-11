@@ -171,114 +171,428 @@ async function startServer() {
           "WHERE l.matricule = ?",
           [matricule]
         );
+    
         if (users.length === 0) {
           return res.json({ success: false, message: "Utilisateur non trouvé" });
         }
-        // Juste ici
+    
         const user = users[0];
         const match = await bcrypt.compare(password, user.password);
-        // Dans le cas ou les 2 sont correctes, on verifie aussi si l'utilisateur a les droits Administrateurs.
-        if (match) {
-          // Enfin on ajoute le JWT dans les cookies pour que pendant une heure nous puissiont rester connecté ([~] Modification Horaire 1h++)
-          const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
-          res.cookie("token", token, {
+    
+        if (!match) {
+          return res.json({ success: false, message: "Mot de passe invalide" });
+        }
+    
+        // ✅ CORRECTION : Génération des tokens uniquement si le mot de passe est correct
+        const accessToken = jwt.sign(
+          { id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 },
+          secretKey,
+          { expiresIn: "1h" }
+        );
+    
+        const refreshToken = jwt.sign(
+          { id: user.id },
+          secretKey,
+          { expiresIn: "7d" }
+        );
+    
+        // ✅ CORRECTION : Configuration des cookies sécurisés
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', // HTTPS en production
+          sameSite: "strict",
+          maxAge: 60 * 60 * 1000 // 1 heure
+        });
+    
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+        });
+    
+        return res.json({
+          success: true,
+          message: "Connexion réussie",
+          user: {
+            id: user.id,
+            matricule: user.matricule,
+            isAdmin: user.is_admin === 1,
+            nom: user.nom,
+            prenom: user.prenom
+          }
+        });
+    
+      } catch (err) {
+        console.error("Erreur de login:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Erreur serveur lors de la connexion"
+        });
+      }
+    });
+
+    
+    const authenticateToken = async (req, res, next) => {
+      const accessToken = req.cookies.accessToken;
+      
+      if (!accessToken) {
+        // ✅ CORRECTION : Tentative de refresh automatique
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          return res.status(401).json({ success: false, message: "Tokens manquants" });
+        }
+    
+        try {
+          const decoded = jwt.verify(refreshToken, secretKey);
+          
+          // Récupérer les infos utilisateur
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [decoded.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ success: false, message: "Utilisateur non trouvé" });
+          }
+    
+          const user = users[0];
+    
+          // Génère un nouveau access token
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
             httpOnly: true,
-            secure: false,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: "strict",
             maxAge: 60 * 60 * 1000
           });
-      
-          return res.json({
-            success: true,
-            message: "Connexion réussie",
-            user: {
-              id: user.id,
-              matricule: user.matricule,
-              isAdmin: user.is_admin === 1,
-              email: user.email,
-              nom: user.nom,
-              prenom: user.prenom
-            }
-          });
-        } else {
-          return res.json({ success: false, message: "Mot de passe invalide" });
+    
+          req.user = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+          
+          return next();
+          
+        } catch (err) {
+          return res.status(401).json({ success: false, message: "Tokens invalides" });
         }
+      }
+    
+      try {
+        const decoded = jwt.verify(accessToken, secretKey);
+        req.user = decoded;
+        next();
       } catch (err) {
-      console.error("Erreur de login:", err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Erreur serveur lors de la connexion" 
-      });
-    }
-  });
+        // ✅ CORRECTION : Si access token expiré, tentative avec refresh token
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          return res.status(401).json({ success: false, message: "Access token invalide" });
+        }
+    
+        try {
+          const decodedRefresh = jwt.verify(refreshToken, secretKey);
+          
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [decodedRefresh.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ success: false, message: "Utilisateur non trouvé" });
+          }
+    
+          const user = users[0];
+    
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+    
+          req.user = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+          
+          return next();
+          
+        } catch (refreshErr) {
+          return res.status(401).json({ success: false, message: "Tous les tokens sont invalides" });
+        }
+      }
+    };
+    
+    // Corriger l'endpoint /refresh
+    app.post("/refresh", async (req, res) => {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        return res.status(401).json({ success: false, message: "Pas de refresh token" });
+      }
+    
+      try {
+        const decoded = jwt.verify(refreshToken, secretKey);
+        
+        // Récupérer les infos utilisateur pour le nouveau token
+        const [users] = await db.query(
+          "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+          "LEFT JOIN agentdata a ON l.id = a.user_id " +
+          "WHERE l.id = ?",
+          [decoded.id]
+        );
+    
+        if (users.length === 0) {
+          return res.status(403).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+    
+        const user = users[0];
+    
+        // Génère un nouveau access token avec toutes les infos nécessaires
+        const newAccessToken = jwt.sign(
+          { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          },
+          secretKey,
+          { expiresIn: "1h" }
+        );
+    
+        res.cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: 60 * 60 * 1000
+        });
+    
+        return res.json({ success: true });
+      } catch (err) {
+        return res.status(403).json({ success: false, message: "Refresh token invalide" });
+      }
+    });
+    
 
     // Verification sur le reste des pages de qui est connecté via le JWT stocké dans les cookies.
     app.get("/me", async (req, res) => {
-      const token = req.cookies.token;
-      if (!token) return res.status(401).json({ loggedIn: false });
-
+      const accessToken = req.cookies.accessToken;
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (!accessToken && !refreshToken) {
+        return res.status(401).json({ loggedIn: false });
+      }
+    
       try {
-        const decoded = jwt.verify(token, secretKey);
-
+        let decoded;
+        
+        // ✅ CORRECTION : Essayer d'abord avec l'access token
+        if (accessToken) {
+          try {
+            decoded = jwt.verify(accessToken, secretKey);
+          } catch (err) {
+            // Si access token invalide, essayer avec refresh token
+            if (refreshToken) {
+              const refreshDecoded = jwt.verify(refreshToken, secretKey);
+              
+              // Récupérer les infos complètes de l'utilisateur
+              const [users] = await db.query(
+                "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+                "LEFT JOIN agentdata a ON l.id = a.user_id " +
+                "WHERE l.id = ?",
+                [refreshDecoded.id]
+              );
+    
+              if (users.length === 0) {
+                return res.status(401).json({ loggedIn: false });
+              }
+    
+              const user = users[0];
+              
+              // Générer un nouveau access token
+              const newAccessToken = jwt.sign(
+                { 
+                  id: user.id, 
+                  matricule: user.matricule, 
+                  isAdmin: user.is_admin === 1 
+                },
+                secretKey,
+                { expiresIn: "1h" }
+              );
+    
+              res.cookie("accessToken", newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: "strict",
+                maxAge: 60 * 60 * 1000
+              });
+    
+              decoded = { 
+                id: user.id, 
+                matricule: user.matricule, 
+                isAdmin: user.is_admin === 1 
+              };
+            } else {
+              return res.status(401).json({ loggedIn: false });
+            }
+          }
+        } else if (refreshToken) {
+          // Si pas d'access token, utiliser le refresh token directement
+          const refreshDecoded = jwt.verify(refreshToken, secretKey);
+          
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [refreshDecoded.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ loggedIn: false });
+          }
+    
+          const user = users[0];
+          
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+    
+          decoded = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+        }
+    
+        // Récupérer la photo de profil
         const [rows] = await db.query(
           "SELECT photo FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
-
+    
         const photo = rows.length > 0 ? rows[0].photo : 'ano.jpg';
-
+    
         return res.json({
           loggedIn: true,
-          user:{
+          user: {
             id: decoded.id,
             matricule: decoded.matricule,
             isAdmin: decoded.isAdmin,
             avatar: photo !== 'ano.jpg' ? `/uploads/profiles/${photo}` : '/ano.jpg'
           }
         });
-      } catch {
+      } catch (err) {
+        console.error("Erreur dans /me:", err);
         res.status(401).json({ loggedIn: false });
       }
     });
 
-    // Deconnection effectuer en supprimant les cookies.
     app.post("/logout", (req, res) => {
+      // ✅ CORRECTION : Nettoyer tous les cookies liés à l'authentification
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict"
+      });
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict"
+      });
+      
+      // Nettoyer aussi l'ancien cookie "token" au cas où
       res.clearCookie("token");
-      res.json({ success: true, message: "Déconnecté" });
+      
+      res.json({ success: true, message: "Déconnecté avec succès" });
     });
-
-    // Récuperation du profil utilisateur. 
-    app.get("/agent/profile", async (req, res) => {
-      const token = req.cookies.token;
-      if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
+    
+    // Corriger l'endpoint /perm/profile pour utiliser accessToken
+    app.get("/perm/profile", async (req, res) => {
+      const accessToken = req.cookies.accessToken;
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (!accessToken && !refreshToken) {
+        return res.status(401).json({ success: false, message: "Non authentifié" });
+      }
+    
       try {
-        const decoded = jwt.verify(token, secretKey);
+        let decoded;
+        
+        if (accessToken) {
+          try {
+            decoded = jwt.verify(accessToken, secretKey);
+          } catch (err) {
+            // Fallback sur refresh token
+            if (refreshToken) {
+              decoded = jwt.verify(refreshToken, secretKey);
+            } else {
+              throw err;
+            }
+          }
+        } else {
+          decoded = jwt.verify(refreshToken, secretKey);
+        }
+        
         const [rows] = await db.query(
           "SELECT * FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
+        
         if (rows.length === 0) {
           return res.status(404).json({ success: false, message: "Profil non trouvé" });
         }
+        
         res.json({ success: true, agentData: rows[0] });
       } catch (err) {
-        console.error(err);
+        console.error("Erreur dans /perm/profile:", err);
         res.status(401).json({ success: false, message: "Token invalide" });
       }
     });
 
-    // Mise en place d'une photo de profil pour l'utilisateur.
-    app.post('/upload/profile', upload.single('photo'), async (req, res) => {
+    // Exemple d'utilisation du middleware authenticateToken
+    app.post('/upload/profile', authenticateToken, upload.single('photo'), async (req, res) => {
       try {
-        const token = req.cookies.token;
-        if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
-    
+        const userId = req.user.id; // Utiliser req.user du middleware
+        
         if (!req.file) {
           return res.status(400).json({ success: false, message: "Aucune photo fournie" });
         }
-    
-        const decoded = jwt.verify(token, secretKey);
-        const userId = decoded.id;
         
         const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
         const oldPhoto = rows.length > 0 ? rows[0].photo : null;
@@ -302,31 +616,28 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur lors de l'upload" });
       }
     });
-
-    app.post('/delete/profile-photo', async (req, res) => {
+    
+    // Et de même pour delete profile photo
+    app.post('/delete/profile-photo', authenticateToken, async (req, res) => {
       try {
-          const token = req.cookies.token;
-          if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
-          
-          const decoded = jwt.verify(token, secretKey);
-          const userId = decoded.id;
-          
-          const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
-          
-          if (rows.length > 0 && rows[0].photo) {
-              const currentPhoto = rows[0].photo;
-              
-              if (currentPhoto !== 'ano.jpg') {
-                  await storage.deleteProfileImage(currentPhoto);
-              }
-          }
-          
-          await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
-          
-          res.json({
-              success: true,
-              message: "Photo de profil supprimée"
-          });
+        const userId = req.user.id;
+        
+        const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+        
+        if (rows.length > 0 && rows[0].photo) {
+            const currentPhoto = rows[0].photo;
+            
+            if (currentPhoto !== 'ano.jpg') {
+                await storage.deleteProfileImage(currentPhoto);
+            }
+        }
+        
+        await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
+        
+        res.json({
+            success: true,
+            message: "Photo de profil supprimée"
+        });
       } catch (error) {
           console.error("Erreur lors de la suppression:", error);
           res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
@@ -405,6 +716,111 @@ async function startServer() {
       }
     });
 
+    app.get("/perms/:id/:nameofperms", async (req, res) => {
+      const { id, nameofperms } = req.params;
+      const allowedPerms = [
+        "change_perms",
+        "create_account",
+        "request",
+        "modify_account",
+        "all_users"
+      ];
+    
+      if (!allowedPerms.includes(nameofperms)) {
+        return res.status(400).json({ success: false, message: "Permission inconnue" });
+      }
+    
+      try {
+        const [rows] = await db.query(
+          `SELECT ?? FROM perms WHERE user_id = ?`,
+          [nameofperms, id]
+        );
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Utilisateur ou permission non trouvée" });
+        }
+        res.json({ success: true, value: rows[0][nameofperms] });
+      } catch (err) {
+        console.error("Erreur lors de la récupération des permissions:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/perm/:id", async (req, res) => {
+      const userId = req.params.id;
+      try {
+        const [rows] = await db.query(`
+          SELECT 
+            a.*, 
+            l.password, 
+            p.change_perms, p.create_account, p.request, p.modify_account, p.all_users
+          FROM agentdata a
+          LEFT JOIN logindata l ON a.user_id = l.id
+          LEFT JOIN perms p ON a.user_id = p.user_id
+          WHERE a.user_id = ?
+          LIMIT 1
+        `, [userId]);
+    
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Agent non trouvé" });
+        }
+    
+        res.json({
+          success: true,
+          agent: rows[0]
+        });
+      } catch (err) {
+        console.error("Erreur /perm/:id :", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Ajoute ce endpoint dans ton serveur Express
+    app.get("/perms/:id", async (req, res) => {
+      try {
+        const [rows] = await db.query("SELECT * FROM perms WHERE user_id = ?", [req.params.id]);
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+        res.json({ success: true, perms: rows[0] });
+      } catch (err) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Ajoute ce endpoint dans ton serveur Express
+    app.put("/perms/:id", async (req, res) => {
+      try {
+        await db.query("UPDATE perms SET ? WHERE user_id = ?", [req.body, req.params.id]);
+        res.json({ success: true });
+      } catch (err) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/agents/:id", async (req, res) => {
+      const { id } = req.params;
+      try {
+        const [rows] = await db.query(
+          `SELECT 
+            a.*, 
+            p.change_perms, p.create_account, p.request, p.modify_account, p.all_users
+          FROM agentdata a
+          LEFT JOIN perms p ON a.user_id = p.user_id
+          WHERE a.user_id = ?
+          LIMIT 1`,
+          [id]
+        );
+    
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Agent non trouvé" });
+        }
+    
+        res.json({ success: true, agent: rows[0] });
+      } catch (err) {
+        console.error("Erreur /agents/:id :", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
         // ---------------- Contrats Management ----------------
       
     // Get all contracts for a given matricule
@@ -469,7 +885,25 @@ async function startServer() {
         console.error("Erreur lors de la création du contrat:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
-    });
+
+      const duree_contrat = Math.ceil(
+        (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
+      );
+
+      await db.query(
+        `INSERT INTO contrats 
+          (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id] // ✅ req.user.id vient du middleware
+      );
+
+      res.status(201).json({ success: true, message: "Contrat créé avec succès" });
+    } catch (err) {
+      console.error("Erreur lors de la création du contrat:", err);
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  });
+
     
     // Update contract values (CA, CF, JS, heures, etc.)
     app.post("/contrats/:id/upload", upload.single("pdf"), async (req, res) => {
