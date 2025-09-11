@@ -9,6 +9,8 @@ import { getUserPerm } from "../utils/permsApi.js";
 import { getAgentById } from "../utils/agentsApi.js"; // 👈 à créer côté utils
 import { useAuth } from "../context/AuthContext.jsx";
 import { useApi } from "../hooks/useApi.js";
+import Contract from "../components/contrats.jsx";
+
 
 const ALL_TABS = [
     { id: "requests", label: "Demandes", perm: "request", content: "RequestsContent" },
@@ -16,6 +18,7 @@ const ALL_TABS = [
     { id: "calendar", label: "Calendrier", perm: null, content: "CalendarContent" },
     { id: "perms", label: "Permission", perm: "change_perms", content: ManagePerms },
 ];
+
 
 export default function AgentsProfile() {
     const api = useApi();
