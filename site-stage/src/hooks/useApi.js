@@ -1,8 +1,4 @@
-import { useAuth } from '../context/AuthContext';
-
-export const useApi = () => {
-  const { authenticatedFetch } = useAuth();
-
+export const useApi = (authenticatedFetch) => {
   const api = {
     get: async (url) => {
       const response = await authenticatedFetch(url);

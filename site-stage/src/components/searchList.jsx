@@ -4,7 +4,8 @@ import "../styles/SearchList.css";
 import { useApi } from "../hooks/useApi";
 
 export default function SearchList() {
-  const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
   const [agents, setAgents] = useState([]);
   const [search, setSearch] = useState("");
   const [civilite, setCivilite] = useState("");

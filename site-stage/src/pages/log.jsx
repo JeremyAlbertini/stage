@@ -5,7 +5,8 @@ import "../styles/log.css";
 import { useApi } from "../hooks/useApi";
 
 function Log() {
-  const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
   const [page] = useState("login"); // tu pourras élargir à "signup" si besoin
   const [loginData, setLoginData] = useState({ matricule: "", password: "" });
   const [message, setMessage] = useState("");

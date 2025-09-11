@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import "../styles/admin.css";
 import { useApi } from "./hooks/useApi";
 
+
 function CompleteProfile({ userId, onProfileCompleted, onCancel }) {
-    const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
     const [formData, setFormData] = useState({
         nom: "",
         prenom: "",

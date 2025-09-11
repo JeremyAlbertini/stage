@@ -1,70 +1,50 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DropdownMenu from './DropdownMenu';
-import { hasAnyUserPerm } from "../utils/permsApi";
-import { useApi } from "../hooks/useApi";
 
 export default function UserMenu({ userMenuItems = [] }) {
-  const api = useApi();
   const navigate = useNavigate();
-  // ✅ CORRECTION : Utilisation de handleLogout qui existe maintenant
-  const { user, handleLogout, logout } = useAuth();
+  const { user, handleLogout, checkPermission } = useAuth();
   const [hovered, setHovered] = useState(false);
   const [buttonHovered, setButtonHovered] = useState(false);
-  const [ok, setOk] = useState(false);
 
-  // ✅ CORRECTION : Vérification que user existe avant d'accéder à user.id
-  useEffect(() => {
-    if (user?.id) {
-      hasAnyUserPerm(api, user.id, ["create_account", "all_users"])
-        .then(result => {
-          setOk(result);
-        })
-        .catch(err => {
-          console.error("Erreur lors de la vérification des permissions:", err);
-          setOk(false);
-        });
-    }
-  }, [user?.id, api]);
-
-  // ✅ CORRECTION : Fonction de logout avec feedback utilisateur
+  // Fonction de logout avec feedback
   const handleLogoutClick = async () => {
     try {
       await handleLogout();
-      navigate('/login');
     } catch (err) {
       console.error("Erreur lors de la déconnexion:", err);
-      // ✅ Même en cas d'erreur, on peut forcer la redirection
+    } finally {
       navigate('/login');
     }
   };
 
+  // Générer les items par défaut du menu
   const getDefaultMenuItems = () => {
     const items = [];
-    
-    if (ok) {
+
+    // Vérifie dans le cache des permissions
+    if (checkPermission("admin")) {
       items.push({
         id: 'admin',
         label: 'Administration',
         icon: '⚙️',
         backgroundColor: '#6c757d',
         hoverColor: '#5a6268',
-        onClick: () => {
-          navigate('/admin');
-        }
+        onClick: () => navigate('/admin')
       });
     }
-    
+
     items.push({
       id: 'logout',
       label: 'Déconnexion',
       icon: '🚪',
       backgroundColor: '#dc3545',
       hoverColor: '#c82333',
-      onClick: handleLogoutClick // ✅ Utilisation de la fonction corrigée
+      onClick: handleLogoutClick
     });
-    
+
     return items;
   };
 
@@ -74,9 +54,8 @@ export default function UserMenu({ userMenuItems = [] }) {
     setHovered(false);
   };
 
-  // ✅ CORRECTION : Vérification que user existe
   if (!user) {
-    return null; // Ou un placeholder/loader
+    return null; // Placeholder ou loader si nécessaire
   }
 
   return (
@@ -90,13 +69,11 @@ export default function UserMenu({ userMenuItems = [] }) {
         style={{
           backgroundColor: buttonHovered ? '#0056b3' : '#007bff',
         }}
-        onClick={() => {
-          navigate('/profile');
-        }}
+        onClick={() => navigate('/profile')}
         onMouseEnter={() => setButtonHovered(true)}
         onMouseLeave={() => setButtonHovered(false)}
       >
-        <span>{'mon compte'}</span>
+        <span>mon compte</span>
         <img 
           src={user.avatar || "/ano.jpg"}
           alt="Avatar" 

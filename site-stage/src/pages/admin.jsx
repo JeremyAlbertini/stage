@@ -6,7 +6,7 @@ import TabContent from "../components/TabContent.jsx";
 import CreateUser from "../components/create_user.jsx";
 import SearchList from "../components/searchList.jsx";
 import { getUserData, getUserPerm } from "../utils/permsApi.js";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi.js";
 
 const ALL_TABS = [
@@ -16,7 +16,8 @@ const ALL_TABS = [
 ];
 
 export default function AdminPage({ users, loadUsers }) {
-    const api = useApi();
+    const { authenticatedFetch } = useAuth();
+    const api = useApi(authenticatedFetch);
     const [perms, setPerms] = useState({});
     const navigate = useNavigate();
     const location = useLocation();

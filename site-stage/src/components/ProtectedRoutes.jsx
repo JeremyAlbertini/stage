@@ -7,7 +7,8 @@ import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 
 export default function ProtectedRoute({ children, requireAdmin = false }) {
-  const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
   const { user, loading } = useAuth();
   const [ok, setOk] = useState(null);
 

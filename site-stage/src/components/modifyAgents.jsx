@@ -3,7 +3,8 @@ import '../styles/ModifyAgents.css'
 import { useApi } from "../hooks/useApi";
 
 function ModifyAgents({ agent, onUpdate }) {
-    const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
     const initialFormData = {
         matricule: agent.matricule || "",
         nom: agent.nom || "",

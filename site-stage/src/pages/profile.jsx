@@ -5,8 +5,10 @@ import BasePage from "../components/BasePage";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 
+
 export default function Profile() {
-    const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
     const { refreshUserData } = useAuth(); 
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");

@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { hasAnyUserPerm } from "../utils/permsApi";
+import { useApi } from "../hooks/useApi";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [permissions, setPermissions] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Rafraîchir le token via cookie
+  // 🔹 Rafraîchir le token
   const refreshToken = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:5000/refresh", {
@@ -20,120 +23,93 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // ✅ CORRECTION : Fonction logout améliorée
+  // 🔹 Déconnexion
   const logout = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/logout", {
+      await fetch("http://localhost:5000/logout", {
         method: "POST",
         credentials: "include",
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
-      
-      if (res.ok) {
-        console.log("Déconnexion côté serveur réussie");
-      } else {
-        console.warn("Erreur côté serveur lors de la déconnexion:", res.status);
-      }
     } catch (err) {
-      console.error("Erreur lors de la déconnexion:", err);
+      console.error("Erreur logout:", err);
     } finally {
-      // ✅ Toujours nettoyer l'état utilisateur, même si la requête échoue
       setUser(null);
-      console.log("Utilisateur déconnecté côté client");
+      setPermissions({});
     }
   }, []);
 
-  // ✅ CORRECTION : Alias pour compatibilité
-  const handleLogout = useCallback(async () => {
-    await logout();
-  }, [logout]);
-
-  // Requête authentifiée
-  const authenticatedFetch = useCallback(async (url, options = {}) => {
-    let response = await fetch(url, {
-      ...options,
-      credentials: "include",
-    });
-
-    if (response.status === 401) {
-      console.log("Token expiré → tentative de refresh...");
-      const refreshed = await refreshToken();
-      if (refreshed) {
-        response = await fetch(url, {
-          ...options,
-          credentials: "include",
-        });
-      } else {
-        console.log("Refresh échoué → déconnexion");
-        await logout(); // ✅ Utilisation de await
+  // 🔹 fetch sécurisé avec gestion refresh
+  const authenticatedFetch = useCallback(
+    async (url, options = {}) => {
+      let response = await fetch(url, { ...options, credentials: "include" });
+      if (response.status === 401) {
+        const refreshed = await refreshToken();
+        if (refreshed) {
+          response = await fetch(url, { ...options, credentials: "include" });
+        } else {
+          await logout();
+        }
       }
-    }
+      return response;
+    },
+    [refreshToken, logout]
+  );
 
-    return response;
-  }, [refreshToken, logout]);
+  // 🔹 API basée sur authenticatedFetch
+  const api = useApi(authenticatedFetch);
 
-  // Récupérer infos utilisateur
+  // 🔹 Rafraîchir infos utilisateur + permissions
   const refreshUserData = useCallback(async () => {
     try {
-      const res = await authenticatedFetch("http://localhost:5000/me");
-      console.log('Response from /me:', res);
-      if (!res.ok) throw new Error("Non authentifié");
-      const data = await res.json();
-      console.log('User data received:', data);
-      setUser(data.user || null);
-    } catch (err) {
-      console.error("Erreur lors de la récupération des données utilisateur:", err);
-      setUser(null);
-    }
-  }, [authenticatedFetch]);
+      const res = await api.get("http://localhost:5000/me");
+      if (!res.user) throw new Error("Non authentifié");
 
-  // ✅ CORRECTION : Vérification initiale de l'authentification améliorée
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        console.log("Vérification de l'authentification...");
-        const res = await fetch("http://localhost:5000/me", {
-          credentials: "include",
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user || null);
-        } else {
-          console.log("Utilisateur non authentifié:", res.status);
-          setUser(null);
-        }
-      } catch (err) {
-        console.error("Erreur lors de la vérification d'auth:", err);
-        setUser(null);
-      } finally {
-        setLoading(false);
+      setUser(res.user);
+
+      if (res.user?.id) {
+        const perms = await hasAnyUserPerm(api, res.user.id, [
+          "create_account",
+          "all_users",
+        ]);
+        setPermissions({ admin: perms });
       }
-    };
-    checkAuth();
-  }, []);
+    } catch (err) {
+      console.error("Erreur refreshUserData:", err);
+      setUser(null);
+      setPermissions({});
+    } finally {
+      setLoading(false);
+    }
+  }, [api]);
+
+  // 🔹 Vérification initiale au montage
+  useEffect(() => {
+    refreshUserData();
+  }, [refreshUserData]);
+
+  // 🔹 Vérifier permission depuis le contexte
+  const checkPermission = (permKey) => permissions[permKey] || false;
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      setUser,
-      authenticatedFetch,
-      refreshUserData,
-      logout,
-      handleLogout, // ✅ Ajout de l'alias pour compatibilité
-      loading,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        permissions,
+        checkPermission,
+        refreshUserData,
+        logout,
+        loading,
+        authenticatedFetch, // 👈 exposé si tu veux l’utiliser direct
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+  return ctx;
 };

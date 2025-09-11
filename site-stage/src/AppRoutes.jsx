@@ -13,10 +13,12 @@ import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import { useState, useEffect } from "react";
 import AgentsProfile from "./pages/AgentsProfile.jsx";
 import { useApi } from "./hooks/useApi.js"; // Import du hook
+import { useAuth } from "./context/AuthContext";
 
 export default function AppRoutes() {
+  const { authenticatedFetch } = useAuth();
   const [users, setUsers] = useState([]);
-  const api = useApi(); // Utiliser le hook
+  const api = useApi(authenticatedFetch); // Utiliser le hook
 
   // Charge les utilisateurs pour l'admin avec auto-refresh
   const loadUsers = async () => {

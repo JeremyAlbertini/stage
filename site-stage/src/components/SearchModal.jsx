@@ -5,7 +5,8 @@ import { getUserPerm } from '../utils/permsApi';
 import { useApi } from "../hooks/useApi";
 
 export default function SearchModal({ isVisible, onClose }) {
-  const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);

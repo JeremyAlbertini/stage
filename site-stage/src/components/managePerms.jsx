@@ -16,7 +16,8 @@ const PERMS_LIST = [
 ];
 
 function ManagePerms({ agent, onUpdate }) {
-  const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
   const [perms, setPerms] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

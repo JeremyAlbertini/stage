@@ -7,7 +7,7 @@ import ModifyAgents from "../components/modifyAgents";
 import ManagePerms from "../components/managePerms";
 import { getUserPerm } from "../utils/permsApi.js";
 import { getAgentById } from "../utils/agentsApi.js"; // 👈 à créer côté utils
-import { useAuth } from "../context/AuthContext.jsx";
+import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi.js";
 import Contract from "../components/contrats.jsx";
 
@@ -22,7 +22,8 @@ const ALL_TABS = [
 
 
 export default function AgentsProfile() {
-    const api = useApi();
+    const { authenticatedFetch } = useAuth();
+    const api = useApi(authenticatedFetch);
     const { id } = useParams(); // 👈 récupère l'id depuis l'URL
     const [searchParams, setSearchParams] = useSearchParams();
     const [agent, setAgent] = useState(null);

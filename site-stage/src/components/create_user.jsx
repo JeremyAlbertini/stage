@@ -4,7 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 
 function CreateUser({ onUserCreated }) {
-    const api = useApi();
+  const { authenticatedFetch } = useAuth();
+  const api = useApi(authenticatedFetch);
     const { user } = useAuth();
 
     if (!user || !user.isAdmin) {
