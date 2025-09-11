@@ -72,9 +72,9 @@ function CreateUser({ onUserCreated }) {
         try {
             const response = await api.post("http://localhost:5000/users/create",payload);
 
-            const data = await response.json();
+            const data = await response;
 
-            if (response.ok) {
+            if (response.success) {
                 setMessage(data.message);
                 setError("");
                 onUserCreated();
