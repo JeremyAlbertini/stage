@@ -354,49 +354,46 @@ const Calendar = () => {
   };
 
   return (
-    <BasePage title='Calendar'>
-        <h1>Calendrier</h1>
-        <div className="calendar-page">
-            <div className="calendar-container">
-              <div className="calendar-header">
-                <button className="nav-btn" onClick={previousMonth}>‹</button>
-                <div className="month-year">
-                  {months[currentDate.getMonth()]} {currentDate.getFullYear()}
-                </div>
-                <button className="nav-btn" onClick={nextMonth}>›</button>
-              </div>
-
-              <div className="controls">
-                <button className="control-btn" onClick={goToToday}>Today</button>
-                <button className="control-btn" onClick={handleShowEventInput}>Add Event</button>
-              </div>
-
-              {showEventInput && (
-                <div className="event-input show">
-                  <input 
-                    type="text" 
-                    value={eventText}
-                    onChange={(e) => setEventText(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Enter event description"
-                  />
-                  <button onClick={saveEvent}>Sauvegarder</button>
-                  <button onClick={hideEventInput}>Annuler</button>
-                </div>
-              )}
-
-              <div className="calendar-grid" ref={calendarRef}>
-                {daysOfWeek.map(day => (
-                  <div key={day} className="day-header">{day}</div>
-                ))}
-                {renderCalendar()}
-              </div>
-            </div>
-            <div className={`events-list ${!selectedRange.start ? 'empty' : ''}`}>
-                {renderEvents()}
-            </div>  
-        </div>  
-    </BasePage>
+  <BasePage title='Hébésoft'>
+    <h1>Calendrier</h1>
+    <div className="calendar-page">
+      <div className={`calendar-container ${showEventInput ? 'expanded' : ''}`}>
+        <div className="calendar-header">
+          <button className="nav-btn" onClick={previousMonth}>‹</button>
+          <div className="month-year">
+            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </div>
+          <button className="nav-btn" onClick={nextMonth}>›</button>
+        </div>
+        <div className="controls">
+          <button className="control-btn" onClick={goToToday}>Today</button>
+          <button className="control-btn" onClick={handleShowEventInput}>Add Event</button>
+        </div>
+        {showEventInput && (
+          <div className="event-input show">
+            <input 
+              type="text" 
+              value={eventText}
+              onChange={(e) => setEventText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter event description"
+            />
+            <button onClick={saveEvent}>Sauvegarder</button>
+            <button onClick={hideEventInput}>Annuler</button>
+          </div>
+        )}
+        <div className="calendar-grid" ref={calendarRef}>
+          {daysOfWeek.map(day => (
+            <div key={day} className="day-header">{day}</div>
+          ))}
+          {renderCalendar()}
+        </div>
+      </div>
+      <div className={`events-list ${!selectedRange.start ? 'empty' : ''}`}>
+        {renderEvents()}
+      </div>  
+    </div>  
+  </BasePage>
   );
 };
 

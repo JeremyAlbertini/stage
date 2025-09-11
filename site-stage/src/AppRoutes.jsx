@@ -2,6 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home.jsx";
 import Users from "./pages/user.jsx";
 import Calendar from "./pages/calendar.jsx";
+import Conges from "./pages/conges.jsx";
+import Horaire from "./pages/horaire.jsx";
 import Contrat from "./pages/contrat.jsx";
 import Log from "./pages/log.jsx";
 import AdminPage from "./pages/admin.jsx";
@@ -9,6 +11,7 @@ import NotFound from "./pages/NotFound.jsx";
 import Profile from "./pages/profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import { useState, useEffect } from "react";
+import AgentsProfile from "./pages/AgentsProfile.jsx";
 
 export default function AppRoutes() {
   const [users, setUsers] = useState([]);
@@ -47,6 +50,16 @@ export default function AppRoutes() {
           <Calendar />
         </ProtectedRoute>
       } />
+      <Route path="/conges" element={
+        <ProtectedRoute>
+          <Conges />
+        </ProtectedRoute>
+      } />
+      <Route path="/horaire" element={
+        <ProtectedRoute>
+          <Horaire />
+        </ProtectedRoute>
+      } />
       <Route path="/contrat" element={
         <ProtectedRoute>
           <Contrat />
@@ -55,6 +68,11 @@ export default function AppRoutes() {
       <Route path="/admin/*" element={
         <ProtectedRoute requireAdmin={true}>
           <AdminPage users={users} loadUsers={loadUsers} />
+        </ProtectedRoute>
+      } />
+      <Route path="/agents-profile" element={
+        <ProtectedRoute requireAdmin={true}>
+          <AgentsProfile />
         </ProtectedRoute>
       } />
       <Route path="/login" element={<Log />} />

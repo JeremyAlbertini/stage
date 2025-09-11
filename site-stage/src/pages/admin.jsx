@@ -1,61 +1,41 @@
 import Header from "../components/Header.jsx";
-import { Link, Routes, Route, useNavigate } from "react-router-dom";
+import { Link, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import CreateUser from "../components/create_user.jsx";
 import LeftBand from "../components/LeftBand.jsx";
 import BasePage from "../components/BasePage.jsx";
+import "../styles/admin.css"
+import TabGroup from "../components/TabGroup.jsx";
+import { useState } from "react";
+import TabContent from "../components/TabContent.jsx";
+import SearchList from "../components/searchList.jsx";
 
 export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [activeTab, setActiveTab] = useState(location.state?.defaultTab || "create");
+    const tabs = [
+        { id: "create", label: "Créer Un Utilisateur" },
+        { id: "liste", label: "Liste d'utilisateur" }
+    ];
 
     return (
-        <BasePage title="Administration">
-        <div className="back-nav">
-            <button
-            onClick={() => navigate("/")}
-            className="admin-button admin-button-secondary"
-            >
-                ← Retour à l'accueil
-            </button>
-        </div>
+        <BasePage title="Hébésoft">
         <div className="admin-container">
             <div className="admin-card">
                 <h1 className="admin-title">Bienvenue sur la page administration</h1>
                 <p className="admin-text">Ici vous pouvez administrer vos agents.</p>
-
-                <button
-                    onClick={() => navigate("/admin/create-user")}
-                    className="admin-button"
-                >
-                Créer un nouvel utilisateur
-                </button>
+                <TabGroup 
+                    tabs={tabs} 
+                    activeTab={activeTab} 
+                    onTabChange={setActiveTab} 
+                            />
+                    <TabContent id="create" activeTab={activeTab}>
+            <CreateUser onUserCreated={loadUsers} />
+        </TabContent>
+        <TabContent id="liste" activeTab={activeTab}>
+            <SearchList />
+        </TabContent>
             </div>
-    
-            <Routes>
-                <Route path="/" element={
-                    <div className="admin-card">
-                        <h2 className="admin-subtitle">Liste des utilisateurs</h2>
-                        <ul className="user-list">
-                        {users.map(user => (
-                        <li key={user.id}>{user.matricule}</li>
-                        ))}
-                    </ul>
-                    </div>
-                }/>
-    
-                <Route path="create-user" element={
-                    <div className="admin-card">
-                        <button 
-                        onClick={() => navigate("/admin")}
-                        className="admin-button admin-button-secondary"
-                    >
-                        ← Retour à la liste
-                    </button>
-                    <CreateUser onUserCreated={() => {
-                        loadUsers();
-                    }} />
-                    </div>
-                } />
-            </Routes>
             </div>
         </BasePage>
     );

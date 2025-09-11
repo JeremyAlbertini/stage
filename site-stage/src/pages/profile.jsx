@@ -1,5 +1,3 @@
-import Header from "../components/Header";
-import LeftBand from "../components/LeftBand";
 import TabGroup from "../components/TabGroup";
 import TabContent from "../components/TabContent";
 import { useEffect, useState } from "react";
@@ -104,7 +102,7 @@ export default function Profile() {
             };
 
     return (
-        <BasePage title="Profile">
+        <BasePage title="Hébésoft">
                     <h1>Mon Profil</h1>
                     {userData ? (
                         <>
