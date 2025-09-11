@@ -1,4 +1,3 @@
-// hooks/useApi.js
 import { useAuth } from '../context/AuthContext';
 
 export const useApi = () => {
@@ -7,30 +6,38 @@ export const useApi = () => {
   const api = {
     get: async (url) => {
       const response = await authenticatedFetch(url);
-      return response.json(); // ✅ parser en JSON directement
+      return response.json();
     },
     post: async (url, data) => {
       const response = await authenticatedFetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      return response.json(); // ✅
+      return response.json();
     },
     put: async (url, data) => {
       const response = await authenticatedFetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
-      return response.json(); // ✅
+      return response.json();
+    },
+    patch: async (url, data) => {
+      const response = await authenticatedFetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      return response.json();
     },
     delete: async (url) => {
       const response = await authenticatedFetch(url, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
-      return response.json(); // ✅
-    }
+      return response.json();
+    },
   };
 
   return api;

@@ -17,6 +17,7 @@ const ALL_TABS = [
     { id: "modify_account", label: "Informations", perm: "modify_account", content: ModifyAgents },
     { id: "calendar", label: "Calendrier", perm: null, content: "CalendarContent" },
     { id: "perms", label: "Permission", perm: "change_perms", content: ManagePerms },
+    { id: "contrats", label: "Contrats", perm: null, content: Contract },
 ];
 
 
@@ -149,6 +150,8 @@ export default function AgentsProfile() {
                                     <p>Contenu des demandes de {agent.nom}</p>
                                 ) : tab.id === "calendar" ? (
                                     <p>Contenu du calendrier de {agent.nom}</p>
+                                ) : tab.id === "perms" ? (
+                                    tab.content && <tab.content agent={agent} onUpdate={updateAgentData} />
                                 ) : (
                                     tab.content && <tab.content agent={agent} onUpdate={updateAgentData} />
                                 )}

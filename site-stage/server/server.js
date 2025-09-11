@@ -354,8 +354,8 @@ async function startServer() {
     
     // Corriger l'endpoint /perm/profile pour utiliser accessToken
     app.get("/perm/profile", async (req, res) => {
-      const token = req.cookies.accessToken; // Changer de 'token' à 'accessToken'
-      if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
+      const token = req.cookies.refreshToken; // Changer de 'token' à 'accessToken'
+      if (!token) return res.status(401).json({ success: false, message: "Nonn authentifié "});
   
       try {
         const decoded = jwt.verify(token, secretKey);
@@ -633,55 +633,42 @@ async function startServer() {
     // Create a new contract
 // Replace your contract creation endpoint in server.js with this:
 
-    app.post("/contrats", async (req, res) => {
-      try {
-        // Get user ID from JWT token
-        const token = req.cookies.token;
-        if (!token) {
-          return res.status(401).json({ success: false, message: "Non authentifié" });
-        }
-      
-        let decoded;
-        try {
-          decoded = jwt.verify(token, secretKey);
-        } catch (err) {
-          return res.status(401).json({ success: false, message: "Token invalide" });
-        }
-      
-        const {
-          matricule,
-          type_contrat,
-          date_debut,
-          date_fin,
-          ca = 0,
-          cf = 0,
-          js = 0,
-          rca = 0,
-          heure = 0
-        } = req.body;
-      
-        if (!matricule || !type_contrat || !date_debut || !date_fin) {
-          return res.status(400).json({ success: false, message: "Champs requis manquants" });
-        }
-      
-        // Calcul de la durée en jours
-        const duree_contrat = Math.ceil(
-          (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
-        );
-      
-        await db.query(
-          `INSERT INTO contrats 
-            (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, decoded.id] // Use decoded.id here!
-        );
-      
-        res.status(201).json({ success: true, message: "Contrat créé avec succès" });
-      } catch (err) {
-        console.error("Erreur lors de la création du contrat:", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
+  app.post("/contrats", authenticateToken, async (req, res) => {
+    try {
+      const {
+        matricule,
+        type_contrat,
+        date_debut,
+        date_fin,
+        ca = 0,
+        cf = 0,
+        js = 0,
+        rca = 0,
+        heure = 0
+      } = req.body;
+
+      if (!matricule || !type_contrat || !date_debut || !date_fin) {
+        return res.status(400).json({ success: false, message: "Champs requis manquants" });
       }
-    });
+
+      const duree_contrat = Math.ceil(
+        (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
+      );
+
+      await db.query(
+        `INSERT INTO contrats 
+          (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id] // ✅ req.user.id vient du middleware
+      );
+
+      res.status(201).json({ success: true, message: "Contrat créé avec succès" });
+    } catch (err) {
+      console.error("Erreur lors de la création du contrat:", err);
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  });
+
     
     // Update contract values (CA, CF, JS, heures, etc.)
     app.put("/contrats/:id", async (req, res) => {
