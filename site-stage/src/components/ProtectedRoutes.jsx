@@ -4,20 +4,22 @@ import '../styles/ProtectedRoutes.css';
 import { useEffect } from "react";
 import { hasAnyUserPerm } from "../utils/permsApi";
 import { useState } from "react";
+import { useApi } from "../hooks/useApi";
 
 export default function ProtectedRoute({ children, requireAdmin = false }) {
+  const api = useApi();
   const { user, loading } = useAuth();
-  const [ok, setOk] = useState(false);
-
+  const [ok, setOk] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      hasAnyUserPerm(user.id, ["create_account", "all_users"]).then(result => {
+    if (user && requireAdmin) {
+      hasAnyUserPerm(api, user.id, ["create_account", "all_users"]).then(result => {
         setOk(result);
       });
-      console.log("Vérification des permissions pour l'utilisateur :", user);
+    } else {
+      setOk(true);
     }
-  }, [user]);
+  }, [user, requireAdmin]);
 
   if (loading) {
     return <div className="loader-container">
@@ -28,7 +30,6 @@ export default function ProtectedRoute({ children, requireAdmin = false }) {
     </div>
   </div>;
   }
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }

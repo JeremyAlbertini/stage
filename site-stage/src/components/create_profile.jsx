@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import "../styles/admin.css";
+import { useApi } from "./hooks/useApi";
 
 function CompleteProfile({ userId, onProfileCompleted, onCancel }) {
+    const api = useApi();
     const [formData, setFormData] = useState({
         nom: "",
         prenom: "",
@@ -34,8 +36,8 @@ function CompleteProfile({ userId, onProfileCompleted, onCancel }) {
     useEffect(() => {
         const loadProfile = async () => {
             try {
-                const response = await fetch(`http://localhost:5000/users/${userId}/profile`);
-                const data = await response.json();
+                const response = await api.get(`http://localhost:5000/users/${userId}/profile`);
+                const data = response;
                 
                 if (data.success && data.data) {
                     const profile = data.data;
@@ -87,11 +89,7 @@ function CompleteProfile({ userId, onProfileCompleted, onCancel }) {
         setLoading(true);
 
         try {
-            const response = await fetch(`http://localhost:5000/users/${userId}/complete-profile`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData)
-            });
+            const response = await api.post(`http://localhost:5000/users/${userId}/complete-profile`,formData);
             
             const data = await response.json();
 

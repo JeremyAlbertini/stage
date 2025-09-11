@@ -7,6 +7,7 @@ import CreateUser from "../components/create_user.jsx";
 import SearchList from "../components/searchList.jsx";
 import { getUserData, getUserPerm } from "../utils/permsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useApi } from "../hooks/useApi.js";
 
 const ALL_TABS = [
     { id: "create", label: "Créer Un Utilisateur", perm: "create_account", content: CreateUser },
@@ -15,6 +16,7 @@ const ALL_TABS = [
 ];
 
 export default function AdminPage({ users, loadUsers }) {
+    const api = useApi();
     const [perms, setPerms] = useState({});
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,8 +28,7 @@ export default function AdminPage({ users, loadUsers }) {
             const permsObj = {};
             for (const tab of ALL_TABS) {
                 if (tab.perm) {
-                    console.log("Vérification de la permission pour l'onglet :", user.id, tab.id, tab.perm);
-                    permsObj[tab.id] = await getUserPerm(user.id, tab.perm);
+                    permsObj[tab.id] = await getUserPerm(api, user.id, tab.perm);
                 } else {
                     permsObj[tab.id] = true; // Onglet sans restriction
                 }

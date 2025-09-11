@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getUserPerms } from "../utils/permsApi";
 import '../styles/ManagePerms.css';
+import React from "react";
+import { useApi } from "../hooks/useApi";
 
 /**
  * Liste des permissions modifiables
@@ -14,6 +16,7 @@ const PERMS_LIST = [
 ];
 
 function ManagePerms({ agent, onUpdate }) {
+  const api = useApi();
   const [perms, setPerms] = useState({});
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -22,7 +25,7 @@ function ManagePerms({ agent, onUpdate }) {
   useEffect(() => {
     if (agent && agent.user_id) {
       setLoading(true);
-      getUserPerms(agent.user_id).then(data => {
+      getUserPerms(api, agent.user_id).then(data => {
         setPerms(data || {});
         setLoading(false);
       });
@@ -50,15 +53,11 @@ function ManagePerms({ agent, onUpdate }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:5000/perms/${agent.user_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(perms)
-      });
+      const response = await api.put(`http://localhost:5000/perms/${agent.user_id}`, perms);
       
-      const result = await response.json();
+      const result = await response;
       
-      if (response.ok && result.success) {
+      if (result.success) {
         showMessage('success', 'Permissions mises à jour avec succès !');
         if (onUpdate) {
           onUpdate(agent);

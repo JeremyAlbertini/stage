@@ -10,21 +10,28 @@ import Profile from "./pages/profile.jsx";
 import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import { useState, useEffect } from "react";
 import AgentsProfile from "./pages/AgentsProfile.jsx";
+import { useApi } from "./hooks/useApi.js"; // Import du hook
 
 export default function AppRoutes() {
   const [users, setUsers] = useState([]);
+  const api = useApi(); // Utiliser le hook
 
-  // Charge les utilisateurs pour l’admin
-  const loadUsers = () => {
-    fetch("http://localhost:5000/users")
-      .then(res => res.json())
-      .then(data => setUsers(data))
-      .catch(err => console.error(err));
+  // Charge les utilisateurs pour l'admin avec auto-refresh
+  const loadUsers = async () => {
+    try {
+      const data = await api.get("http://localhost:5000/users"); // <-- URL relative
+      setUsers(data);
+    } catch (err) {
+      console.error("Erreur lors du chargement des utilisateurs:", err);
+    }
   };
+  
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  console.log(users);
 
   return (
     <Routes>
@@ -58,7 +65,7 @@ export default function AppRoutes() {
           <AdminPage users={users} loadUsers={loadUsers} />
         </ProtectedRoute>
       } />
-      <Route path="/agents-profile" element={
+      <Route path="/agents/:id" element={
         <ProtectedRoute requireAdmin={true}>
           <AgentsProfile />
         </ProtectedRoute>

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import "../styles/CreateUser.css";
 import { useAuth } from "../context/AuthContext";
+import { useApi } from "../hooks/useApi";
 
 function CreateUser({ onUserCreated }) {
+    const api = useApi();
     const { user } = useAuth();
 
     if (!user || !user.isAdmin) {
@@ -68,11 +70,7 @@ function CreateUser({ onUserCreated }) {
         };
 
         try {
-            const response = await fetch("http://localhost:5000/users/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
+            const response = await api.post("http://localhost:5000/users/create",payload);
 
             const data = await response.json();
 

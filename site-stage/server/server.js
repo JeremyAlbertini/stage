@@ -162,66 +162,149 @@ async function startServer() {
           "WHERE l.matricule = ?",
           [matricule]
         );
+    
         if (users.length === 0) {
           return res.json({ success: false, message: "Utilisateur non trouvé" });
         }
-
+    
         const user = users[0];
         const match = await bcrypt.compare(password, user.password);
-
-
-        if (match) {
-          const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
-      
-          res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "strict",
-            maxAge: 60 * 60 * 1000
-          });
-      
-          return res.json({
-            success: true,
-            message: "Connexion réussie",
-            user: {
-              id: user.id,
-              matricule: user.matricule,
-              isAdmin: user.is_admin === 1,
-              email: user.email,
-              nom: user.nom,
-              prenom: user.prenom
-            }
-          });
-        } else {
+    
+        if (!match) {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
+    
+        // Access Token (1h)
+        const accessToken = jwt.sign(
+          { id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 },
+          secretKey,
+          { expiresIn: "1h" }
+        );
+    
+        // Refresh Token (7j)
+        const refreshToken = jwt.sign(
+          { id: user.id },
+          secretKey,
+          { expiresIn: "7d" }
+        );
+    
+        // Cookies
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: 60 * 60 * 1000
+        });
+    
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+    
+        return res.json({
+          success: true,
+          message: "Connexion réussie",
+          user: {
+            id: user.id,
+            matricule: user.matricule,
+            isAdmin: user.is_admin === 1,
+            nom: user.nom,
+            prenom: user.prenom
+          }
+        });
+    
       } catch (err) {
-      console.error("Erreur de login:", err);
-      return res.status(500).json({ 
-        success: false, 
-        message: "Erreur serveur lors de la connexion" 
-      });
-    }
-  });
+        console.error("Erreur de login:", err);
+        return res.status(500).json({
+          success: false,
+          message: "Erreur serveur lors de la connexion"
+        });
+      }
+    });
+
+    
+    const authenticateToken = async (req, res, next) => {
+      const accessToken = req.cookies.accessToken;
+      
+      if (!accessToken) {
+        return res.status(401).json({ success: false, message: "Access token manquant" });
+      }
+    
+      try {
+        const decoded = jwt.verify(accessToken, secretKey);
+        req.user = decoded;
+        next();
+      } catch (err) {
+        return res.status(401).json({ success: false, message: "Access token invalide" });
+      }
+    };
+    
+    // Corriger l'endpoint /refresh
+    app.post("/refresh", async (req, res) => {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        return res.status(401).json({ success: false, message: "Pas de refresh token" });
+      }
+    
+      try {
+        const decoded = jwt.verify(refreshToken, secretKey);
+        
+        // Récupérer les infos utilisateur pour le nouveau token
+        const [users] = await db.query(
+          "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+          "LEFT JOIN agentdata a ON l.id = a.user_id " +
+          "WHERE l.id = ?",
+          [decoded.id]
+        );
+    
+        if (users.length === 0) {
+          return res.status(403).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+    
+        const user = users[0];
+    
+        // Génère un nouveau access token avec toutes les infos nécessaires
+        const newAccessToken = jwt.sign(
+          { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          },
+          secretKey,
+          { expiresIn: "1h" }
+        );
+    
+        res.cookie("accessToken", newAccessToken, {
+          httpOnly: true,
+          sameSite: "strict",
+          maxAge: 60 * 60 * 1000
+        });
+    
+        return res.json({ success: true });
+      } catch (err) {
+        return res.status(403).json({ success: false, message: "Refresh token invalide" });
+      }
+    });
+    
 
     // Check current user
     app.get("/me", async (req, res) => {
-      const token = req.cookies.token;
+      const token = req.cookies.accessToken; // Changer de 'token' à 'accessToken'
       if (!token) return res.status(401).json({ loggedIn: false });
-
+    
       try {
         const decoded = jwt.verify(token, secretKey);
-
+    
         const [rows] = await db.query(
           "SELECT photo FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
-
+    
         const photo = rows.length > 0 ? rows[0].photo : 'ano.jpg';
-
+    
         return res.json({
           loggedIn: true,
-          user:{
+          user: {
             id: decoded.id,
             matricule: decoded.matricule,
             isAdmin: decoded.isAdmin,
@@ -232,46 +315,45 @@ async function startServer() {
         res.status(401).json({ loggedIn: false });
       }
     });
-
-    // Logout
+    
+    // Corriger l'endpoint logout pour supprimer les deux cookies
     app.post("/logout", (req, res) => {
-      res.clearCookie("token");
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
       res.json({ success: true, message: "Déconnecté" });
     });
-
+    
+    // Corriger l'endpoint /perm/profile pour utiliser accessToken
     app.get("/perm/profile", async (req, res) => {
-      const token = req.cookies.token;
+      const token = req.cookies.accessToken; // Changer de 'token' à 'accessToken'
       if (!token) return res.status(401).json({ success: false, message: "Non authentifié "});
-
+    
       try {
         const decoded = jwt.verify(token, secretKey);
         const [rows] = await db.query(
           "SELECT * FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
-
+    
         if (rows.length === 0) {
           return res.status(404).json({ success: false, message: "Profil non trouvé" });
         }
-
+    
         res.json({ success: true, agentData: rows[0] });
       } catch (err) {
         console.error(err);
         res.status(401).json({ success: false, message: "Token invalide" });
       }
     });
-
-    app.post('/upload/profile', upload.single('photo'), async (req, res) => {
-      try {
-        const token = req.cookies.token;
-        if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
     
+    // Exemple d'utilisation du middleware authenticateToken
+    app.post('/upload/profile', authenticateToken, upload.single('photo'), async (req, res) => {
+      try {
+        const userId = req.user.id; // Utiliser req.user du middleware
+        
         if (!req.file) {
           return res.status(400).json({ success: false, message: "Aucune photo fournie" });
         }
-    
-        const decoded = jwt.verify(token, secretKey);
-        const userId = decoded.id;
         
         const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
         const oldPhoto = rows.length > 0 ? rows[0].photo : null;
@@ -295,31 +377,28 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur lors de l'upload" });
       }
     });
-
-    app.post('/delete/profile-photo', async (req, res) => {
+    
+    // Et de même pour delete profile photo
+    app.post('/delete/profile-photo', authenticateToken, async (req, res) => {
       try {
-          const token = req.cookies.token;
-          if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
-          
-          const decoded = jwt.verify(token, secretKey);
-          const userId = decoded.id;
-          
-          const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
-          
-          if (rows.length > 0 && rows[0].photo) {
-              const currentPhoto = rows[0].photo;
-              
-              if (currentPhoto !== 'ano.jpg') {
-                  await storage.deleteProfileImage(currentPhoto);
-              }
-          }
-          
-          await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
-          
-          res.json({
-              success: true,
-              message: "Photo de profil supprimée"
-          });
+        const userId = req.user.id;
+        
+        const [rows] = await db.query("SELECT photo FROM agentdata WHERE user_id = ?", [userId]);
+        
+        if (rows.length > 0 && rows[0].photo) {
+            const currentPhoto = rows[0].photo;
+            
+            if (currentPhoto !== 'ano.jpg') {
+                await storage.deleteProfileImage(currentPhoto);
+            }
+        }
+        
+        await db.query("UPDATE agentdata SET photo = 'ano.jpg' WHERE user_id = ?", [userId]);
+        
+        res.json({
+            success: true,
+            message: "Photo de profil supprimée"
+        });
       } catch (error) {
           console.error("Erreur lors de la suppression:", error);
           res.status(500).json({ success: false, message: "Erreur lors de la suppression" });
@@ -478,6 +557,32 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
+
+    app.get("/agents/:id", async (req, res) => {
+      const { id } = req.params;
+      try {
+        const [rows] = await db.query(
+          `SELECT 
+            a.*, 
+            p.change_perms, p.create_account, p.request, p.modify_account, p.all_users
+          FROM agentdata a
+          LEFT JOIN perms p ON a.user_id = p.user_id
+          WHERE a.user_id = ?
+          LIMIT 1`,
+          [id]
+        );
+    
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Agent non trouvé" });
+        }
+    
+        res.json({ success: true, agent: rows[0] });
+      } catch (err) {
+        console.error("Erreur /agents/:id :", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
 
     // Lancer le serveur
     app.listen(PORT, () =>

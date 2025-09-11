@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { data, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/log.css";
+import { useApi } from "../hooks/useApi";
 
 function Log() {
+  const api = useApi();
   const [page] = useState("login"); // tu pourras élargir à "signup" si besoin
   const [loginData, setLoginData] = useState({ matricule: "", password: "" });
   const [message, setMessage] = useState("");
@@ -16,24 +18,15 @@ function Log() {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch("http://localhost:5000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // cookies inclus
-        body: JSON.stringify(loginData),
-      });
-
-      const data = await res.json();
-      setMessage(data.message || "Erreur de connexion.");
+    const data = await api.post("http://localhost:5000/login", loginData);
+      console.log("Données reçues:", data.success, data.user);
 
       if (data.success) {
-        setUser(data.user); // maj du contexte
+        setUser(data.user); // ✅ context updated
         navigate("/");
+      } else {
+        setMessage(data.message || "Erreur de connexion.");
       }
-    } catch {
-      setMessage("Erreur serveur.");
-    }
   };
 
   return (

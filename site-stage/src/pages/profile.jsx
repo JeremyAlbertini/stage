@@ -3,8 +3,10 @@ import TabContent from "../components/TabContent";
 import { useEffect, useState } from "react";
 import BasePage from "../components/BasePage";
 import { useAuth } from "../context/AuthContext";
+import { useApi } from "../hooks/useApi";
 
 export default function Profile() {
+    const api = useApi();
     const { refreshUserData } = useAuth(); 
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");
@@ -18,16 +20,16 @@ export default function Profile() {
     useEffect(() => {
         const loadUserData = async () => {
             try {
-                const meResponse = await fetch("http://localhost:5000/me", {
+                const meResponse = await api.get("http://localhost:5000/me", {
                     credentials: "include"
                 });
-                const meData = await meResponse.json();
+                const meData = meResponse;
 
                 if (meData.loggedIn) {
-                    const profileResponse = await fetch("http://localhost:5000/perm/profile", {
+                    const profileResponse = await api.get("http://localhost:5000/perm/profile", {
                         credentials: "include"
                     });
-                    const profileData = await profileResponse.json();
+                    const profileData = await profileResponse;
 
                     if (profileData.success) {
                         setUserData({
