@@ -40,12 +40,8 @@ th {
 td {
   padding: 12px;
   text-align: center;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #000000;
   font-size: 0.95rem;
-}
-
-tr:nth-child(even) td {
-  background: #f9f9f9;
 }
 
 .active {
@@ -226,4 +222,50 @@ button.success:hover {
   .modal-content {
     padding: 20px;
   }
+}
+
+/* =========================
+   PDF Upload Input (Modal)
+========================= */
+.form-group input[type="file"] {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f9f9f9;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input[type="file"]:hover {
+  background: #f1f1f1;
+}
+
+.form-group input[type="file"]:focus {
+  border-color: #0077b6;
+  box-shadow: 0 0 6px rgba(0, 119, 182, 0.35);
+  outline: none;
+}
+
+/* =========================
+   PDF Download Button
+========================= */
+button.download {
+  background: #6c63ff; /* violet for distinction */
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button.download:hover {
+  background: #574fcf;
+  transform: translateY(-1px);
+}
+
+button.download:active {
+  transform: translateY(1px);
 }

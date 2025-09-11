@@ -71,47 +71,50 @@ function Contracts({ matricule, agent }) {
     // Create contract - ADD credentials
     const handleCreate = async () => {
       setError('');
-    
       if (!newContract.date_debut || !newContract.date_fin) {
         setError('Veuillez renseigner les dates de début et de fin');
         return;
       }
     
-      if (new Date(newContract.date_fin) <= new Date(newContract.date_debut)) {
-        setError('La date de fin doit être postérieure à la date de début');
-        return;
-      }
-    
       try {
-        const response = await api.post('http://localhost:5000/contrats', { ...newContract, matricule: agent.matricule });
+        // 1. Create contract
+        const response = await fetch('http://localhost:5000/contrats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ ...newContract, matricule: agent.matricule }),
+        });
       
-        if (!response.succsess) {
-          let errorData;
-          try {
-            errorData = await response;
-          } catch {
-            errorData = {};
-          }
-          console.error('Error response:', errorData);
-          throw new Error(errorData.message || 'Erreur lors de la création du contrat');
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Erreur création contrat");
+      
+        // 2. Upload PDF if present
+        if (newContract.pdf) {
+          const formData = new FormData();
+          formData.append("pdf", newContract.pdf);
+          await fetch(`http://localhost:5000/contrats/${data.id}/upload`, {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          });
         }
       
-        // Reset form & refresh contracts
         setShowModal(false);
         setNewContract({
-          type_contrat: 'Titulaire',
-          date_debut: '',
-          date_fin: '',
+          type_contrat: "Titulaire",
+          date_debut: "",
+          date_fin: "",
           duree_contrat: 0,
           ca: 0,
           cf: 0,
           js: 0,
           rca: 0,
           heure: 1607,
+          pdf: null,
         });
         fetchContracts();
       } catch (err) {
-        console.error('Error creating contract:', err);
+        console.error("Error creating contract:", err);
         setError(err.message);
       }
     };
@@ -174,6 +177,7 @@ function Contracts({ matricule, agent }) {
             <th>RCA</th>
             <th>Heures</th>
             <th>Action</th>
+            <th>Contrat PDF</th>
           </tr>
         </thead>
         <tbody>
@@ -195,6 +199,20 @@ function Contracts({ matricule, agent }) {
                   <button onClick={() => handleActivate(contract.id)}>Activer</button>
                 )}
                 <button onClick={() => handleDelete(contract.id)}>Supprimer</button>
+              </td>
+              <td>
+                {contract.pdf_file ? (
+                  <button
+                    className="download"
+                    onClick={() =>
+                      window.open(`http://localhost:5000/contrats/${contract.id}/download`, "_blank")
+                    }
+                  >
+                    📄 Télécharger le PDF
+                  </button>
+                ) : (
+                  <span style={{ color: "#999", fontSize: "0.85rem" }}>Aucun PDF</span>
+                )}
               </td>
             </tr>
           ))}
@@ -294,7 +312,14 @@ function Contracts({ matricule, agent }) {
                 onChange={e => setNewContract({ ...newContract, heure: parseInt(e.target.value) || 0 })}
               />
             </div>
-
+            <div className="form-group">
+              <label>Contrat PDF</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setNewContract({ ...newContract, pdf: e.target.files[0] })}
+              />
+            </div>
             <div className="modal-actions">
               <button onClick={handleCreate}>Enregistrer</button>
               <button onClick={() => { setShowModal(false); setError(''); }}>Annuler</button>
