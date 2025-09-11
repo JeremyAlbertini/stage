@@ -38,14 +38,16 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #63b1ff;
+  background-color: #ffffff;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px #63b1ff;
+  box-shadow: 0 2px 4px #cae4ff;
+  border: 0.5px solid #cae4ff;
+  border-color: #cae4ff;
 }
 
 .search-trigger:hover {
-  background-color: #63b1ff;
-  border-color: #007bff;
+  background-color: #f3f3f3;
+  border-color: #bfdeff;
   transform: scale(1.05);
 }
 

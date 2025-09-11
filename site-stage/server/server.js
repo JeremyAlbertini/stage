@@ -175,61 +175,40 @@ async function startServer() {
         if (users.length === 0) {
           return res.json({ success: false, message: "Utilisateur non trouvé" });
         }
-        // Juste ici
+    
         const user = users[0];
         const match = await bcrypt.compare(password, user.password);
-        // Dans le cas ou les 2 sont correctes, on verifie aussi si l'utilisateur a les droits Administrateurs.
-        if (match) {
-          // Enfin on ajoute le JWT dans les cookies pour que pendant une heure nous puissiont rester connecté ([~] Modification Horaire 1h++)
-          const token = jwt.sign({ id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 }, secretKey, { expiresIn: "1h" });
-          res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "strict",
-            maxAge: 60 * 60 * 1000
-          });
-      
-          return res.json({
-            success: true,
-            message: "Connexion réussie",
-            user: {
-              id: user.id,
-              matricule: user.matricule,
-              isAdmin: user.is_admin === 1,
-              email: user.email,
-              nom: user.nom,
-              prenom: user.prenom
-            }
-          });
-        } else {
+    
+        if (!match) {
           return res.json({ success: false, message: "Mot de passe invalide" });
         }
     
-        // Access Token (1h)
+        // ✅ CORRECTION : Génération des tokens uniquement si le mot de passe est correct
         const accessToken = jwt.sign(
           { id: user.id, matricule: user.matricule, isAdmin: user.is_admin === 1 },
           secretKey,
           { expiresIn: "1h" }
         );
     
-        // Refresh Token (7j)
         const refreshToken = jwt.sign(
           { id: user.id },
           secretKey,
           { expiresIn: "7d" }
         );
     
-        // Cookies
+        // ✅ CORRECTION : Configuration des cookies sécurisés
         res.cookie("accessToken", accessToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', // HTTPS en production
           sameSite: "strict",
-          maxAge: 60 * 60 * 1000
+          maxAge: 60 * 60 * 1000 // 1 heure
         });
     
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
           sameSite: "strict",
-          maxAge: 7 * 24 * 60 * 60 * 1000
+          maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
         });
     
         return res.json({
@@ -258,7 +237,58 @@ async function startServer() {
       const accessToken = req.cookies.accessToken;
       
       if (!accessToken) {
-        return res.status(401).json({ success: false, message: "Access token manquant" });
+        // ✅ CORRECTION : Tentative de refresh automatique
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          return res.status(401).json({ success: false, message: "Tokens manquants" });
+        }
+    
+        try {
+          const decoded = jwt.verify(refreshToken, secretKey);
+          
+          // Récupérer les infos utilisateur
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [decoded.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ success: false, message: "Utilisateur non trouvé" });
+          }
+    
+          const user = users[0];
+    
+          // Génère un nouveau access token
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+    
+          req.user = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+          
+          return next();
+          
+        } catch (err) {
+          return res.status(401).json({ success: false, message: "Tokens invalides" });
+        }
       }
     
       try {
@@ -266,7 +296,56 @@ async function startServer() {
         req.user = decoded;
         next();
       } catch (err) {
-        return res.status(401).json({ success: false, message: "Access token invalide" });
+        // ✅ CORRECTION : Si access token expiré, tentative avec refresh token
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          return res.status(401).json({ success: false, message: "Access token invalide" });
+        }
+    
+        try {
+          const decodedRefresh = jwt.verify(refreshToken, secretKey);
+          
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [decodedRefresh.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ success: false, message: "Utilisateur non trouvé" });
+          }
+    
+          const user = users[0];
+    
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+    
+          req.user = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+          
+          return next();
+          
+        } catch (refreshErr) {
+          return res.status(401).json({ success: false, message: "Tous les tokens sont invalides" });
+        }
       }
     };
     
@@ -320,12 +399,108 @@ async function startServer() {
 
     // Verification sur le reste des pages de qui est connecté via le JWT stocké dans les cookies.
     app.get("/me", async (req, res) => {
-      const token = req.cookies.accessToken; // Changer de 'token' à 'accessToken'
-      if (!token) return res.status(401).json({ loggedIn: false });
+      const accessToken = req.cookies.accessToken;
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (!accessToken && !refreshToken) {
+        return res.status(401).json({ loggedIn: false });
+      }
     
       try {
-        const decoded = jwt.verify(token, secretKey);
+        let decoded;
+        
+        // ✅ CORRECTION : Essayer d'abord avec l'access token
+        if (accessToken) {
+          try {
+            decoded = jwt.verify(accessToken, secretKey);
+          } catch (err) {
+            // Si access token invalide, essayer avec refresh token
+            if (refreshToken) {
+              const refreshDecoded = jwt.verify(refreshToken, secretKey);
+              
+              // Récupérer les infos complètes de l'utilisateur
+              const [users] = await db.query(
+                "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+                "LEFT JOIN agentdata a ON l.id = a.user_id " +
+                "WHERE l.id = ?",
+                [refreshDecoded.id]
+              );
     
+              if (users.length === 0) {
+                return res.status(401).json({ loggedIn: false });
+              }
+    
+              const user = users[0];
+              
+              // Générer un nouveau access token
+              const newAccessToken = jwt.sign(
+                { 
+                  id: user.id, 
+                  matricule: user.matricule, 
+                  isAdmin: user.is_admin === 1 
+                },
+                secretKey,
+                { expiresIn: "1h" }
+              );
+    
+              res.cookie("accessToken", newAccessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: "strict",
+                maxAge: 60 * 60 * 1000
+              });
+    
+              decoded = { 
+                id: user.id, 
+                matricule: user.matricule, 
+                isAdmin: user.is_admin === 1 
+              };
+            } else {
+              return res.status(401).json({ loggedIn: false });
+            }
+          }
+        } else if (refreshToken) {
+          // Si pas d'access token, utiliser le refresh token directement
+          const refreshDecoded = jwt.verify(refreshToken, secretKey);
+          
+          const [users] = await db.query(
+            "SELECT l.id, l.matricule, a.is_admin FROM logindata l " +
+            "LEFT JOIN agentdata a ON l.id = a.user_id " +
+            "WHERE l.id = ?",
+            [refreshDecoded.id]
+          );
+    
+          if (users.length === 0) {
+            return res.status(401).json({ loggedIn: false });
+          }
+    
+          const user = users[0];
+          
+          const newAccessToken = jwt.sign(
+            { 
+              id: user.id, 
+              matricule: user.matricule, 
+              isAdmin: user.is_admin === 1 
+            },
+            secretKey,
+            { expiresIn: "1h" }
+          );
+    
+          res.cookie("accessToken", newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: "strict",
+            maxAge: 60 * 60 * 1000
+          });
+    
+          decoded = { 
+            id: user.id, 
+            matricule: user.matricule, 
+            isAdmin: user.is_admin === 1 
+          };
+        }
+    
+        // Récupérer la photo de profil
         const [rows] = await db.query(
           "SELECT photo FROM agentdata WHERE user_id = ?",
           [decoded.id]
@@ -342,33 +517,70 @@ async function startServer() {
             avatar: photo !== 'ano.jpg' ? `/uploads/profiles/${photo}` : '/ano.jpg'
           }
         });
-      } catch {
+      } catch (err) {
+        console.error("Erreur dans /me:", err);
         res.status(401).json({ loggedIn: false });
       }
     });
+
     app.post("/logout", (req, res) => {
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
-      res.json({ success: true, message: "Déconnecté" });
+      // ✅ CORRECTION : Nettoyer tous les cookies liés à l'authentification
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict"
+      });
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict"
+      });
+      
+      // Nettoyer aussi l'ancien cookie "token" au cas où
+      res.clearCookie("token");
+      
+      res.json({ success: true, message: "Déconnecté avec succès" });
     });
     
     // Corriger l'endpoint /perm/profile pour utiliser accessToken
     app.get("/perm/profile", async (req, res) => {
-      const token = req.cookies.refreshToken; // Changer de 'token' à 'accessToken'
-      if (!token) return res.status(401).json({ success: false, message: "Nonn authentifié "});
-  
+      const accessToken = req.cookies.accessToken;
+      const refreshToken = req.cookies.refreshToken;
+      
+      if (!accessToken && !refreshToken) {
+        return res.status(401).json({ success: false, message: "Non authentifié" });
+      }
+    
       try {
-        const decoded = jwt.verify(token, secretKey);
+        let decoded;
+        
+        if (accessToken) {
+          try {
+            decoded = jwt.verify(accessToken, secretKey);
+          } catch (err) {
+            // Fallback sur refresh token
+            if (refreshToken) {
+              decoded = jwt.verify(refreshToken, secretKey);
+            } else {
+              throw err;
+            }
+          }
+        } else {
+          decoded = jwt.verify(refreshToken, secretKey);
+        }
+        
         const [rows] = await db.query(
           "SELECT * FROM agentdata WHERE user_id = ?",
           [decoded.id]
         );
+        
         if (rows.length === 0) {
           return res.status(404).json({ success: false, message: "Profil non trouvé" });
         }
+        
         res.json({ success: true, agentData: rows[0] });
       } catch (err) {
-        console.error(err);
+        console.error("Erreur dans /perm/profile:", err);
         res.status(401).json({ success: false, message: "Token invalide" });
       }
     });
