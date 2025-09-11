@@ -78,5 +78,5 @@ CREATE TABLE IF NOT EXISTS perms (
     request BOOLEAN DEFAULT FALSE,
     modify_account BOOLEAN DEFAULT FALSE,
     all_users BOOLEAN DEFAULT FALSE,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(id) ON DELETE CASCADE
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(user_id) ON DELETE CASCADE
 );
