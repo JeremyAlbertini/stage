@@ -61,7 +61,6 @@ function Contracts({ matricule, agent }) {
       try {
         const res = await api.get(`http://localhost:5000/contrats/${agent.matricule}`);
         const data = await res;
-        console.log('Contracts data:', data);
         setContracts(data);
       } catch (err) {
         console.error('Error fetching contracts:', err);
@@ -132,7 +131,6 @@ function Contracts({ matricule, agent }) {
     const handleActivate = async (id) => {
       try {
         const response = await api.patch(`http://localhost:5000/contrats/${id}/activate`);
-        console.log('Activate response:', response);
         if (!response.success) throw new Error("Erreur lors de l'activation du contrat");
         fetchContracts();
       } catch (err) {

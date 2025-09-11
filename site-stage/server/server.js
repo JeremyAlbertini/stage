@@ -112,9 +112,6 @@ async function startServer() {
         adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
       } = req.body;
     
-      console.log("Requête reçue pour modifier l'utilisateur :", userId);
-      console.log("Données reçues :", req.body);
-    
       try {
         await db.beginTransaction();
     
@@ -122,7 +119,6 @@ async function startServer() {
         if (password) {
           const salt = await bcrypt.genSalt(10);
           const hashedPassword = await bcrypt.hash(password, salt);
-          console.log("Mise à jour du mot de passe pour l'utilisateur :", userId);
           await db.query(
             "UPDATE logindata SET password = ? WHERE id = ?",
             [hashedPassword, userId]
@@ -143,8 +139,6 @@ async function startServer() {
             adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin ? 1 : 0, userId
           ]
         );
-    
-        console.log("Résultat de la mise à jour :", result);
     
         if (result.affectedRows === 0) {
           throw new Error("Aucune ligne mise à jour. Vérifiez l'ID de l'utilisateur.");
@@ -603,7 +597,6 @@ async function startServer() {
         
         if (oldPhoto && oldPhoto !== 'ano.jpg') {
           await storage.deleteProfileImage(oldPhoto);
-          console.log(`Ancienne photo supprimée: ${oldPhoto}`);
         }
         
         res.json({ 
@@ -827,14 +820,12 @@ async function startServer() {
     app.get("/contrats/:matricule", async (req, res) => {
       try {
         const { matricule } = req.params;
-        console.log('Fetching contracts for matricule:', matricule); // Add this
 
         const [rows] = await db.query(
           "SELECT * FROM contrats WHERE matricule = ? ORDER BY date_debut DESC",
           [matricule]
         );
 
-        console.log('Found contracts:', rows); // Add this
         res.json(rows);
       } catch (err) {
         console.error("Erreur lors de la récupération des contrats:", err);

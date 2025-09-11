@@ -10,7 +10,6 @@ class ImageStorage {
 
             if (!fs.existsSync(this.uploadDir)) {
                 fs.mkdirSync(this.uploadDir, { recursive: true});
-                console.log("Dossier de stockage créé:", this.uploadDir);
             }
         }
     }
@@ -23,7 +22,6 @@ class ImageStorage {
 
                 await fs.promises.copyFile(file.path, filepath);
                 await fs.promises.unlink(file.path);
-                console.log(`Image de profil enregistrée pour l'user ${userId}: ${filename}`);
                 return filename;
             } catch (error) {
                 console.error("Erreur lors de l'enregistrement de l'image:", error);
@@ -44,7 +42,6 @@ class ImageStorage {
 
     async deleteProfileImage(filename) {
         if (!filename) {
-            console.log("Aucun nom de fichier fourni pour la suppression");
             return;
         }
     

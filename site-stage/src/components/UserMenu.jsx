@@ -19,7 +19,6 @@ export default function UserMenu({ userMenuItems = [] }) {
     if (user?.id) {
       hasAnyUserPerm(api, user.id, ["create_account", "all_users"])
         .then(result => {
-          console.log("Permission admin résultat:", result);
           setOk(result);
         })
         .catch(err => {
@@ -32,9 +31,7 @@ export default function UserMenu({ userMenuItems = [] }) {
   // ✅ CORRECTION : Fonction de logout avec feedback utilisateur
   const handleLogoutClick = async () => {
     try {
-      console.log("Clic sur déconnexion");
       await handleLogout();
-      console.log("Déconnexion terminée");
       navigate('/login');
     } catch (err) {
       console.error("Erreur lors de la déconnexion:", err);
@@ -45,7 +42,6 @@ export default function UserMenu({ userMenuItems = [] }) {
 
   const getDefaultMenuItems = () => {
     const items = [];
-    console.log("Permission admin:", ok);
     
     if (ok) {
       items.push({
@@ -55,7 +51,6 @@ export default function UserMenu({ userMenuItems = [] }) {
         backgroundColor: '#6c757d',
         hoverColor: '#5a6268',
         onClick: () => {
-          console.log("Navigation vers admin");
           navigate('/admin');
         }
       });
@@ -96,7 +91,6 @@ export default function UserMenu({ userMenuItems = [] }) {
           backgroundColor: buttonHovered ? '#0056b3' : '#007bff',
         }}
         onClick={() => {
-          console.log("Navigation vers profil");
           navigate('/profile');
         }}
         onMouseEnter={() => setButtonHovered(true)}
