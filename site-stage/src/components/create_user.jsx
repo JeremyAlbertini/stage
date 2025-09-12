@@ -7,10 +7,6 @@ function CreateUser({ onUserCreated }) {
     const api = useApi();
     const { user } = useAuth();
 
-    if (!user || !user.isAdmin) {
-        return <p>Vous n'avez pas la permission de créer un compte.</p>;
-    }
-
     const [matricule, setMatricule] = useState("");
     const [password, setPassword] = useState("");
     const [isAdmin, setIsAdmin] = useState(false);
