@@ -13,7 +13,7 @@ import LeaveApproval from "../components/LeaveApproval";
 const ALL_TABS = [
     { id: "create", label: "Créer Un Utilisateur", perm: "create_account", content: CreateUser },
     { id: "liste", label: "Liste d'utilisateur", perm: "all_users", content: SearchList },
-    { id: "conges", label: "Gestion des congés", perm: "request", content; LeaveApproval },
+    { id: "conges", label: "Gestion des congés", perm: "request", content: LeaveApproval },
     // Pour ajouter un nouvel onglet : { id: "stats", label: "Statistiques", perm: "view_stats", content: StatsComponent }
 ];
 
