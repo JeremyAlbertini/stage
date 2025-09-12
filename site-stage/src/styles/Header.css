@@ -231,7 +231,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.4rem;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .user-menu-button:hover {
@@ -253,41 +253,44 @@
   position: absolute;
   top: 100%;
   left: 0;
-  width: 150px;
+  width: 155px;
   background-color: white;
-  border-radius: 6px;
+  border-radius: 1px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1001;
   margin-top: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Item de menu */
 .menu-item {
   width: 100%;
-  padding: 0.75rem 1rem;
+  min-height: 45px;
+  padding: 0.6rem 1rem;
   cursor: pointer;
   border: none;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease;
   text-align: left;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 400;
 }
 
+/* Uniform rounding on top item */
 .menu-item:first-child {
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  width: 147px;
+  border-radius: 6px 6px 6px 6px;
 }
 
+/* Uniform rounding on bottom item */
 .menu-item:last-child {
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  width: 147px;
+  border-radius: 6px 6px 6px 6px;
 }
+
 
 .menu-item span:first-child {
   font-size: 1rem;

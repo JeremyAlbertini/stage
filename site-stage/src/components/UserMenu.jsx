@@ -96,7 +96,7 @@ export default function UserMenu({ userMenuItems = [] }) {
         onMouseEnter={() => setButtonHovered(true)}
         onMouseLeave={() => setButtonHovered(false)}
       >
-        <span>{'mon compte'}</span>
+        <span>{'Mon Compte'}</span>
         <img 
           src={user.avatar || "/ano.jpg"}
           alt="Avatar" 
