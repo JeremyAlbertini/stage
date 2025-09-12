@@ -112,9 +112,6 @@ async function startServer() {
         adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
       } = req.body;
     
-      console.log("Requête reçue pour modifier l'utilisateur :", userId);
-      console.log("Données reçues :", req.body);
-    
       try {
         await db.beginTransaction();
     
@@ -122,7 +119,6 @@ async function startServer() {
         if (password) {
           const salt = await bcrypt.genSalt(10);
           const hashedPassword = await bcrypt.hash(password, salt);
-          console.log("Mise à jour du mot de passe pour l'utilisateur :", userId);
           await db.query(
             "UPDATE logindata SET password = ? WHERE id = ?",
             [hashedPassword, userId]
@@ -143,8 +139,6 @@ async function startServer() {
             adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin ? 1 : 0, userId
           ]
         );
-    
-        console.log("Résultat de la mise à jour :", result);
     
         if (result.affectedRows === 0) {
           throw new Error("Aucune ligne mise à jour. Vérifiez l'ID de l'utilisateur.");
@@ -603,7 +597,6 @@ async function startServer() {
         
         if (oldPhoto && oldPhoto !== 'ano.jpg') {
           await storage.deleteProfileImage(oldPhoto);
-          console.log(`Ancienne photo supprimée: ${oldPhoto}`);
         }
         
         res.json({ 
@@ -827,63 +820,38 @@ async function startServer() {
     app.get("/contrats/:matricule", async (req, res) => {
       try {
         const { matricule } = req.params;
+
         const [rows] = await db.query(
           "SELECT * FROM contrats WHERE matricule = ? ORDER BY date_debut DESC",
           [matricule]
         );
+
         res.json(rows);
       } catch (err) {
         console.error("Erreur lors de la récupération des contrats:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
-
+    
     // Create a new contract
-    app.post("/contrats", async (req, res) => {
-      try {
-        const token = req.cookies.token;
-        if (!token) return res.status(401).json({ success: false, message: "Non authentifié" });
-      
-        let decoded;
-        try {
-          decoded = jwt.verify(token, secretKey);
-        } catch (err) {
-          return res.status(401).json({ success: false, message: "Token invalide" });
-        }
-      
-        const {
-          matricule,
-          type_contrat,
-          date_debut,
-          date_fin,
-          ca = 0,
-          cf = 0,
-          js = 0,
-          rca = 0,
-          heure = 0
-        } = req.body;
-      
-        if (!matricule || !type_contrat || !date_debut || !date_fin) {
-          return res.status(400).json({ success: false, message: "Champs requis manquants" });
-        }
-      
-        const duree_contrat = Math.ceil(
-          (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
-        );
-      
-        const [result] = await db.query(
-          `INSERT INTO contrats 
-            (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, decoded.id]
-        );
-      
-        // 🔥 Return the new contract ID
-        res.status(201).json({ success: true, id: result.insertId, message: "Contrat créé avec succès" });
-      
-      } catch (err) {
-        console.error("Erreur lors de la création du contrat:", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
+// Replace your contract creation endpoint in server.js with this:
+
+  app.post("/contrats", authenticateToken, async (req, res) => {
+    try {
+      const {
+        matricule,
+        type_contrat,
+        date_debut,
+        date_fin,
+        ca = 0,
+        cf = 0,
+        js = 0,
+        rca = 0,
+        heure = 0
+      } = req.body;
+
+      if (!matricule || !type_contrat || !date_debut || !date_fin) {
+        return res.status(400).json({ success: false, message: "Champs requis manquants" });
       }
 
       const duree_contrat = Math.ceil(
@@ -906,32 +874,19 @@ async function startServer() {
 
     
     // Update contract values (CA, CF, JS, heures, etc.)
-    app.post("/contrats/:id/upload", upload.single("pdf"), async (req, res) => {
+    app.put("/contrats/:id", async (req, res) => {
       try {
-        if (!req.file) {
-          return res.status(400).json({ success: false, message: "Aucun fichier fourni" });
-        }
-      
         const { id } = req.params;
-        const filename = `${Date.now()}_${req.file.originalname}`;
-        const fs = require("fs");
-        const path = require("path");
+        const { ca, cf, js, rca, heure } = req.body;
       
-        const destDir = path.join(__dirname, "../public/uploads/contracts");
-        const destPath = path.join(destDir, filename);
+        await db.query(
+          `UPDATE contrats SET ca = ?, cf = ?, js = ?, rca = ?, heure = ? WHERE id = ?`,
+          [ca, cf, js, rca, heure, id]
+        );
       
-        // Make sure the folder exists
-        fs.mkdirSync(destDir, { recursive: true });
-      
-        // Move file
-        fs.renameSync(req.file.path, destPath);
-      
-        // Save filename in DB
-        await db.query("UPDATE contrats SET pdf_file = ? WHERE id = ?", [filename, id]);
-      
-        res.json({ success: true, message: "PDF uploadé avec succès", filename });
+        res.json({ success: true, message: "Contrat mis à jour" });
       } catch (err) {
-        console.error("Erreur upload PDF:", err);
+        console.error("Erreur lors de la mise à jour du contrat:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
@@ -960,75 +915,14 @@ async function startServer() {
       }
     });
     
-    const fs = require("fs");
-    const path = require("path");
-
+    // Delete a contract
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
-      
-        // 1. Find contract & check for PDF
-        const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
-      
-        if (rows.length > 0 && rows[0].pdf_file) {
-          const filePath = path.join(__dirname, "../public/uploads/contracts", rows[0].pdf_file);
-        
-          // 2. Delete file if it exists
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        }
-        // 3. Delete contract from DB
         await db.query("DELETE FROM contrats WHERE id = ?", [id]);
-      
-        res.json({ success: true, message: "Contrat et PDF supprimés" });
+        res.json({ success: true, message: "Contrat supprimé" });
       } catch (err) {
         console.error("Erreur lors de la suppression du contrat:", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
-      }
-    });
-
-    // Upload a PDF contract
-    app.post("/contrats/:id/upload", upload.single("pdf"), async (req, res) => {
-      try {
-        if (!req.file) {
-          return res.status(400).json({ success: false, message: "Aucun fichier fourni" });
-        }
-      
-        const { id } = req.params;
-        const filename = `${Date.now()}_${req.file.originalname}`;
-      
-        // Move uploaded file to contracts folder
-        const fs = require("fs");
-        const path = require("path");
-        const destPath = path.join(__dirname, "../public/uploads/contracts", filename);
-        fs.renameSync(req.file.path, destPath);
-      
-        // Save filename in DB
-        await db.query("UPDATE contrats SET pdf_file = ? WHERE id = ?", [filename, id]);
-      
-        res.json({ success: true, message: "PDF uploadé avec succès", filename });
-      } catch (err) {
-        console.error("Erreur upload PDF:", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
-      }
-    });
-    
-    // Download PDF contract
-    app.get("/contrats/:id/download", async (req, res) => {
-      try {
-        const { id } = req.params;
-        const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
-      
-        if (!rows.length || !rows[0].pdf_file) {
-          return res.status(404).json({ success: false, message: "Aucun PDF trouvé" });
-        }
-      
-        const path = require("path");
-        const filePath = path.join(__dirname, "../public/uploads/contracts", rows[0].pdf_file);
-        res.download(filePath, rows[0].pdf_file);
-      } catch (err) {
-        console.error("Erreur téléchargement PDF:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });

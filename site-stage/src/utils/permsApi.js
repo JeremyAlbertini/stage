@@ -6,7 +6,6 @@
 export async function getUserPerms(api, userId) {
   try {
     const data = await api.get(`http://localhost:5000/perms/${userId}`);
-    console.log("Données des permissions reçues :", data);
     if (data?.success && data.perms) {
       return data.perms;
     }

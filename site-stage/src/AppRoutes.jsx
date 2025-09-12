@@ -33,8 +33,6 @@ export default function AppRoutes() {
     loadUsers();
   }, []);
 
-  console.log(users);
-
   return (
     <Routes>
       <Route path="/" element={

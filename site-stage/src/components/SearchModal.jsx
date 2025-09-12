@@ -26,8 +26,7 @@ export default function SearchModal({ isVisible, onClose }) {
   const filteredResults = searchItems.filter(item => {
     if (item.Permission === "false") return true;
     const hasPermission = getUserPerm(api, user.id, item.Permission);
-    console.log("Permission pour", item.label, ":", hasPermission);
-    if (!hasPermission) return false;
+    if (hasPermission) return false;
     if (!searchQuery) return true;
     return item.label.toLowerCase().includes(searchQuery.toLowerCase());
   });

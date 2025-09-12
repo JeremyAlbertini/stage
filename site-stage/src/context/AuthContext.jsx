@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
   // ✅ CORRECTION : Fonction logout améliorée
   const logout = useCallback(async () => {
     try {
-      console.log("Début déconnexion...");
       const res = await fetch("http://localhost:5000/logout", {
         method: "POST",
         credentials: "include",
@@ -101,7 +100,6 @@ export const AuthProvider = ({ children }) => {
         
         if (res.ok) {
           const data = await res.json();
-          console.log("Utilisateur authentifié:", data);
           setUser(data.user || null);
         } else {
           console.log("Utilisateur non authentifié:", res.status);
