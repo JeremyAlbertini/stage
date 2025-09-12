@@ -44,15 +44,13 @@ function ModifyAgents({ agent, onUpdate }) {
 
         try {
             const response = await api.put(`http://localhost:5000/users/${agent.user_id}`, formData);
-
-            if (response.ok) {
-                const result = await response.json();
+            if (response.success) {
+                const result = await response;
                 setMessage(result.message || "Modifications enregistrées avec succès !");
                 if (onUpdate) {
                     onUpdate({ ...agent, ...formData });
                 }
             } else {
-                const errorResult = await response.json().catch(() => null);
                 setMessage(errorResult?.message || "Une erreur est survenue.");
             }
         } catch (error) {

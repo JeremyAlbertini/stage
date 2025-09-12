@@ -31,7 +31,6 @@ function CreateUser({ onUserCreated }) {
     const [mailPro, setMailPro] = useState("");
     const [adressePro, setAdressePro] = useState("");
     const [stage, setStage] = useState("");
-
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
