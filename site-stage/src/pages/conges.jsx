@@ -1,10 +1,11 @@
-import { useState, useEffect, act } from "react";
+import { useState, useEffect } from "react";
 import BasePage from "../components/BasePage";
 import TabGroup from "../components/TabGroup";
 import TabContent from "../components/TabContent";
 import Button from "../components/Button";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
+import "../styles/conges.css";
 
 export default function Conges() {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ export default function Conges() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.tatget.value
+      [e.target.name]: e.target.value
     });
   };
 
@@ -68,14 +69,14 @@ export default function Conges() {
     <BasePage title="Congés">
       <h1>Mes congés</h1>
 
-      <div classeName="leave-balacnce-cards">
+      <div className="leave-balance-cards">
         <div className="balance-card">
           <h3>Congés annuels</h3>
           <p className="balance-value">{soldes.CA} jours</p>
         </div>
         <div className="balance-card">
           <h3>RTT</h3>
-          <p className="balance-card">{soldes.RCA} jours</p>
+          <p className="balance-value">{soldes.RCA} jours</p>
         </div>
       </div>
 
@@ -105,7 +106,7 @@ export default function Conges() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="date_debut"> Date de début</label>
+              <label htmlFor="date_debut">Date de début</label>
               <input
                 type="date"
                 id="date_debut"
@@ -116,7 +117,7 @@ export default function Conges() {
               />
             </div>
 
-            <div className="form-grouop">
+            <div className="form-group">
               <label htmlFor="date_fin">Date de fin</label>
               <input
                 type="date"
@@ -129,14 +130,14 @@ export default function Conges() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="commentaire">Commentaire(optionnel)</label>
+              <label htmlFor="commentaire">Commentaire (optionnel)</label>
               <textarea
                 id="commentaire"
                 name="commentaire"
                 value={formData.commentaire}
                 onChange={handleChange}
                 rows="3"
-              />
+              ></textarea>
             </div>
 
             <Button type="submit">Soumettre ma demande</Button>
