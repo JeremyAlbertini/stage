@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Button from "./Button";;
 import { useApi } from "../hooks/useApi";
+import "../styles/conges.css";
 
 export default function LeaveApproval() {
     const [leaves, setLeaves] = useState([]);

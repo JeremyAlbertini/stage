@@ -9,6 +9,7 @@ import { getUserData, getUserPerm } from "../utils/permsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useApi } from "../hooks/useApi.js";
 import LeaveApproval from "../components/LeaveApproval";
+import "../styles/conges.css";
 
 const ALL_TABS = [
     { id: "create", label: "Créer Un Utilisateur", perm: "create_account", content: CreateUser },
