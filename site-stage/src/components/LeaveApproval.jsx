@@ -10,7 +10,7 @@ export default function LeaveApproval() {
 
     const LoadLeaves = async () => {
         try {
-            const data = await api.get("/admin/conges");
+            const data = await api.get("/api/admin/conges");
             setLeaves(data);
         } catch (error) {
             console.error("Erreur lors du chargement des congés", error);

@@ -1057,7 +1057,7 @@ async function startServer() {
       }
     });
 
-    app.get("/admin/conges", authenticateToken, async (req, res) => {
+  app.get("/api/admin/conges", authenticateToken, async (req, res) => {
       try {
         if (!req.user.isAdmin) {
           return res.status(403).json({
