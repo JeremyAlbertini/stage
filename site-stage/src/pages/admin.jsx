@@ -5,7 +5,7 @@ import TabGroup from "../components/TabGroup.jsx";
 import TabContent from "../components/TabContent.jsx";
 import CreateUser from "../components/create_user.jsx";
 import SearchList from "../components/searchList.jsx";
-import { getUserData, getUserPerm } from "../utils/permsApi.js";
+import { getPerm } from "../utils/permsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useApi } from "../hooks/useApi.js";
 import LeaveApproval from "../components/LeaveApproval";
@@ -24,16 +24,16 @@ export default function AdminPage({ users, loadUsers }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(location.state?.defaultTab || ALL_TABS[0].id);
-    const { user, loading } = useAuth();
+    const { user, loading , permissions} = useAuth();
 
     useEffect(() => {
         async function fetchPerms() {
             const permsObj = {};
             for (const tab of ALL_TABS) {
                 if (tab.perm) {
-                    permsObj[tab.id] = await getUserPerm(api, user.id, tab.perm);
+                    permsObj[tab.id] = getPerm(permissions, tab.perm);
                 } else {
-                    permsObj[tab.id] = true; // Onglet sans restriction
+                    permsObj[tab.id] = true;
                 }
             }
             setPerms(permsObj);
@@ -60,7 +60,6 @@ export default function AdminPage({ users, loadUsers }) {
             <div className="admin-container">
                 <div className="admin-card">
                     <h1 className="admin-title">Bienvenue sur la page administration</h1>
-                    <p className="admin-text">Ici vous pouvez administrer vos agents.</p>
                     {tabs.length > 0 ? (
                         <>
                             <TabGroup 

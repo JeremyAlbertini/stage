@@ -2,24 +2,23 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import '../styles/ProtectedRoutes.css';
 import { useEffect } from "react";
-import { hasAnyUserPerm } from "../utils/permsApi";
+import { hasAnyPerm} from "../utils/permsApi";
 import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 
 export default function ProtectedRoute({ children, requireAdmin = false }) {
   const api = useApi();
-  const { user, loading } = useAuth();
+  const { user, loading , permissions, refreshUserData} = useAuth();
   const [ok, setOk] = useState(null);
 
   useEffect(() => {
-    if (user && requireAdmin) {
-      hasAnyUserPerm(api, user.id, ["create_account", "all_users"]).then(result => {
-        setOk(result);
-      });
-    } else {
+    if (!loading && user && requireAdmin) {
+      const result = hasAnyPerm(permissions, ["create_account", "all_users"]);
+      setOk(result);
+    } else if (!loading) {
       setOk(true);
     }
-  }, [user, requireAdmin]);
+  }, [user, requireAdmin, loading, Permissions]);
 
   if (loading) {
     return <div className="loader-container">

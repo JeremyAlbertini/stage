@@ -44,7 +44,7 @@ td {
   font-size: 0.95rem;
 }
 
-.active {
+.contrat-active {
   background-color: #56e45a;
   color: white;
   border-radius: 6px;
@@ -52,7 +52,7 @@ td {
   font-weight: bold;
 }
 
-.inactive {
+.contrat-inactive {
   background-color: #e6392c;
   color: white;
   border-radius: 6px;

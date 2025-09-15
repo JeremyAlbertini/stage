@@ -5,7 +5,7 @@ import TabContent from "../components/TabContent";
 import TabGroup from "../components/TabGroup";
 import ModifyAgents from "../components/modifyAgents";
 import ManagePerms from "../components/managePerms";
-import { getUserPerm } from "../utils/permsApi.js";
+import { getPerm } from "../utils/permsApi.js";
 import { getAgentById } from "../utils/agentsApi.js"; // 👈 à créer côté utils
 import { useAuth } from "../context/AuthContext.jsx";
 import { useApi } from "../hooks/useApi.js";
@@ -28,7 +28,7 @@ export default function AgentsProfile() {
     const [agent, setAgent] = useState(null);
     const [perms, setPerms] = useState({});
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || ALL_TABS[0].id);
-    const { user, loading } = useAuth();
+    const { user, loading , permissions} = useAuth();
 
     // Charger les infos de l’agent
     useEffect(() => {
@@ -45,7 +45,7 @@ export default function AgentsProfile() {
             const permsObj = {};
             for (const tab of ALL_TABS) {
                 if (tab.perm) {
-                    permsObj[tab.id] = await getUserPerm(api, user.id, tab.perm);
+                    permsObj[tab.id] = getPerm(permissions, tab.perm);
                 } else {
                     permsObj[tab.id] = true;
                 }

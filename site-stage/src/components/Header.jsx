@@ -3,14 +3,17 @@ import { useAuth } from "../context/AuthContext";
 import UserMenu from './UserMenu';
 import SearchModal from './SearchModal';
 import { useState, useEffect } from 'react';
+import { Menu } from 'lucide-react';
+import { useUI } from '../context/UIContext';
 
 export default function Header({ 
   title, 
   backgroundColor = "white",
-  userMenuItems = []
+  userMenuItems = [],
 }) {
   const [showSearchModal, setShowSearchModal] = useState(false);
   const { user, loading } = useAuth();
+  const { setIsLeftOpen } = useUI();
 
   // Ouvrir la modal de recherche
   const openSearchModal = () => {
@@ -49,6 +52,7 @@ export default function Header({
       <header className="main-header" style={{ backgroundColor }}>
         {/* Groupe titre + loupe */}
         <div className="header-left">
+          <Menu className="menu-icon" size={24} onClick={() => setIsLeftOpen(prev => !prev)}/>
           <h1 className="title-header">{title}</h1>
           <div className="search-trigger" onClick={openSearchModal}>
             <div className="search-icon">🔍</div>

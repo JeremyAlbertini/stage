@@ -183,7 +183,7 @@ function Contracts({ matricule, agent }) {
         <tbody>
           {contracts.map(contract => (
             <tr key={contract.id}>
-              <td className={contract.statut === 'Actif' ? 'active' : 'inactive'}>
+              <td className={contract.statut === 'Actif' ? 'contrat-active' : 'contrat-inactive'}>
                 {`Période du ${new Date(contract.date_debut).toLocaleDateString("fr-FR")} au ${new Date(contract.date_fin).toLocaleDateString("fr-FR")}`}
               </td>
               <td>{typeContratLabels[contract.type_contrat] || contract.type_contrat}</td>

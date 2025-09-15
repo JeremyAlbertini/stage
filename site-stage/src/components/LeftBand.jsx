@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, Users, Calendar, Palmtree, Clock, FileText } from "lucide-react";
+import { Home, Users, Calendar, Palmtree, Clock, FileText, Menu } from "lucide-react";
 import "../styles/LeftBand.css";
+import { useUI } from "../context/UIContext";
 
 export default function LeftBand() {
   const { user, loading } = useAuth();
-
+  const { isLeftOpen } = useUI();
   if (loading) {
     return <p>Chargement...</p>;
   }
@@ -20,9 +21,10 @@ export default function LeftBand() {
   ];
 
   return (
-    <nav className="left-band">
+    <nav className="left-band" style={{ width: isLeftOpen ? "240px" : "60px" }}>
       {items.map((item, index) => {
         const IconComponent = item.icon;
+
         return (
           <NavLink
             key={index}
@@ -32,7 +34,7 @@ export default function LeftBand() {
             }
           >
             <IconComponent className="nav-icon" size={18} />
-            <span className="nav-text">{item.name}</span>
+            {isLeftOpen && <span className="nav-text" >{item.name}</span>}
           </NavLink>
         );
       })}

@@ -3,6 +3,7 @@ import { getUserPerms } from "../utils/permsApi";
 import '../styles/ManagePerms.css';
 import React from "react";
 import { useApi } from "../hooks/useApi";
+import { data } from "react-router-dom";
 
 /**
  * Liste des permissions modifiables
@@ -29,6 +30,7 @@ function ManagePerms({ agent, onUpdate }) {
         setPerms(data || {});
         setLoading(false);
       });
+      console.log("Chargement des permissions pour l'agent", data);
     }
   }, [agent?.user_id]);
 

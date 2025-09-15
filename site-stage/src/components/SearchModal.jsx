@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
-import { getUserPerm } from '../utils/permsApi';
+import { getPerm } from '../utils/permsApi';
 import { useApi } from "../hooks/useApi";
 
 export default function SearchModal({ isVisible, onClose }) {
@@ -10,14 +10,14 @@ export default function SearchModal({ isVisible, onClose }) {
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
   const modalRef = useRef(null);
-  const { user } = useAuth();
+  const { user, Permission } = useAuth();
 
   const searchItems = [
     { page: "/admin", label: "Création de compte", subtitle: "Administration -> Création de compte", tab: "create", Permission: "create_account" },
     { page: "/admin", label: "Gestion des agents", subtitle: "Administration -> Gestion des agents", tab: "liste", Permission: "all_users" },
     { page: "/users", label: "Utilisateurs", subtitle: "Liste des utilisateurs", Permission: "false" },
     { page: "/profile", label: "Mon profil", subtitle: "Voir et modifier mon profil", Permission: "false" },
-    {page: "/calendar", label: "Calendrier", subtitle: "Voir le calendrier des interventions", Permission: "false"},
+    { page: "/calendar", label: "Calendrier", subtitle: "Voir le calendrier des interventions", Permission: "false"},
     { page: "/conges", label: "Congés", subtitle: "Voir et gérer les congés", Permission: "false" },
     { page: "/horaires", label: "Horaires", subtitle: "Voir et gérer les horaires", Permission: "false" },
     { page: "/contrat", label: "Contrats", subtitle: "Voir et gérer les contrats", Permission: "false" },
@@ -25,8 +25,8 @@ export default function SearchModal({ isVisible, onClose }) {
 
   const filteredResults = searchItems.filter(item => {
     if (item.Permission === "false") return true;
-    const hasPermission = getUserPerm(api, user.id, item.Permission);
-    if (!hasPermission) return false;
+    const hasPermission = getPerm(Permission, item.Permission);
+    if (hasPermission) return false;
     if (!searchQuery) return true;
     return item.label.toLowerCase().includes(searchQuery.toLowerCase());
   });

@@ -1,6 +1,5 @@
 /* ====== Container (taille + background) ====== */
 .left-band {
-    width: 240px;
     background-color: #f5f7fb;
     display: flex;
     flex-direction: column;
@@ -17,7 +16,7 @@
     border: none;
     cursor: pointer;
     text-decoration: none;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.5rem;
     border-radius: 6px;
     background-color: transparent;
     color: black;
