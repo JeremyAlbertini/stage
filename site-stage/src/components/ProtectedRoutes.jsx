@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }) {
     } else if (!loading) {
       setOk(true);
     }
-  }, [user, requireAdmin, loading, Permissions]);
+  }, [user, requireAdmin, loading, permissions]);
 
   if (loading) {
     return <div className="loader-container">
