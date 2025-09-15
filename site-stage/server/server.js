@@ -48,7 +48,7 @@ async function startServer() {
         duree FLOAT NOT NULL,
         commentaire TEXT,
         statut ENUM('En Attente', 'Approuvé', 'Refusé') DEFAULT 'En Attente',
-        date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
       )
   ` );
@@ -957,20 +957,34 @@ async function startServer() {
       }
     });
 
-    app.get("/conges", authenticateToken, async (req, res) => {
+    app.get("/api/conges", authenticateToken, async (req, res) => {
       try {
-        const [rows] = await db.query(
-          "SELECT * FROM conges WHERE user_id = ? ORDER BY date_creation DESC",
-          [req.user.id]
-        );
+        console.log("Requête GET /conges reçue, utilisateur:", req.user);
+
+        if(!req.user || !req.user.id) {
+          console.log("Utilisateur non authentifié");
+          return res.status(401).json({ success: false, message: "Non autorisé" });
+        }
+
+        const [rows] = await db.query(`
+          SELECT * FROM conges
+          WHERE user_id = ?
+          ORDER BY date_demande DESC
+        `, [req.user.id]);
+
+        console.log(`Congés trouvers pour l'utilisateur ${req.user.id}:`, rows.length);
         res.json(rows);
       } catch (err) {
         console.error("Erreur lors de la récupération des congés:", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
+        res.status(500).json({
+          success: false,
+          message: "Erreur serveur",
+          error: err.message
+        });
       }
     });
 
-    app.post("/conges", authenticateToken,  async (req, res) => {
+    app.post("/api/conges", authenticateToken,  async (req, res) => {
       try {
         const { type_conge, date_debut, date_fin, commentaire, duree } = req.body;
 
@@ -982,7 +996,7 @@ async function startServer() {
       }
 
         await db.query(
-          `INSERT INTO conges (user_id, type_conge, date_debut, date_fin, duree, commentaire, statut, date_creation)
+          `INSERT INTO conges (user_id, type_conge, date_debut, date_fin, duree, commentaire, statut, date_demande)
           VALUES (?, ?, ?, ?, ?, ?, 'En Attente', NOW())`,
           [req.user.id, type_conge, date_debut, date_fin, duree, commentaire || ""]
         );
@@ -994,7 +1008,7 @@ async function startServer() {
       }
     });
 
-    app.put("/conges/:id", authenticateToken, async (req, res) => {
+    app.put("/api/conges/:id", authenticateToken, async (req, res) => {
       try {
         const { id } = req.params;
         const { status } = req.body;
@@ -1011,7 +1025,7 @@ async function startServer() {
       }
     });
 
-    app.delete("/conges/:id", authenticateToken, async (req, res) => {
+    app.delete("/api/conges/:id", authenticateToken, async (req, res) => {
       try {
         const { id } = req.params;
 
@@ -1053,10 +1067,10 @@ async function startServer() {
         }
 
         const [rows] = await db.query(`
-          SELECT c.* a.nom, a.prenom, a.matricule
+          SELECT c.*, a.nom, a.prenom, a.matricule
           FROM conges c
           JOIN agentdata a ON c.user_id = a.user_id
-          ORDER BY c.date_creation DESC
+          ORDER BY c.date_demande DESC
         `);
 
         res.json(rows);

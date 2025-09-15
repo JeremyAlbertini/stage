@@ -29,24 +29,32 @@ export default function Conges() {
 
 const fetchUserLeaves = useCallback(async () => {
   try {
-    const response = await api.get('/conges');
-    // Ajoute ce log pour voir la structure de la réponse
-    console.log("Réponse API /conges :", response);
+    const response = await fetch('/api/conges', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
 
-    // Si la réponse a une propriété data qui est un tableau
-    if (response && Array.isArray(response.data)) {
-      setUserLeaves(response.data);
-    } else if (Array.isArray(response)) {
-      setUserLeaves(response);
+    if (!response.ok) {
+      throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Réponse API /api/conges :", data);
+
+    if (Array.isArray(data)) {
+      setUserLeaves(data);
     } else {
-      console.error("La réponse n'est pas un tableau :", response);
+      console.error("La réponse n'est pas un tableau :", data);
       setUserLeaves([]);
     }
   } catch (err) {
-    console.error("Erreur lors de la récupération des conges", err);
+    console.error("Erreur lors de la récupération des congés:", err);
     setUserLeaves([]);
   }
-}, [api]);
+}, []);
 
   useEffect(() => {
     fetchUserLeaves();
@@ -78,7 +86,7 @@ const fetchUserLeaves = useCallback(async () => {
       formData.duree = count;
     }
     try {
-      await api.post("/conges", formData);
+      await api.post("/api/conges", formData);
       setSubmitMessage({ text: "Demande soumise avec succès", type: "success" });
       setFormData({
         type_conge: "CA",
@@ -96,7 +104,7 @@ const fetchUserLeaves = useCallback(async () => {
 
   const handleCancelLeave = async (leaveId) => {
     try {
-      await api.delete(`/conges/${leaveId}`);
+      await api.delete(`/api/conges/${leaveId}`);
       setSubmitMessage({ text: "Demande annulée avec succès", type: "success" });
       fetchUserLeaves();
     } catch (err) {
