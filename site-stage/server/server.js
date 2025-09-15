@@ -56,7 +56,7 @@ async function startServer() {
         const {
             matricule, password, nom, prenom, civilite, date_naiss, lieu_naiss, dpt_naiss, pays_naiss,
           adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
-          adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
+          adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin, perms
         } = req.body;
       
         if (!matricule || !password) {
@@ -89,6 +89,21 @@ async function startServer() {
                     statut, grade, poste, adresse_pro, stage, tel_fixe, tel_pro, mail_pro, userId, isAdmin ? 1 : 0
                 ]
             );
+
+            if (perms) {
+              await db.query(
+                `INSERT INTO perms (user_id, change_perms, create_account, request, modify_account, all_users)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [
+                  userId,
+                  perms.change_perms || 0,
+                  perms.create_account || 0,
+                  perms.request || 0,
+                  perms.modify_account || 0,
+                  perms.all_users || 0
+                ]
+              );
+            }
           
             await db.commit();
           

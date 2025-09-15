@@ -57,7 +57,6 @@ export default function AdminPage({ users, loadUsers }) {
             <div className="admin-container">
                 <div className="admin-card">
                     <h1 className="admin-title">Bienvenue sur la page administration</h1>
-                    <p className="admin-text">Ici vous pouvez administrer vos agents.</p>
                     {tabs.length > 0 ? (
                         <>
                             <TabGroup 

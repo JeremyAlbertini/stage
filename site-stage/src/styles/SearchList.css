@@ -1,10 +1,10 @@
 /* Conteneur principal */
 .search-list-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 30px;
-    border-radius: 12px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: #1e293b33 0px 4px 6px -1px, #1e293b1a 0px 2px 4px -1px;
+    max-width: 850px;
+    margin: 20px auto;
   }
   
   /* Titre principal */
