@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import BasePage from "../components/BasePage";
 import TabGroup from "../components/TabGroup";
 import TabContent from "../components/TabContent";
@@ -11,13 +11,14 @@ export default function Conges() {
   const { user } = useAuth();
   const api = useApi();
   const [activeTab, setActiveTab] = useState("new");
-  const [userLeaves, setUserLeaves] = useState({});
+  const [userLeaves, setUserLeaves] = useState([]);
   const [soldes, setSoldes] = useState({ CA: 25, RCA: 10});
   const [formData, setFormData] = useState({
     type_conge: "CA",
     date_debut: "",
     date_fin: "",
-    commentaire: ""
+    commentaire: "",
+    duree: 0
   });
   const [submitMessage, setSubmitMessage] = useState({ text: "", type: ""});
 
@@ -26,18 +27,30 @@ export default function Conges() {
     { id: "history", label: "Mes demandes" }
   ];
 
-  const fetchUserLeaves = async () => {
-    try {
-      const data = await api.get("/leaves");
-      setUserLeaves(data);
-    } catch (err) {
-      console.error("Erreur lors de la récupération des congés:", err);
+const fetchUserLeaves = useCallback(async () => {
+  try {
+    const response = await api.get('/conges');
+    // Ajoute ce log pour voir la structure de la réponse
+    console.log("Réponse API /conges :", response);
+
+    // Si la réponse a une propriété data qui est un tableau
+    if (response && Array.isArray(response.data)) {
+      setUserLeaves(response.data);
+    } else if (Array.isArray(response)) {
+      setUserLeaves(response);
+    } else {
+      console.error("La réponse n'est pas un tableau :", response);
+      setUserLeaves([]);
     }
-  };
+  } catch (err) {
+    console.error("Erreur lors de la récupération des conges", err);
+    setUserLeaves([]);
+  }
+}, [api]);
 
   useEffect(() => {
     fetchUserLeaves();
-  }, []);
+  }, [fetchUserLeaves]);
 
   const handleChange = (e) => {
     setFormData({
@@ -48,8 +61,24 @@ export default function Conges() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.date_debut && formData.date_fin) {
+      const debut = new Date(formData.date_debut);
+      const fin = new Date(formData.date_fin);
+      let count = 0;
+      const currentDate = new Date(debut);
+
+      while (currentDate <= fin) {
+        const dayOfWeek = currentDate.getDay();
+        if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+          count++;
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      formData.duree = count;
+    }
     try {
-      await api.post("/leaves", formData);
+      await api.post("/conges", formData);
       setSubmitMessage({ text: "Demande soumise avec succès", type: "success" });
       setFormData({
         type_conge: "CA",
@@ -62,6 +91,17 @@ export default function Conges() {
     } catch (err) {
       setSubmitMessage({ text: "Erreur lors de la soumission", type: "error"});
       console.error("Erreur", err);
+    }
+  };
+
+  const handleCancelLeave = async (leaveId) => {
+    try {
+      await api.delete(`/conges/${leaveId}`);
+      setSubmitMessage({ text: "Demande annulée avec succès", type: "success" });
+      fetchUserLeaves();
+    } catch (err) {
+      setSubmitMessage({ text: "Erreur lors de l'annulation", type: "error"});
+      console.error("Erreur lors de l'annulation:", err);
     }
   };
 
@@ -181,7 +221,7 @@ export default function Conges() {
                     {leave.statut === "En Attente" && (
                       <Button
                         secondary
-                        onClick={() => {/*ajt code pr annuler un jour*/}}
+                        onClick={() => handleCancelLeave(leave.id)}
                       >
                         Annuler
                       </Button>

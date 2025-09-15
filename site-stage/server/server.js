@@ -38,6 +38,21 @@ async function startServer() {
     
 // Commandes BackEnd
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS conges (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type_conge VARCHAR(50) NOT NULL,
+        date_debut DATE NOT NULL,
+        date_fin DATE NOT NULL,
+        duree FLOAT NOT NULL,
+        commentaire TEXT,
+        statut ENUM('En Attente', 'Approuvé', 'Refusé') DEFAULT 'En Attente',
+        date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
+      )
+  ` );
+
     // Récupération de la liste de tous les utilisateurs
     // Simple requête SQL
     app.get("/users", async (req, res) => {
@@ -923,6 +938,115 @@ async function startServer() {
         res.json({ success: true, message: "Contrat supprimé" });
       } catch (err) {
         console.error("Erreur lors de la suppression du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/conges", authenticateToken, async (req, res) => {
+      try {
+        const [rows] = await db.query(
+          "SELECT * FROM conges WHERE user_id = ? ORDER BY date_creation DESC",
+          [req.user.id]
+        );
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des congés:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.post("/conges", authenticateToken,  async (req, res) => {
+      try {
+        const { type_conge, date_debut, date_fin, commentaire, duree } = req.body;
+
+        if (!type_conge || !date_debut || !date_fin || !duree) {
+          return res.status(400).json({
+            sucess: false,
+            message: "Informations manquantes pour la demande de congé"
+          });
+      }
+
+        await db.query(
+          `INSERT INTO conges (user_id, type_conge, date_debut, date_fin, duree, commentaire, statut, date_creation)
+          VALUES (?, ?, ?, ?, ?, ?, 'En Attente', NOW())`,
+          [req.user.id, type_conge, date_debut, date_fin, duree, commentaire || ""]
+        );
+
+        res.status(201).json({ success: true, message: "Demande de congé créée avec succès" });
+      } catch (err) {
+        console.error("Erreur lors de la création de la demande de congé:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.put("/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        await db.query(
+          "UPDATE conges SET statut = ? WHERE id = ?",
+          [status, id]
+        );
+
+        res.json({ success: true, message: "Statut de la demande mis à jour" });
+      } catch (err) {
+        console.error("Erreur lors de la mise à jour du statut:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.delete("/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const [rows] = await db.query(
+          "SELECT * FROM conges WHERE id = ? AND user_id = ?",
+          [id, req.user.id]
+        );
+
+        if (rows.length === 0) {
+          return res.status(403).json({
+            success: false,
+            message: "Vous n'êtes pas autorisé à annuler cette demande"
+          });
+        }
+
+        if (rows[0].statut !== "En Attente") {
+          return res.status(400).json({
+            success: false,
+            message: "Seules les demandes en attente peuvent être annulées"
+          });
+        }
+
+        await db.query("DELETE FROM conges WHERE id = ?", [id]);
+
+        res.json({ success: true, message: "Demande de congé annulée" });
+      } catch (err) {
+        console.error("Erreur lors de l'annulation de la demande:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/admin/conges", authenticateToken, async (req, res) => {
+      try {
+        if (!req.user.isAdmin) {
+          return res.status(403).json({
+            success: false,
+            message: "Accès non autorisé"
+          });
+        }
+
+        const [rows] = await db.query(`
+          SELECT c.* a.nom, a.prenom, a.matricule
+          FROM conges c
+          JOIN agentdata a ON c.user_id = a.user_id
+          ORDER BY c.date_creation DESC
+        `);
+
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupératoin des demandes de congés:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });

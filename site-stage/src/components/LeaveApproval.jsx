@@ -10,7 +10,7 @@ export default function LeaveApproval() {
 
     const LoadLeaves = async () => {
         try {
-            const data = await api.get("/admin/leaves");
+            const data = await api.get("/admin/conges");
             setLeaves(data);
         } catch (error) {
             console.error("Erreur lors du chargement des congés", error);
@@ -23,7 +23,7 @@ export default function LeaveApproval() {
 
     const handleStatusChange = async (leaveId, status) => {
         try {
-            await api.put(`/leaves/${leaveId}`, { status });
+            await api.put(`/conges/${leaveId}`, { status });
             LoadLeaves();
         } catch (error) {
             console.error("Erreur lors de la mise à jour:", error);
