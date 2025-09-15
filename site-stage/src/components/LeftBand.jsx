@@ -1,42 +1,43 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Home, Users, Calendar, Palmtree, Clock, FileText, Menu } from "lucide-react";
+import "../styles/LeftBand.css";
+import { useUI } from "../context/UIContext";
 
-export default function leftBand() {
+export default function LeftBand() {
+  const { user, loading } = useAuth();
+  const { isLeftOpen } = useUI();
+  if (loading) {
+    return <p>Chargement...</p>;
+  }
+
   const items = [
-    { name: "Accueil", path: "/" },
-    { name: "Utilisateurs", path: "/users" },
-    { name: "admin", path: "/admin" },
+    { name: "Accueil", path: "/", icon: Home },
+    { name: "Agents", path: "/users", icon: Users },
+    { name: "Calendrier", path: "/calendar", icon: Calendar },
+    { name: "Mes Congés", path: "/conges", icon: Palmtree },
+    { name: "Fiches Horaires", path: "/horaire", icon: Clock },
+    { name: "Mes Contrats", path: "/contrat", icon: FileText },
   ];
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "22%",
-        gap: "1rem",
-        padding: "1rem",
-        backgroundColor: "#f0f0f0",
-      }}
-    >
-      {items.map((item, index) => (
-        <NavLink
-          key={index}
-          to={item.path}
-          style={({ isActive }) => ({
-            border: "none",
-            cursor: "pointer",
-            textDecoration: "none",
-            padding: "0.5rem 1rem",
-            borderRadius: "6px",
-            backgroundColor: isActive ? "#4CAF50" : "transparent",
-            color: isActive ? "white" : "black",
-            fontWeight: isActive ? "bold" : "normal",
-          })}
-        >
-          {item.name}
-        </NavLink>
-      ))}
+    <nav className="left-band" style={{ width: isLeftOpen ? "240px" : "60px" }}>
+      {items.map((item, index) => {
+        const IconComponent = item.icon;
+
+        return (
+          <NavLink
+            key={index}
+            to={item.path}
+            className={({ isActive }) =>
+              `nav-link ${isActive ? "active" : ""}`
+            }
+          >
+            <IconComponent className="nav-icon" size={18} />
+            {isLeftOpen && <span className="nav-text" >{item.name}</span>}
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }
-

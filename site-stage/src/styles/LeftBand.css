@@ -1,0 +1,86 @@
+/* ====== Container (taille + background) ====== */
+.left-band {
+    background-color: #f5f7fb;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-right: 1px solid #e5e7eb;
+}
+
+/* ====== Liens (style de base que tu avais) ====== */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0.5rem 0.5rem;
+    border-radius: 6px;
+    background-color: transparent;
+    color: black;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.05s ease;
+}
+
+/* Styling général pour l'icône */
+.nav-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Styling spécifique pour les icônes SVG (Lucide) */
+.nav-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Le texte prend l'espace restant */
+.nav-text {
+    flex: 1;
+}
+
+/* Hover */
+.nav-link:hover {
+    background-color: lightgray;
+}
+
+/* Actif */
+.nav-link.active {
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+}
+
+/* Styles spécifiques aux icônes actives */
+.nav-link.active .nav-icon {
+    color: white;
+}
+
+/* Accessibilité focus clavier */
+.nav-link:focus-visible {
+    outline: 2px solid blue;
+    outline-offset: 2px;
+}
+
+/* Micro feedback au clic */
+.nav-link:active {
+    transform: scale(0.99);
+}
+
+/* Animation optionnelle pour les icônes */
+.nav-icon {
+    transition: transform 0.2s ease;
+}
+
+.nav-link:hover .nav-icon {
+    transform: scale(1.1);
+}

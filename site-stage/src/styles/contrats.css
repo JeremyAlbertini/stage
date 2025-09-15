@@ -1,0 +1,271 @@
+/* =========================
+   Contracts Page Container
+========================= */
+.contracts-container {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.contracts-container h2 {
+  color: #0077b6;
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* =========================
+   Table Styling
+========================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background: #fafafa;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th {
+  background: #0077b6;
+  color: white;
+  padding: 12px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #000000;
+  font-size: 0.95rem;
+}
+
+.contrat-active {
+  background-color: #56e45a;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: bold;
+}
+
+.contrat-inactive {
+  background-color: #e6392c;
+  color: white;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-weight: bold;
+}
+
+/* =========================
+   Buttons
+========================= */
+button {
+  padding: 8px 14px;
+  margin: 4px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.primary {
+  background: #0077b6;
+  color: white;
+}
+
+button.primary:hover {
+  background: #005f8a;
+}
+
+button.danger {
+  background: #f44336;
+  color: white;
+}
+
+button.danger:hover {
+  background: #c62828;
+}
+
+button.success {
+  background: #4caf50;
+  color: white;
+}
+
+button.success:hover {
+  background: #2e7d32;
+}
+
+/* =========================
+   Modal Overlay & Content
+========================= */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.45);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 30px 35px;
+  border-radius: 14px;
+  width: 420px;
+  max-width: 95%;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  text-align: left;
+  animation: slideUp 0.3s ease-in-out;
+}
+
+.modal-content h3 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: #0077b6;
+  text-align: center;
+}
+
+/* =========================
+   Form Styling
+========================= */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.form-row div {
+  flex: 1;
+}
+
+.form-group input,
+.form-row input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-row input:focus,
+.form-group select:focus {
+  border-color: #0077b6;
+  box-shadow: 0 0 6px rgba(0, 119, 182, 0.35);
+}
+
+/* =========================
+   Modal Actions
+========================= */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* =========================
+   Animations
+========================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 500px) {
+  .form-row {
+    flex-direction: column;
+  }
+  .modal-content {
+    padding: 20px;
+  }
+}
+
+/* =========================
+   PDF Upload Input (Modal)
+========================= */
+.form-group input[type="file"] {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f9f9f9;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input[type="file"]:hover {
+  background: #f1f1f1;
+}
+
+.form-group input[type="file"]:focus {
+  border-color: #0077b6;
+  box-shadow: 0 0 6px rgba(0, 119, 182, 0.35);
+  outline: none;
+}
+
+/* =========================
+   PDF Download Button
+========================= */
+button.download {
+  background: #6c63ff; /* violet for distinction */
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button.download:hover {
+  background: #574fcf;
+  transform: translateY(-1px);
+}
+
+button.download:active {
+  transform: translateY(1px);
+}

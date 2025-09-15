@@ -1,131 +1,88 @@
 import { useState } from "react";
+import { data, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../styles/log.css";
+import { useApi } from "../hooks/useApi";
 
 function Log() {
-  const [page, setPage] = useState("login");
+  const api = useApi();
+  const [page] = useState("login"); // tu pourras élargir à "signup" si besoin
   const [loginData, setLoginData] = useState({ matricule: "", password: "" });
-  const [registerData, setRegisterData] = useState({ matricule: "", password: "", name: "", firstname: "" });
   const [message, setMessage] = useState("");
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
 
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
   };
 
-  const handleRegisterChange = (e) => {
-    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
-  };
-
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    fetch("http://localhost:5000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(loginData)
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setMessage("Connexion réussie !");
-        } else {
-          setMessage(data.message || "Erreur de connexion.");
-        }
-      })
-      .catch(() => setMessage("Erreur serveur."));
+    const data = await api.post("http://localhost:5000/login", loginData);
+      console.log("Données reçues:", data.success, data.user);
+
+      if (data.success) {
+        setUser(data.user); // ✅ context updated
+        navigate("/");
+      } else {
+        setMessage(data.message || "Erreur de connexion.");
+      }
   };
 
-  const handleRegisterSubmit = (e) => {
-    e.preventDefault();
-    fetch("http://localhost:5000/users", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(registerData)
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setMessage("Inscription réussie !");
-          setPage("login");
-        } else {
-          setMessage(data.message || "Erreur d'inscription.");
-        }
-      })
-      .catch(() => setMessage("Erreur serveur."));
-  };
+  return (
+    <div className="login-container">
+      {/* Colonne gauche (1/3) - Formulaire de connexion */}
+      <div className="login-form-column">
+        <div className="login-form-wrapper">
+          <h1 className="login-title">Connexion</h1>
+          {user ? (
+            <div className="login-welcome">
+              <h2>Bienvenue {user.matricule}</h2>
+              <p>Vous êtes déjà connecté.</p>
+              <button 
+                onClick={() => navigate("/")} 
+                className="btn-primary"
+              >
+                Accéder à l'application
+              </button>
+            </div>
+          ) : (
+            <>
+              <form onSubmit={handleLoginSubmit} className="auth-form">
+                <input
+                  type="text"
+                  name="matricule"
+                  placeholder="Matricule"
+                  value={loginData.matricule}
+                  onChange={handleLoginChange}
+                  required
+                />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Mot de passe"
+                  value={loginData.password}
+                  onChange={handleLoginChange}
+                  required
+                />
+                <button type="submit" className="btn-primary">
+                  Se connecter
+                </button>
+              </form>
+              {message && <p className="message">{message}</p>}
+            </>
+          )}
+        </div>
+      </div>
 
-return (
-  <div className="log-page">
-    <div className="app-container">
-      <h1 className="title-login">{page === "login" ? "Connexion" : "Inscription"}</h1>
-
-      {page === "login" ? (
-        <form onSubmit={handleLoginSubmit} className="auth-form">
-          <input
-            type="text"
-            name="matricule"
-            placeholder="Matricule"
-            value={loginData.matricule}
-            onChange={handleLoginChange}
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Mot de passe"
-            value={loginData.password}
-            onChange={handleLoginChange}
-            required
-          />
-          <button type="submit" className="btn-primary">Se connecter</button>
-          <p>
-            Pas de compte ?{" "}
-            <span className="link" onClick={() => setPage("register")}>Inscrivez-vous</span>
-          </p>
-        </form>
-      ) : (
-        <form onSubmit={handleRegisterSubmit} className="auth-form">
-          <input
-            type="text"
-            name="matricule"
-            placeholder="Matricule"
-            value={registerData.matricule}
-            onChange={handleRegisterChange}
-            required
-          />
-          <input
-            type="text"
-            name="name"
-            placeholder="Nom"
-            value={registerData.name}
-            onChange={handleRegisterChange}
-            required
-          />
-          <input
-            type="text"
-            name="firstname"
-            placeholder="Prénom"
-            value={registerData.firstname}
-            onChange={handleRegisterChange}
-            required
-          />
-          <input
-            type="password"
-            name="password"
-            placeholder="Mot de passe"
-            value={registerData.password}
-            onChange={handleRegisterChange}
-            required
-          />
-          <button type="submit" className="btn-primary">S'inscrire</button>
-          <p>
-            Déjà inscrit ?{" "}
-            <span className="link" onClick={() => setPage("login")}>Connectez-vous</span>
-          </p>
-        </form>
-      )}
-
-      {message && <p className="message">{message}</p>}
+      {/* Colonne droite (2/3) - Fond animé */}
+      <div className="login-background-column">
+        <div className="login-overlay">
+          <h2 className="login-quote">Bienvenue sur l'application de gestion des agents</h2>
+        </div>
+      </div>
     </div>
-  </div>
-)};
+  );
+}
 
 export default Log;
