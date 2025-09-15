@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import DropdownMenu from './DropdownMenu';
-import { hasAnyUserPerm } from "../utils/permsApi";
+import { hasAnyPerm } from "../utils/permsApi";
 import { useApi } from "../hooks/useApi";
 
 export default function UserMenu({ userMenuItems = [] }) {
   const api = useApi();
   const navigate = useNavigate();
   // ✅ CORRECTION : Utilisation de handleLogout qui existe maintenant
-  const { user, handleLogout, logout } = useAuth();
+  const { user, handleLogout, logout, permissions } = useAuth();
   const [hovered, setHovered] = useState(false);
   const [buttonHovered, setButtonHovered] = useState(false);
   const [ok, setOk] = useState(false);
@@ -17,16 +17,16 @@ export default function UserMenu({ userMenuItems = [] }) {
   // ✅ CORRECTION : Vérification que user existe avant d'accéder à user.id
   useEffect(() => {
     if (user?.id) {
-      hasAnyUserPerm(api, user.id, ["create_account", "all_users"])
-        .then(result => {
-          setOk(result);
-        })
-        .catch(err => {
-          console.error("Erreur lors de la vérification des permissions:", err);
-          setOk(false);
-        });
+      try {
+        const result = hasAnyPerm(permissions, ["create_account", "all_users"]);
+        setOk(result);
+      } catch (err) {
+        console.error("Erreur lors de la vérification des permissions:", err);
+        setOk(false);
+      }
     }
-  }, [user?.id, api]);
+  }, [user?.id, permissions]);
+  
 
   // ✅ CORRECTION : Fonction de logout avec feedback utilisateur
   const handleLogoutClick = async () => {

@@ -43,15 +43,20 @@ function ModifyAgents({ agent, onUpdate }) {
         e.preventDefault();
 
         try {
-            const response = await api.put(`http://localhost:5000/users/${agent.user_id}`, formData);
+            const response = await api.put(
+                `http://localhost:5000/users/${agent.user_id}`,
+                formData
+            );
+        
+            console.log(formData, response);
+        
             if (response.success) {
-                const result = await response;
-                setMessage(result.message || "Modifications enregistrées avec succès !");
+                setMessage(response.message || "Modifications enregistrées avec succès !");
                 if (onUpdate) {
                     onUpdate({ ...agent, ...formData });
                 }
             } else {
-                setMessage(errorResult?.message || "Une erreur est survenue.");
+                setMessage(response.message || "Une erreur est survenue.");
             }
         } catch (error) {
             console.error("Erreur lors de la mise à jour :", error);
