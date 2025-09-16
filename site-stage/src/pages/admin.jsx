@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import BasePage from "../components/BasePage.jsx";
 import TabGroup from "../components/TabGroup.jsx";
 import TabContent from "../components/TabContent.jsx";
@@ -7,7 +7,6 @@ import CreateUser from "../components/create_user.jsx";
 import SearchList from "../components/searchList.jsx";
 import { getPerm } from "../utils/permsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useApi } from "../hooks/useApi.js";
 
 const ALL_TABS = [
     { id: "create", label: "Créer Un Utilisateur", perm: "create_account", content: CreateUser },
@@ -16,12 +15,23 @@ const ALL_TABS = [
 ];
 
 export default function AdminPage({ users, loadUsers }) {
-    const api = useApi();
     const [perms, setPerms] = useState({});
-    const navigate = useNavigate();
     const location = useLocation();
     const [activeTab, setActiveTab] = useState(location.state?.defaultTab || ALL_TABS[0].id);
-    const { user, loading , permissions} = useAuth();
+    const { user, loading, permissions } = useAuth();
+
+    // Tant que user ou permissions ne sont pas chargés → loader
+    if (loading || !permissions) {
+        return (
+            <div className="loader-container">
+                <div className="loader">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        );
+    }
 
     useEffect(() => {
         async function fetchPerms() {
@@ -36,7 +46,7 @@ export default function AdminPage({ users, loadUsers }) {
             setPerms(permsObj);
         }
         fetchPerms();
-    }, [users.user_id]);
+    }, [permissions]); // attention : dépend de permissions et non users.user_id
 
     // Onglets autorisés
     const tabs = ALL_TABS.filter(tab => perms[tab.id]).map(tab => ({

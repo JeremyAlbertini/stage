@@ -71,12 +71,12 @@ export default function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/admin/*" element={
-        <ProtectedRoute requireAdmin={true}>
+        <ProtectedRoute requiredPerms={["create_account", "all_users"]}>
           <AdminPage users={users} loadUsers={loadUsers} />
         </ProtectedRoute>
       } />
       <Route path="/agents/:id" element={
-        <ProtectedRoute requireAdmin={true}>
+        <ProtectedRoute >
           <AgentsProfile />
         </ProtectedRoute>
       } />

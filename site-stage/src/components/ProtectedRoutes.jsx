@@ -8,17 +8,17 @@ import { useApi } from "../hooks/useApi";
 
 export default function ProtectedRoute({ children, requireAdmin = false }) {
   const api = useApi();
-  const { user, loading , permissions, refreshUserData} = useAuth();
+  const { user, loading , Permissions} = useAuth();
   const [ok, setOk] = useState(null);
 
   useEffect(() => {
-    if (!loading && user && requireAdmin) {
-      const result = hasAnyPerm(permissions, ["create_account", "all_users"]);
+    if (user && requireAdmin) {
+      const result = hasAnyPerm(Permissions, ["create_account", "all_users"]);
       setOk(result);
-    } else if (!loading) {
+    } else {
       setOk(true);
     }
-  }, [user, requireAdmin, loading, permissions]);
+  }, [user, requireAdmin, Permissions]);
 
   if (loading) {
     return <div className="loader-container">

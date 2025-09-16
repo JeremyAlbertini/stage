@@ -30,7 +30,6 @@ function ManagePerms({ agent, onUpdate }) {
         setPerms(data || {});
         setLoading(false);
       });
-      console.log("Chargement des permissions pour l'agent", data);
     }
   }, [agent?.user_id]);
 
@@ -74,7 +73,6 @@ function ManagePerms({ agent, onUpdate }) {
     setSaving(false);
   };
 
-  if (loading) return <div>Chargement des permissions...</div>;
 
   return (
     <div className="manage-perms">
