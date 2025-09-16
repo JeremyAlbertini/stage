@@ -1111,18 +1111,56 @@ async function startServer() {
         );
         if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
 
-        const [[soldes]] = await db.query(
+        const [[contrat]] = await db.query(
           "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
           [agent.matricule]
         );
-        if (!soldes) return res.status(404).json({ error: "Contrat non trouvé "});
+        if (!contrat) return res.status(404).json({ error: "Contrat non trouvé" });
 
-        res.json(soldes);
+        const [conges] = await db.query(
+          "SELECT type_conge, SUM(duree) AS total FROM conges WHERE user_id = ? AND statut = 'Approuvé' GROUP BY type_conge",
+          [userId]
+        );
+
+        let CA = contrat.CA;
+        let RCA = contrat.RCA;
+        conges.forEach(c => {
+          if (c.type_conge === "CA") CA -= c.total;
+          if (c.type_conge === "RCA") RCA -= c.total;
+        });
+
+        res.json({
+          CA: Math.max(CA, 0),
+          RCA: Math.max(RCA, 0)
+        });
       } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
+        res.status(500).json({ error: "Erreur lors de la récupération des soldes"});
       }
     });
+
+    // app.get("/api/soldes", authenticateToken, async (req, res) => {
+    //   try {
+    //     const userId = req.user.id;
+
+    //     const [[agent]] = await db.query(
+    //       "SELECT matricule FROM agentdata WHERE user_id = ?",
+    //       [userId]
+    //     );
+    //     if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
+
+    //     const [[soldes]] = await db.query(
+    //       "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
+    //       [agent.matricule]
+    //     );
+    //     if (!soldes) return res.status(404).json({ error: "Contrat non trouvé "});
+
+    //     res.json(soldes);
+    //   } catch (err) {
+    //     console.error(err);
+    //     res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
+    //   }
+    // });
 
     // Lancer le serveur
     app.listen(PORT, () =>
