@@ -95,29 +95,39 @@ export default function Horaire() {
     return months;
   };
 
-  const generateCalendarDays = (selectedMonth) => {
-    if (!selectedMonth) return [];
+  const generateCalendarDays = (selectedMonth, contract) => {
+    if (!selectedMonth || !contract) return [];
 
     const year = selectedMonth.date.getFullYear();
     const month = selectedMonth.date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
+
+    // Get contract dates
+    const contractStart = new Date(contract.date_debut);
+    const contractEnd = new Date(contract.date_fin);
+
+    // Get the first and last day of the current month
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+
+    // Determine the actual start and end dates for this month
+    const startDate = contractStart > firstDayOfMonth ? contractStart : firstDayOfMonth;
+    const endDate = contractEnd < lastDayOfMonth ? contractEnd : lastDayOfMonth;
+
     const days = [];
 
-    for (let day = 1; day <= lastDay.getDate(); day++) {
+    // Generate days only within the contract period
+    for (let day = startDate.getDate(); day <= endDate.getDate(); day++) {
       const currentDate = new Date(year, month, day);
+
+      // Skip if the date is outside contract bounds
+      if (currentDate < contractStart || currentDate > contractEnd) {
+        continue;
+      }
+
       const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-      const dayNames = [
-        "Dimanche",
-        "Lundi",
-        "Mardi",
-        "Mercredi",
-        "Jeudi",
-        "Vendredi",
-        "Samedi",
-      ];
+      const dayNames = ["Dimanche", "Lundi",  "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
       days.push({
         date: currentDate,
@@ -149,7 +159,7 @@ export default function Horaire() {
     ? getContractMonths(selectedContract)
     : [];
   const selectedMonth = contractMonths[selectedMonthIndex];
-  const calendarDays = generateCalendarDays(selectedMonth);
+  const calendarDays = generateCalendarDays(selectedMonth, selectedContract);
 
   return (
     <BasePage title="Hébésoft">
