@@ -284,3 +284,22 @@
     font-size: 12px;
   }
 }
+
+.time-picker {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.time-picker:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.time-cell2 {
+  margin: 5px 0;
+}

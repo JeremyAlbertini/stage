@@ -13,10 +13,9 @@ export default function Horaire() {
   const [error, setError] = useState("");
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
 
-  // Each entry: { date, statut, categorie }
+  // Each entry: { statut, categorie, start, end, pause }
   const [timeEntries, setTimeEntries] = useState({});
 
-  // Map Statut → Catégorisation choices
   const optionsMap = {
     Présent: ["Présent", "Récupération", "Récupération A-1"],
     Modification: ["Arrivée Modifiée - Accord Coordination", "Départ Modifiée - Accord Coordination", "Remplacement Direction",
@@ -45,11 +44,7 @@ export default function Horaire() {
       setContracts(data);
 
       const activeContracts = data.filter((c) => c.statut === "Actif");
-      if (activeContracts.length > 0) {
-        setSelectedContract(activeContracts[0]);
-      } else {
-        setSelectedContract(data[0] || null);
-      }
+      setSelectedContract(activeContracts[0] || data[0] || null);
     } catch (err) {
       console.error("Error fetching contracts:", err);
       setError(err.message || "Erreur lors du chargement des contrats");
@@ -70,81 +65,53 @@ export default function Horaire() {
 
   const getContractMonths = (contract) => {
     if (!contract?.date_debut || !contract?.date_fin) return [];
-
     const startDate = new Date(contract.date_debut);
     const endDate = new Date(contract.date_fin);
     const months = [];
-
     const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-
     while (current <= endDate) {
       months.push({
         date: new Date(current),
-        label: new Intl.DateTimeFormat("fr-FR", {
-          month: "short",
-          year: "2-digit",
-        }).format(current),
-        fullLabel: new Intl.DateTimeFormat("fr-FR", {
-          month: "long",
-          year: "numeric",
-        }).format(current),
+        label: new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit" }).format(current),
+        fullLabel: new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(current),
       });
       current.setMonth(current.getMonth() + 1);
     }
-
     return months;
   };
 
   const generateCalendarDays = (selectedMonth, contract) => {
     if (!selectedMonth || !contract) return [];
-
     const year = selectedMonth.date.getFullYear();
     const month = selectedMonth.date.getMonth();
-
-    // Get contract dates
     const contractStart = new Date(contract.date_debut);
     const contractEnd = new Date(contract.date_fin);
-
-    // Get the first and last day of the current month
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-
-    // Determine the actual start and end dates for this month
     const startDate = contractStart > firstDayOfMonth ? contractStart : firstDayOfMonth;
     const endDate = contractEnd < lastDayOfMonth ? contractEnd : lastDayOfMonth;
 
     const days = [];
-
-    // Generate days only within the contract period
     for (let day = startDate.getDate(); day <= endDate.getDate(); day++) {
       const currentDate = new Date(year, month, day);
-
-      // Skip if the date is outside contract bounds
-      if (currentDate < contractStart || currentDate > contractEnd) {
-        continue;
-      }
-
       const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-      const dayNames = ["Dimanche", "Lundi",  "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-
+      const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
       days.push({
         date: currentDate,
-        day: day,
+        day,
         dayName: dayNames[dayOfWeek],
         isWeekend,
         fullDate: currentDate.toISOString().split("T")[0],
       });
     }
-
     return days;
   };
 
   const handleStatutChange = (date, value) => {
     setTimeEntries((prev) => ({
       ...prev,
-      [date]: { statut: value, categorie: "" }, // reset categorie on change
+      [date]: { ...prev[date], statut: value, categorie: "" },
     }));
   };
 
@@ -155,9 +122,44 @@ export default function Horaire() {
     }));
   };
 
-  const contractMonths = selectedContract
-    ? getContractMonths(selectedContract)
-    : [];
+  const handleTimeChange = (date, field, value) => {
+    setTimeEntries((prev) => ({
+      ...prev,
+      [date]: { ...prev[date], [field]: value },
+    }));
+  };
+
+  const timeToMinutes = (t) => {
+    if (!t) return 0;
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const minutesToTime = (min) => {
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+
+  const calculateTotal = (start, end, pause) => {
+    const total = Math.max(timeToMinutes(end) - timeToMinutes(start) - timeToMinutes(pause), 0);
+    return minutesToTime(total);
+  };
+
+  const renderTimeOptions = () =>
+    Array.from({ length: 24 }, (_, hour) =>
+      [0, 15, 30, 45].map((minute) => {
+        const h = hour.toString().padStart(2, "0");
+        const m = minute.toString().padStart(2, "0");
+        return (
+          <option key={`${h}:${m}`} value={`${h}:${m}`}>
+            {`${h}:${m}`}
+          </option>
+        );
+      })
+    ).flat();
+
+  const contractMonths = selectedContract ? getContractMonths(selectedContract) : [];
   const selectedMonth = contractMonths[selectedMonthIndex];
   const calendarDays = generateCalendarDays(selectedMonth, selectedContract);
 
@@ -165,7 +167,6 @@ export default function Horaire() {
     <BasePage title="Hébésoft">
       <div className="horaire-container2">
         <h1>Fiche Horaire</h1>
-
         {loading || loadingContracts ? <p>Chargement...</p> : null}
         {error && <p className="error-message2">{error}</p>}
 
@@ -216,7 +217,6 @@ export default function Horaire() {
 
             {contractMonths.length > 0 && (
               <div className="calendar-section2">
-                {/* Month Navigation */}
                 <div className="month-navigation2">
                   {contractMonths.map((month, index) => (
                     <button
@@ -231,14 +231,12 @@ export default function Horaire() {
                   ))}
                 </div>
 
-                {/* Calendar Header */}
                 {selectedMonth && (
                   <div className="calendar-container2">
                     <div className="calendar-header2">
                       Fiche horaire de {selectedMonth.fullLabel}
                     </div>
 
-                    {/* Calendar Table */}
                     <div className="calendar-table2">
                       <div className="calendar-header-row2">
                         <div className="header-cell2">Dates</div>
@@ -255,6 +253,9 @@ export default function Horaire() {
                         const entry = timeEntries[day.fullDate] || {
                           statut: "",
                           categorie: "",
+                          start: "09:00",
+                          end: "17:30",
+                          pause: "00:30",
                         };
                         return (
                           <div
@@ -268,19 +269,16 @@ export default function Horaire() {
                                 {day.dayName} {day.day}
                               </div>
                             </div>
-                            <div className="time-cell2">
-                              {!day.isWeekend && "5:00"}
-                            </div>
+
+                            <div className="time-cell2">{!day.isWeekend && "5:00"}</div>
+
                             <div className="action-cell2">
                               {!day.isWeekend && (
                                 <select
                                   className="action-button2"
                                   value={entry.statut}
                                   onChange={(e) =>
-                                    handleStatutChange(
-                                      day.fullDate,
-                                      e.target.value
-                                    )
+                                    handleStatutChange(day.fullDate, e.target.value)
                                   }
                                 >
                                   <option value="">
@@ -294,16 +292,14 @@ export default function Horaire() {
                                 </select>
                               )}
                             </div>
+
                             <div className="action-cell2">
                               {!day.isWeekend && (
                                 <select
                                   className="action-button2"
                                   value={entry.categorie}
                                   onChange={(e) =>
-                                    handleCategorieChange(
-                                      day.fullDate,
-                                      e.target.value
-                                    )
+                                    handleCategorieChange(day.fullDate, e.target.value)
                                   }
                                   disabled={!entry.statut}
                                 >
@@ -319,17 +315,52 @@ export default function Horaire() {
                                 </select>
                               )}
                             </div>
+
                             <div className="time-cell2">
-                              {!day.isWeekend && "9:00"}
+                              {!day.isWeekend && (
+                                <select
+                                  className="time-picker"
+                                  value={entry.start}
+                                  onChange={(e) =>
+                                    handleTimeChange(day.fullDate, "start", e.target.value)
+                                  }
+                                >
+                                  {renderTimeOptions()}
+                                </select>
+                              )}
                             </div>
+
                             <div className="time-cell2">
-                              {!day.isWeekend && "15:30"}
+                              {!day.isWeekend && (
+                                <select
+                                  className="time-picker"
+                                  value={entry.end}
+                                  onChange={(e) =>
+                                    handleTimeChange(day.fullDate, "end", e.target.value)
+                                  }
+                                >
+                                  {renderTimeOptions()}
+                                </select>
+                              )}
                             </div>
+
                             <div className="time-cell2">
-                              {!day.isWeekend && "5:00"}
+                              {!day.isWeekend && (
+                                <select
+                                  className="time-picker"
+                                  value={entry.pause}
+                                  onChange={(e) =>
+                                    handleTimeChange(day.fullDate, "pause", e.target.value)
+                                  }
+                                >
+                                  {renderTimeOptions()}
+                                </select>
+                              )}
                             </div>
+
                             <div className="total-cell2">
-                              {!day.isWeekend && "5:30"}
+                              {!day.isWeekend &&
+                                calculateTotal(entry.start, entry.end, entry.pause)}
                             </div>
                           </div>
                         );
@@ -341,9 +372,7 @@ export default function Horaire() {
             )}
           </div>
         ) : (
-          !loadingContracts && (
-            <p>Aucun contrat trouvé pour cet utilisateur.</p>
-          )
+          !loadingContracts && <p>Aucun contrat trouvé pour cet utilisateur.</p>
         )}
       </div>
     </BasePage>
