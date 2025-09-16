@@ -13,6 +13,7 @@ export default function Conges() {
   const [activeTab, setActiveTab] = useState("new");
   const [userLeaves, setUserLeaves] = useState([]);
   const [soldes, setSoldes] = useState({ CA: 25, RCA: 10});
+  const [soldesError, setSoldesError] = useState("");
   const [formData, setFormData] = useState({
     type_conge: "CA",
     date_debut: "",
@@ -56,9 +57,27 @@ const fetchUserLeaves = useCallback(async () => {
   }
 }, []);
 
+const fetchSoldes = useCallback(async () => {
+  try {
+    const res = await api.get("/api/soldes");
+    if (res.error) {
+      setSoldesError(res.error);
+      setSoldes(null);
+    } else {
+      setSoldes(res);
+      setSoldesError("");
+    }
+  } catch (err) {
+    setSoldesError("Impossible de récupérer les soldes.");
+    setSoldes(null);
+    console.error("Erreur lors de la récupération des soldes:", err);
+  }
+}, [api]);
+
   useEffect(() => {
     fetchUserLeaves();
-  }, [fetchUserLeaves]);
+    fetchSoldes();
+  }, [fetchUserLeaves, fetchSoldes]);
 
   const handleChange = (e) => {
     setFormData({
@@ -95,6 +114,7 @@ const fetchUserLeaves = useCallback(async () => {
         commentaire: ""
       });
       fetchUserLeaves();
+      fetchSoldes();
       setActiveTab("history");
     } catch (err) {
       setSubmitMessage({ text: "Erreur lors de la soumission", type: "error"});
@@ -107,6 +127,7 @@ const fetchUserLeaves = useCallback(async () => {
       await api.delete(`/api/conges/${leaveId}`);
       setSubmitMessage({ text: "Demande annulée avec succès", type: "success" });
       fetchUserLeaves();
+      fetchSoldes();
     } catch (err) {
       setSubmitMessage({ text: "Erreur lors de l'annulation", type: "error"});
       console.error("Erreur lors de l'annulation:", err);
@@ -117,16 +138,20 @@ const fetchUserLeaves = useCallback(async () => {
     <BasePage title="Congés">
       <h1>Mes congés</h1>
 
-      <div className="leave-balance-cards">
-        <div className="balance-card">
-          <h3>Congés annuels</h3>
-          <p className="balance-value">{soldes.CA} jours</p>
+      {soldesError ? (
+        <div className="error-message">{soldesError}</div>
+      ) : soldes ? (
+        <div className="leave-balance-cards">
+          <div className="balance-card">
+            <h3>Congés annuels</h3>
+            <p className="balance-value">{soldes.CA} jours</p>
+          </div>
+          <div className="balance-card">
+            <h3>RTT</h3>
+            <p className="balance-value">{soldes.RCA} jours</p>
+          </div>
         </div>
-        <div className="balance-card">
-          <h3>RTT</h3>
-          <p className="balance-value">{soldes.RCA} jours</p>
-        </div>
-      </div>
+      ) : null}
 
       <TabGroup
         tabs={tabs}
@@ -147,8 +172,12 @@ const fetchUserLeaves = useCallback(async () => {
                 onChange={handleChange}
                 required
               >
-                <option value="CA">Congés Annuels ({soldes.CA} jours restants)</option>
-                <option value="RCA"> RTT ({soldes.RCA} jours restants)</option>
+                <option value="CA">
+                  Congés Annuels ({soldes?.CA ?? 0} jours restants)
+                </option>
+                <option value="RCA">
+                  RTT ({soldes?.RCA ?? 0} jours restants)
+                </option>
                 <option value="Autre">Autre congé</option>
               </select>
             </div>

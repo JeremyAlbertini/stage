@@ -1,3 +1,50 @@
+// import { useAuth } from "../context/AuthContext";
+
+// const BASE_URL = "http://localhost:5000";
+
+// export const useApi = () => {
+//   const { authenticatedFetch } = useAuth();
+
+//   const api = {
+//     get: async (url) => {
+//       const response = await authenticatedFetch(BASE_URL + url);
+//       return response.json();
+//     },
+//     post: async (url, data) => {
+//       const response = await authenticatedFetch(BASE_URL + url, {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(data),
+//       });
+//       return response.json();
+//     },
+//     put: async (url, data) => {
+//       const response = await authenticatedFetch(BASE_URL + url, {
+//         method: 'PUT',
+//         headers: { 'Content-Type': 'pplication/json' },
+//         body: JSON.stringify(data),
+//       });
+//       return response.json();
+//     },
+//     patch: async (url, data) => {
+//       const response = await authenticatedFetch(BASE_URL + url, {
+//         method: 'PATCH',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(data),
+//       });
+//       return response.json();
+//     },
+//     delete: async (url) => {
+//       const response = await authenticatedFetch(BASE_URL + url, {
+//         method: 'DELETE',
+//       });
+//       return response.json();
+//     },
+//   };
+
+//   return api;
+// };
+
 import { useAuth } from '../context/AuthContext';
 
 export const useApi = () => {
@@ -41,4 +88,4 @@ export const useApi = () => {
   };
 
   return api;
-};  
+};

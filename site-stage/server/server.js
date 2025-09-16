@@ -1025,6 +1025,27 @@ async function startServer() {
       }
     });
 
+    app.patch("/api/conges/:id/accept", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const [[leave]] = await db.query("SELECT * FROM conges WHERE id = ?", [id]);
+        if (!leave) return res.status(404).json({ success: false, message: "Demande non trouvée" });
+
+        await db.query("UPDATE conges SET statut = 'Approuvé' WHERE id = ?", [id]);
+
+        await db.query(
+          `UPDATE contrats SET ${leave.type_conge.toLowerCase()} = ${leave.type_conge} - ? WHERE matricule = ?`,
+          [leave.duree, leave.matricule]
+        );
+
+        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
     app.delete("/api/conges/:id", authenticateToken, async (req, res) => {
       try {
         const { id } = req.params;
@@ -1077,6 +1098,29 @@ async function startServer() {
       } catch (err) {
         console.error("Erreur lors de la récupératoin des demandes de congés:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/api/soldes", authenticateToken, async (req, res) => {
+      try {
+        const userId = req.user.id;
+
+        const [[agent]] = await db.query(
+          "SELECT matricule FROM agentdata WHERE user_id = ?",
+          [userId]
+        );
+        if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
+
+        const [[soldes]] = await db.query(
+          "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
+          [agent.matricule]
+        );
+        if (!soldes) return res.status(404).json({ error: "Contrat non trouvé "});
+
+        res.json(soldes);
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
       }
     });
 

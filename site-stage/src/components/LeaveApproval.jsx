@@ -23,10 +23,14 @@ export default function LeaveApproval() {
 
     const handleStatusChange = async (leaveId, status) => {
         try {
-            await api.put(`/api/conges/${leaveId}`, { status });
+            if (status === "Approuvé") {
+                await api.patch(`/api/conges/${leaveId}/accept`);
+            } else {
+                await api.put(`/api/conges/${leaveId}`, { status });
+            }
             LoadLeaves();
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour:", error);
+        } catch (err) {
+            console.error("Erreur lors de la mise à jour:", err);
         }
     };
 
