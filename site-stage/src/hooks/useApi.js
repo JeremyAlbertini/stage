@@ -14,7 +14,11 @@ export const useApi = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      return response.json();
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Erreur API");
+      }
+      return result;
     },
     put: async (url, data) => {
       const response = await authenticatedFetch(url, {

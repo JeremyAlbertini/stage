@@ -117,8 +117,8 @@ const fetchSoldes = useCallback(async () => {
     }
 
     try {
-      await api.post("/api/conges", formData);
-      setSubmitMessage({ text: "Demande soumise avec succès", type: "success" });
+      const res = await api.post("/api/conges", formData);
+      setSubmitMessage({ text: res.message || "Demande soumise avec succès", type: "success" });
       setFormData({
         type_conge: "CA",
         date_debut: "",
@@ -129,8 +129,7 @@ const fetchSoldes = useCallback(async () => {
       fetchSoldes();
       setActiveTab("history");
     } catch (err) {
-      setSubmitMessage({ text: "Erreur lors de la soumission", type: "error"});
-      console.error("Erreur", err);
+      setSubmitMessage({ text: err.message, type: "error"});
     }
   };
 
