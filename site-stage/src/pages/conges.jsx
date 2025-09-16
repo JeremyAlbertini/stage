@@ -104,6 +104,18 @@ const fetchSoldes = useCallback(async () => {
       }
       formData.duree = count;
     }
+
+    if (
+      (formData.type_conge === "CA" && formData.duree > (soldes?.CA ?? 0)) ||
+      (formData.type_conge === "RCA" && formData.duree > (soldes?.RCA ?? 0))
+    ) {
+      setSubmitMessage({ 
+        text: `Vous n'avez pas assez de jours de ${formData.type_conge} pour cette demande.`,
+        type: "error"
+      });
+      return;
+    }
+
     try {
       await api.post("/api/conges", formData);
       setSubmitMessage({ text: "Demande soumise avec succès", type: "success" });
@@ -175,10 +187,14 @@ const fetchSoldes = useCallback(async () => {
                 <option value="CA">
                   Congés Annuels ({soldes?.CA ?? 0} jours restants)
                 </option>
-                <option value="RCA">
+                <option value="RCA">  
                   RTT ({soldes?.RCA ?? 0} jours restants)
                 </option>
-                <option value="Autre">Autre congé</option>
+                <option value="Congé Exceptionnel">Congé Exceptionnel</option>
+                <option value="CF">Congés Formation</option>
+                <option value="JS">Jour de solidarité</option>
+                <option value="CET">Compte Épargne Temps</option>
+                <option value="Congé Enfant Malade">Congé Enfant Malade</option>
               </select>
             </div>
 
