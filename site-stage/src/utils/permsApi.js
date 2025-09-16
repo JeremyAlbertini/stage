@@ -49,6 +49,7 @@ export async function getUserData(api, userId) {
 }
 
 export function hasAnyPerm(permissions, permNames) {
+  console.log("Vérification des permissions:", permissions, permNames);
   if (!permissions) return false;
   return permNames.some(p => !!permissions[p]);
 }
