@@ -1028,18 +1028,25 @@ async function startServer() {
     app.patch("/api/conges/:id/accept", async (req, res) => {
       try {
         const { id } = req.params;
-
         const [[leave]] = await db.query("SELECT * FROM conges WHERE id = ?", [id]);
         if (!leave) return res.status(404).json({ success: false, message: "Demande non trouvée" });
 
         await db.query("UPDATE conges SET statut = 'Approuvé' WHERE id = ?", [id]);
 
-        await db.query(
-          `UPDATE contrats SET ${leave.type_conge.toLowerCase()} = ${leave.type_conge} - ? WHERE matricule = ?`,
-          [leave.duree, leave.matricule]
-        );
-
-        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
+        const typeMap = {
+          CA: "ca",
+          RCA: "rca",
+          CF: "cf",
+          JS: "js"
+        };
+        const col = typeMap[leave.type_conge];
+        if (col && leave.matricule) {
+          await db.query(
+            `UPDATE contrats SET ${col} = ${col} - ? WHERE matricule = ? AND statut = 'Actif`,
+            [leave.duree, leave.matricule]
+          );
+        }
+        res.json({ success: true, message: "Demande acceptée et sole mis à jour" });
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Erreur serveur" });

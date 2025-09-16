@@ -187,10 +187,14 @@ const fetchSoldes = useCallback(async () => {
                 <option value="CA">
                   Congés Annuels ({soldes?.CA ?? 0} jours restants)
                 </option>
-                <option value="RCA">
+                <option value="RCA">  
                   RTT ({soldes?.RCA ?? 0} jours restants)
                 </option>
                 <option value="Congé Exceptionnel">Congé Exceptionnel</option>
+                <option value="CF">Congés Formation</option>
+                <option value="JS">Jour de solidarité</option>
+                <option value="CET">Compte Épargne Temps</option>
+                <option value="Congé Enfant Malade">Congé Enfant Malade</option>
               </select>
             </div>
 
