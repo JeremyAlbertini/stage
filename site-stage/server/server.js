@@ -38,6 +38,21 @@ async function startServer() {
     
 // Commandes BackEnd
 
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS conges (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        type_conge VARCHAR(50) NOT NULL,
+        date_debut DATE NOT NULL,
+        date_fin DATE NOT NULL,
+        duree FLOAT NOT NULL,
+        commentaire TEXT,
+        statut ENUM('En Attente', 'Approuvé', 'Refusé') DEFAULT 'En Attente',
+        date_demande TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
+      )
+  ` );
+
     // Récupération de la liste de tous les utilisateurs
     // Simple requête SQL
     app.get("/users", async (req, res) => {
@@ -941,6 +956,211 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
+
+    app.get("/api/conges", authenticateToken, async (req, res) => {
+      try {
+        console.log("Requête GET /conges reçue, utilisateur:", req.user);
+
+        if(!req.user || !req.user.id) {
+          console.log("Utilisateur non authentifié");
+          return res.status(401).json({ success: false, message: "Non autorisé" });
+        }
+
+        const [rows] = await db.query(`
+          SELECT * FROM conges
+          WHERE user_id = ?
+          ORDER BY date_demande DESC
+        `, [req.user.id]);
+
+        console.log(`Congés trouvers pour l'utilisateur ${req.user.id}:`, rows.length);
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupération des congés:", err);
+        res.status(500).json({
+          success: false,
+          message: "Erreur serveur",
+          error: err.message
+        });
+      }
+    });
+
+    app.post("/api/conges", authenticateToken,  async (req, res) => {
+      try {
+        const { type_conge, date_debut, date_fin, commentaire, duree } = req.body;
+
+        if (!type_conge || !date_debut || !date_fin || !duree) {
+          return res.status(400).json({
+            sucess: false,
+            message: "Informations manquantes pour la demande de congé"
+          });
+      }
+
+        await db.query(
+          `INSERT INTO conges (user_id, type_conge, date_debut, date_fin, duree, commentaire, statut, date_demande)
+          VALUES (?, ?, ?, ?, ?, ?, 'En Attente', NOW())`,
+          [req.user.id, type_conge, date_debut, date_fin, duree, commentaire || ""]
+        );
+
+        res.status(201).json({ success: true, message: "Demande de congé créée avec succès" });
+      } catch (err) {
+        console.error("Erreur lors de la création de la demande de congé:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.put("/api/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        await db.query(
+          "UPDATE conges SET statut = ? WHERE id = ?",
+          [status, id]
+        );
+
+        res.json({ success: true, message: "Statut de la demande mis à jour" });
+      } catch (err) {
+        console.error("Erreur lors de la mise à jour du statut:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.patch("/api/conges/:id/accept", async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const [[leave]] = await db.query("SELECT * FROM conges WHERE id = ?", [id]);
+        if (!leave) return res.status(404).json({ success: false, message: "Demande non trouvée" });
+
+        await db.query("UPDATE conges SET statut = 'Approuvé' WHERE id = ?", [id]);
+
+        await db.query(
+          `UPDATE contrats SET ${leave.type_conge.toLowerCase()} = ${leave.type_conge} - ? WHERE matricule = ?`,
+          [leave.duree, leave.matricule]
+        );
+
+        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.delete("/api/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        const { id } = req.params;
+
+        const [rows] = await db.query(
+          "SELECT * FROM conges WHERE id = ? AND user_id = ?",
+          [id, req.user.id]
+        );
+
+        if (rows.length === 0) {
+          return res.status(403).json({
+            success: false,
+            message: "Vous n'êtes pas autorisé à annuler cette demande"
+          });
+        }
+
+        if (rows[0].statut !== "En Attente") {
+          return res.status(400).json({
+            success: false,
+            message: "Seules les demandes en attente peuvent être annulées"
+          });
+        }
+
+        await db.query("DELETE FROM conges WHERE id = ?", [id]);
+
+        res.json({ success: true, message: "Demande de congé annulée" });
+      } catch (err) {
+        console.error("Erreur lors de l'annulation de la demande:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+  app.get("/api/admin/conges", authenticateToken, async (req, res) => {
+      try {
+        if (!req.user.isAdmin) {
+          return res.status(403).json({
+            success: false,
+            message: "Accès non autorisé"
+          });
+        }
+
+        const [rows] = await db.query(`
+          SELECT c.*, a.nom, a.prenom, a.matricule
+          FROM conges c
+          JOIN agentdata a ON c.user_id = a.user_id
+          ORDER BY c.date_demande DESC
+        `);
+
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupératoin des demandes de congés:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    app.get("/api/soldes", authenticateToken, async (req, res) => {
+      try {
+        const userId = req.user.id;
+
+        const [[agent]] = await db.query(
+          "SELECT matricule FROM agentdata WHERE user_id = ?",
+          [userId]
+        );
+        if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
+
+        const [[contrat]] = await db.query(
+          "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
+          [agent.matricule]
+        );
+        if (!contrat) return res.status(404).json({ error: "Contrat non trouvé" });
+
+        const [conges] = await db.query(
+          "SELECT type_conge, SUM(duree) AS total FROM conges WHERE user_id = ? AND statut = 'Approuvé' GROUP BY type_conge",
+          [userId]
+        );
+
+        let CA = contrat.CA;
+        let RCA = contrat.RCA;
+        conges.forEach(c => {
+          if (c.type_conge === "CA") CA -= c.total;
+          if (c.type_conge === "RCA") RCA -= c.total;
+        });
+
+        res.json({
+          CA: Math.max(CA, 0),
+          RCA: Math.max(RCA, 0)
+        });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erreur lors de la récupération des soldes"});
+      }
+    });
+
+    // app.get("/api/soldes", authenticateToken, async (req, res) => {
+    //   try {
+    //     const userId = req.user.id;
+
+    //     const [[agent]] = await db.query(
+    //       "SELECT matricule FROM agentdata WHERE user_id = ?",
+    //       [userId]
+    //     );
+    //     if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
+
+    //     const [[soldes]] = await db.query(
+    //       "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
+    //       [agent.matricule]
+    //     );
+    //     if (!soldes) return res.status(404).json({ error: "Contrat non trouvé "});
+
+    //     res.json(soldes);
+    //   } catch (err) {
+    //     console.error(err);
+    //     res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
+    //   }
+    // });
 
     // Lancer le serveur
     app.listen(PORT, () =>
