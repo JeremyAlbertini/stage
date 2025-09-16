@@ -995,6 +995,25 @@ async function startServer() {
           });
       }
 
+        const [overlap] = await db.query(
+          `SELECT id FROM conges
+          WHERE user_id = ?
+            AND statut = 'Approuvé'
+            AND type_conge = ?
+            AND (
+              (date_debut <= ? AND date_fin >= ?) OR
+              (date_debut <= ? AND date_fin >= ?) OR
+              (date_debut >= ? AND date_fin <= ?)
+            )`,
+          [req.user.id, type_conge, date_debut, date_debut, date_fin, date_fin, date_debut, date_fin]
+        );
+        if (overlap.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Vous avez déjà un congé approuvé sur cette période."
+          });
+        }
+
         await db.query(
           `INSERT INTO conges (user_id, type_conge, date_debut, date_fin, duree, commentaire, statut, date_demande)
           VALUES (?, ?, ?, ?, ?, ?, 'En Attente', NOW())`,
