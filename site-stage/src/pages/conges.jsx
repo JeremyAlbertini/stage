@@ -77,7 +77,7 @@ const fetchSoldes = useCallback(async () => {
   useEffect(() => {
     fetchUserLeaves();
     fetchSoldes();
-  }, [fetchUserLeaves, fetchSoldes]);
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
