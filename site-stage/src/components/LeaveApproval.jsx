@@ -37,26 +37,37 @@ export default function LeaveApproval() {
     const filteredLeaves = leaves.filter(leave => filter === "Tous" || leave.statut === filter);
 
     return (
-        <div className="filter-buttons">
-            <button
-                className={filter === "En Attente" ? "active" : ""}
-                onClick={() => setFilter("En Attente")}
-            >
-                En Attente
-            </button>
-            <button
-                className={filter === "Rejeté" ? "active" : ""}
-                onClick={() => setFilter("Rejeté")}
-            >
-                Rejetés
-            </button>
-            <button
-                className={filter === "Tous" ? "active" : ""}
-                onClick={() => setFilter("Tous")}
-            >
-                Tous
-            </button>
-        
+        <div>
+            <h2>Demandes de congé à approuver</h2>
+            <div className="filter-buttons" style={{ marginBottom: "1rem"}}>
+                <button
+                    className={filter === "En Attente" ? "active" : ""}
+                    onClick={() => setFilter("En Attente")}
+                >
+                    En Attente
+                </button>
+                
+                <button
+                    className={filter === "Approuvé" ? "active" : ""}
+                    onClick={() => setFilter("Approuvé")}
+                >
+                    Approuvés
+                </button>
+
+                <button
+                    className={filter === "Rejeté" ? "active" : ""}
+                    onClick={() => setFilter("Rejeté")}
+                >
+                    Rejetés
+                </button>
+                
+                <button
+                    className={filter === "Tous" ? "active" : ""}
+                    onClick={() => setFilter("Tous")}
+                >
+                    Tous
+                </button>
+            </div>
             <table className="leaves-table">
                 <thead>
                     <tr>
@@ -64,40 +75,113 @@ export default function LeaveApproval() {
                         <th>Type</th>
                         <th>Dates</th>
                         <th>Durée</th>
+                        <th>Statut</th>
                         <th>Commentaire</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-            <tbody>
-                {filteredLeaves.length > 0 ? (
-                    filteredLeaves.map(leave => (
-                        <tr key={leave.id}>
-                            <td>{leave.nom} {leave.prenom}</td>
-                            <td>{leave.type_conge}</td>
-                            <td>{new Date(leave.date_debut).toLocaleDateString()} - {new Date(leave.date_fin).toLocaleDateString()}</td>
-                            <td>{leave.duree} jours</td>
-                            <td>{leave.commentaire || "-"}</td>
-                            <td>
-                                {leave.statut === "En Attente" && (
-                                    <div className="button-group">
-                                        <Button onClick={() => handleStatusChange(leave.id, "Approuvé")}>
-                                            Approuver
-                                        </Button>
-                                        <Button secondary onClick={() => handleStatusChange(leave.id, "Rejeté")}>
-                                            Rejeter
-                                        </Button>
-                                    </div>
-                                )}
+                <tbody>
+                    {filteredLeaves.length > 0 ? (
+                        filteredLeaves.map(leave => (
+                            <tr key={leave.id}>
+                                <td>{leave.nom} {leave.prenom}</td>
+                                <td>{leave.type_conge}</td>
+                                <td>{new Date(leave.date_debut).toLocaleDateString()} - {new Date(leave.date_fin).toLocaleDateString()}</td>
+                                <td>{leave.duree} jours</td>
+                                <td>
+                                    <span className={`status status${leave.statut.toLowerCase().replace(' ','-')}`}>
+                                        {leave.statut}
+                                    </span>
+                                </td>
+                                <td>{leave.commentaire || "-"}</td>
+                                <td>
+                                    {leave.statut === "En Attente" && (
+                                        <div className="button-group">
+                                            <Button onClick={() => handleStatusChange(leave.id, "Approuvé")}>
+                                                Approuver
+                                            </Button>
+                                            <Button secondary onClick={() => handleStatusChange(leave.id, "Rejeté")}>
+                                                Rejeter
+                                            </Button>
+                                        </div>
+                                    )}
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="7" className="no-data">
+                                Aucune demande {filter !== "Tous" ? filter.toLowerCase(): ""}
                             </td>
                         </tr>
-                    ))
-                ) : (
-                    <tr>
-                        <td colSpan="6" className="no-data"> Aucune demadne {filter !=="Tous" ? filter.toLowerCase() : ""}</td>
-                    </tr>
-                )}
+                    )}
                 </tbody>
             </table>
         </div>
-    );
+    )
+
+    // return (
+    //     <div className="filter-buttons">
+    //         <button
+    //             className={filter === "En Attente" ? "active" : ""}
+    //             onClick={() => setFilter("En Attente")}
+    //         >
+    //             En Attente
+    //         </button>
+    //         <button
+    //             className={filter === "Rejeté" ? "active" : ""}
+    //             onClick={() => setFilter("Rejeté")}
+    //         >
+    //             Rejetés
+    //         </button>
+    //         <button
+    //             className={filter === "Tous" ? "active" : ""}
+    //             onClick={() => setFilter("Tous")}
+    //         >
+    //             Tous
+    //         </button>
+        
+    //         <table className="leaves-table">
+    //             <thead>
+    //                 <tr>
+    //                     <th>Agent</th>
+    //                     <th>Type</th>
+    //                     <th>Dates</th>
+    //                     <th>Durée</th>
+    //                     <th>Commentaire</th>
+    //                     <th>Actions</th>
+    //                 </tr>
+    //             </thead>
+    //         <tbody>
+    //             {filteredLeaves.length > 0 ? (
+    //                 filteredLeaves.map(leave => (
+    //                     <tr key={leave.id}>
+    //                         <td>{leave.nom} {leave.prenom}</td>
+    //                         <td>{leave.type_conge}</td>
+    //                         <td>{new Date(leave.date_debut).toLocaleDateString()} - {new Date(leave.date_fin).toLocaleDateString()}</td>
+    //                         <td>{leave.duree} jours</td>
+    //                         <td>{leave.commentaire || "-"}</td>
+    //                         <td>
+    //                             {leave.statut === "En Attente" && (
+    //                                 <div className="button-group">
+    //                                     <Button onClick={() => handleStatusChange(leave.id, "Approuvé")}>
+    //                                         Approuver
+    //                                     </Button>
+    //                                     <Button secondary onClick={() => handleStatusChange(leave.id, "Rejeté")}>
+    //                                         Rejeter
+    //                                     </Button>
+    //                                 </div>
+    //                             )}
+    //                         </td>
+    //                     </tr>
+    //                 ))
+    //             ) : (
+    //                 <tr>
+    //                     <td colSpan="6" className="no-data"> Aucune demadne {filter !=="Tous" ? filter.toLowerCase() : ""}</td>
+    //                 </tr>
+    //             )}
+    //             </tbody>
+    //         </table>
+    //     </div>
+    // );
 }
