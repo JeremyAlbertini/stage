@@ -1,16 +1,34 @@
 import { useEffect, useState } from "react";
+import { useApi } from "../hooks/useApi";
 import BasePage from "../components/BasePage";
 import { useAuth } from "../context/AuthContext";
 import "../styles/horaire.css";
 
 export default function Horaire() {
   const { user, loading } = useAuth();
+  const api = useApi();
   const [contracts, setContracts] = useState([]);
   const [selectedContract, setSelectedContract] = useState(null);
   const [loadingContracts, setLoadingContracts] = useState(false);
   const [error, setError] = useState("");
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
-  const [timeEntries, setTimeEntries] = useState([]);
+
+  // Each entry: { date, statut, categorie }
+  const [timeEntries, setTimeEntries] = useState({});
+
+  // Map Statut → Catégorisation choices
+  const optionsMap = {
+    Présent: ["Présent", "Récupération", "Récupération A-1"],
+    Modification: ["Arrivée Modifiée - Accord Coordination", "Départ Modifiée - Accord Coordination", "Remplacement Direction",
+      "Arrivée Retard", "Ouverture Structure (SMA, Réunion...)", "Réunion", "Association", "Evènementiel", "Journée de Préparation",
+      "Férié Travaillé", "Retard Parents", "Retard Bus", "RDV Médical Perso", "RDV Médical du Travail", "TT - Temps Thérapeutique", "Divers"],
+    Récupération: [],
+    Congés: ["CA - Congé Annuel", "RCA - Reliquat Congé Annuel", "CF - Congé Fractionné", "JS - Jour de Sujétion", "MAT - Congé Maternité",
+      "PAT - Congé Paternité", "PAR - Congé Parental", "CET", "EX - Journée Exceptionnelle"],
+    Santé: ["MAL - Arrêt Maladie", "AT - Accident du Travail", "ALD - Absence Longue Durée", "EMA - Absence Enfant Malade"],
+    Autres: ["FORM - Formation", "CCR - Concours", "OFF - Journée Off", "DISP - Disponibilité", "MAD - Mise à Disposition", "GRV - Grève",
+      "MAP - Mise à Pied", "ABI - Absence Injustifiée"],
+  };
 
   useEffect(() => {
     if (user?.matricule) {
@@ -22,12 +40,8 @@ export default function Horaire() {
     setLoadingContracts(true);
     setError("");
     try {
-      const res = await fetch(
-        `http://localhost:5000/contrats/${matricule}`,
-        { credentials: "include" }
-      );
-      if (!res.ok) throw new Error("Erreur lors du chargement des contrats");
-      const data = await res.json();
+      const res = await api.get(`http://localhost:5000/contrats/${matricule}`);
+      const data = await res;
       setContracts(data);
 
       const activeContracts = data.filter((c) => c.statut === "Actif");
@@ -56,60 +70,84 @@ export default function Horaire() {
 
   const getContractMonths = (contract) => {
     if (!contract?.date_debut || !contract?.date_fin) return [];
-    
+
     const startDate = new Date(contract.date_debut);
     const endDate = new Date(contract.date_fin);
     const months = [];
-    
+
     const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    
+
     while (current <= endDate) {
       months.push({
         date: new Date(current),
-        label: new Intl.DateTimeFormat("fr-FR", { 
-          month: "short", 
-          year: "2-digit" 
+        label: new Intl.DateTimeFormat("fr-FR", {
+          month: "short",
+          year: "2-digit",
         }).format(current),
-        fullLabel: new Intl.DateTimeFormat("fr-FR", { 
-          month: "long", 
-          year: "numeric" 
-        }).format(current)
+        fullLabel: new Intl.DateTimeFormat("fr-FR", {
+          month: "long",
+          year: "numeric",
+        }).format(current),
       });
       current.setMonth(current.getMonth() + 1);
     }
-    
+
     return months;
   };
 
   const generateCalendarDays = (selectedMonth) => {
     if (!selectedMonth) return [];
-    
+
     const year = selectedMonth.date.getFullYear();
     const month = selectedMonth.date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const days = [];
-    
+
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const currentDate = new Date(year, month, day);
       const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      
-      const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-      
+
+      const dayNames = [
+        "Dimanche",
+        "Lundi",
+        "Mardi",
+        "Mercredi",
+        "Jeudi",
+        "Vendredi",
+        "Samedi",
+      ];
+
       days.push({
         date: currentDate,
         day: day,
         dayName: dayNames[dayOfWeek],
         isWeekend,
-        fullDate: currentDate.toISOString().split('T')[0]
+        fullDate: currentDate.toISOString().split("T")[0],
       });
     }
-    
+
     return days;
   };
 
-  const contractMonths = selectedContract ? getContractMonths(selectedContract) : [];
+  const handleStatutChange = (date, value) => {
+    setTimeEntries((prev) => ({
+      ...prev,
+      [date]: { statut: value, categorie: "" }, // reset categorie on change
+    }));
+  };
+
+  const handleCategorieChange = (date, value) => {
+    setTimeEntries((prev) => ({
+      ...prev,
+      [date]: { ...prev[date], categorie: value },
+    }));
+  };
+
+  const contractMonths = selectedContract
+    ? getContractMonths(selectedContract)
+    : [];
   const selectedMonth = contractMonths[selectedMonthIndex];
   const calendarDays = generateCalendarDays(selectedMonth);
 
@@ -139,8 +177,8 @@ export default function Horaire() {
               >
                 {contracts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.type_contrat} ({formatDate(c.date_debut)} → {formatDate(c.date_fin)}){" "}
-                    {c.statut === "Actif" ? "⭐" : ""}
+                    {c.type_contrat} ({formatDate(c.date_debut)} →{" "}
+                    {formatDate(c.date_fin)}) {c.statut === "Actif" ? "⭐" : ""}
                   </option>
                 ))}
               </select>
@@ -148,10 +186,21 @@ export default function Horaire() {
 
             {selectedContract && (
               <div className="contract-details2">
-                <p><strong>Date de début:</strong> {formatDate(selectedContract.date_debut)}</p>
-                <p><strong>Date de fin:</strong> {formatDate(selectedContract.date_fin)}</p>
-                <p><strong>Durée (jours):</strong> {selectedContract.duree_contrat}</p>
-                <p><strong>Statut:</strong> {selectedContract.statut}</p>
+                <p>
+                  <strong>Date de début:</strong>{" "}
+                  {formatDate(selectedContract.date_debut)}
+                </p>
+                <p>
+                  <strong>Date de fin:</strong>{" "}
+                  {formatDate(selectedContract.date_fin)}
+                </p>
+                <p>
+                  <strong>Durée (jours):</strong>{" "}
+                  {selectedContract.duree_contrat}
+                </p>
+                <p>
+                  <strong>Statut:</strong> {selectedContract.statut}
+                </p>
               </div>
             )}
 
@@ -162,7 +211,9 @@ export default function Horaire() {
                   {contractMonths.map((month, index) => (
                     <button
                       key={index}
-                      className={`month-button ${index === selectedMonthIndex ? 'active' : ''}`}
+                      className={`month-button ${
+                        index === selectedMonthIndex ? "active" : ""
+                      }`}
                       onClick={() => setSelectedMonthIndex(index)}
                     >
                       {month.label}
@@ -181,6 +232,7 @@ export default function Horaire() {
                     <div className="calendar-table2">
                       <div className="calendar-header-row2">
                         <div className="header-cell2">Dates</div>
+                        <div className="header-cell2">Horaire Prévisionel</div>
                         <div className="header-cell2">Statut</div>
                         <div className="header-cell2">Catégorisation</div>
                         <div className="header-cell2">Début</div>
@@ -189,45 +241,89 @@ export default function Horaire() {
                         <div className="header-cell2">Total</div>
                       </div>
 
-                      {calendarDays.map((day) => (
-                        <div 
-                          key={day.fullDate} 
-                          className={`calendar-row2 ${day.isWeekend ? 'weekend' : ''}`}
-                        >
-                          <div className="day-cell2">
-                            <div className="day-name2">{day.dayName} {day.day}</div>
-                          </div>
-                          <div className="action-cell2">
-                            {!day.isWeekend && (
-                              <>
-                                <select className="action-button2">Statut
-                                  <option value="">--- Sélectionner une catégorie ---</option>
-                                  <option value="Présent">Présent</option>
-                                  <option value="Modification">Modification</option>
-                                  <option value="Récupération">Récupération</option>
-                                  <option value="Congés">Congés</option>
-                                  <option value="Santé">Santé</option>
-                                  <option value="Autres">Autres</option>
+                      {calendarDays.map((day) => {
+                        const entry = timeEntries[day.fullDate] || {
+                          statut: "",
+                          categorie: "",
+                        };
+                        return (
+                          <div
+                            key={day.fullDate}
+                            className={`calendar-row2 ${
+                              day.isWeekend ? "weekend" : ""
+                            }`}
+                          >
+                            <div className="day-cell2">
+                              <div className="day-name2">
+                                {day.dayName} {day.day}
+                              </div>
+                            </div>
+                            <div className="time-cell2">
+                              {!day.isWeekend && "5:00"}
+                            </div>
+                            <div className="action-cell2">
+                              {!day.isWeekend && (
+                                <select
+                                  className="action-button2"
+                                  value={entry.statut}
+                                  onChange={(e) =>
+                                    handleStatutChange(
+                                      day.fullDate,
+                                      e.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="">
+                                    --- Sélectionner un statut ---
+                                  </option>
+                                  {Object.keys(optionsMap).map((s) => (
+                                    <option key={s} value={s}>
+                                      {s}
+                                    </option>
+                                  ))}
                                 </select>
-                              </>
-                            )}
+                              )}
+                            </div>
+                            <div className="action-cell2">
+                              {!day.isWeekend && (
+                                <select
+                                  className="action-button2"
+                                  value={entry.categorie}
+                                  onChange={(e) =>
+                                    handleCategorieChange(
+                                      day.fullDate,
+                                      e.target.value
+                                    )
+                                  }
+                                  disabled={!entry.statut}
+                                >
+                                  <option value="">
+                                    --- Sélectionner une catégorie ---
+                                  </option>
+                                  {entry.statut &&
+                                    optionsMap[entry.statut].map((opt) => (
+                                      <option key={opt} value={opt}>
+                                        {opt}
+                                      </option>
+                                    ))}
+                                </select>
+                              )}
+                            </div>
+                            <div className="time-cell2">
+                              {!day.isWeekend && "9:00"}
+                            </div>
+                            <div className="time-cell2">
+                              {!day.isWeekend && "15:30"}
+                            </div>
+                            <div className="time-cell2">
+                              {!day.isWeekend && "5:00"}
+                            </div>
+                            <div className="total-cell2">
+                              {!day.isWeekend && "5:30"}
+                            </div>
                           </div>
-                          <div className="action-cell2">
-                          </div>
-                          <div className="time-cell2">
-                            {!day.isWeekend && "9:00"}
-                          </div>
-                          <div className="time-cell2">
-                            {!day.isWeekend && "15:30"}
-                          </div>
-                          <div className="time-cell2">
-                            {!day.isWeekend && "5:00"}
-                          </div>
-                          <div className="total-cell2">
-                            {!day.isWeekend && "5:30"}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -235,7 +331,9 @@ export default function Horaire() {
             )}
           </div>
         ) : (
-          !loadingContracts && <p>Aucun contrat trouvé pour cet utilisateur.</p>
+          !loadingContracts && (
+            <p>Aucun contrat trouvé pour cet utilisateur.</p>
+          )
         )}
       </div>
     </BasePage>
