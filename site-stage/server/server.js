@@ -960,7 +960,7 @@ async function startServer() {
     app.get("/api/conges", authenticateToken, async (req, res) => {
       try {
         console.log("Requête GET /conges reçue, utilisateur:", req.user);
-
+        console.log("ID utilisateur:", req.user ? req.user.id : "Non défini");
         if(!req.user || !req.user.id) {
           console.log("Utilisateur non authentifié");
           return res.status(401).json({ success: false, message: "Non autorisé" });
