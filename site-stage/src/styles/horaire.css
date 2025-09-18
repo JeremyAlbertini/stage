@@ -303,3 +303,125 @@
 .time-cell2 {
   margin: 5px 0;
 }
+
+.save-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.save-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: opacity 0.3s ease;
+}
+
+.save-message.success {
+  background-color: #28a745;
+  color: white;
+}
+
+.save-message.error {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Optional: Add a loading spinner for the save indicator */
+.save-indicator::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 10px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Style for disabled elements during save */
+.saving .time-picker,
+.saving .action-button2 {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Highlight recently changed entries */
+.calendar-row2.recently-saved {
+  background-color: rgba(40, 167, 69, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+/* Responsive adjustments for save indicators */
+@media (max-width: 768px) {
+  .save-indicator,
+  .save-message {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* Additional styling for better UX */
+.calendar-row2:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.time-picker:focus,
+.action-button2:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Loading state for the entire calendar */
+.calendar-loading {
+  position: relative;
+}
+
+.calendar-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.calendar-loading::before {
+  content: "Chargement des données...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}

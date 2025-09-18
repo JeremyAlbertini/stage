@@ -998,6 +998,259 @@ async function startServer() {
       }
     });
 
+// ---------------- Time Entries Management (Horaire) ----------------
+      
+    // Helper function to convert time string to minutes
+    const timeToMinutes = (timeString) => {
+      if (!timeString) return 0;
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    // Helper function to convert minutes to time string
+    const minutesToTime = (totalMinutes) => {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    };
+    
+    // GET - Fetch time entries for a specific contract and month
+    app.get("/api/time-entries/:matricule/:contractId/:year/:month", async (req, res) => {
+      try {
+        const { matricule, contractId, year, month } = req.params;
+      
+        // Validate parameters
+        if (!matricule || !contractId || !year || !month) {
+          return res.status(400).json({ error: 'Missing required parameters' });
+        }
+      
+        const [rows] = await db.execute(`
+          SELECT 
+            DATE_FORMAT(dates, '%Y-%m-%d') as date_key,
+            statut, categorie, 
+            TIME_FORMAT(start_time, '%H:%i') as start_time,
+            TIME_FORMAT(end_time, '%H:%i') as end_time,
+            TIME_FORMAT(pause_duration, '%H:%i') as pause_duration
+          FROM fiches_horaire 
+          WHERE contract_id = ? 
+          AND YEAR(dates) = ? AND MONTH(dates) = ?
+          ORDER BY dates ASC
+        `, [contractId, year, month]);
+        
+        // Transform data to match frontend format
+        const timeEntries = {};
+        rows.forEach(row => {
+          console.log('Loading entry for date:', row.date_key);
+          timeEntries[row.date_key] = {
+            statut: row.statut || '',
+            categorie: row.categorie || '',
+            start: row.start_time || '09:00',
+            end: row.end_time || '17:30',
+            pause: row.pause_duration || '00:30'
+          };
+        });
+        
+        res.json(timeEntries);
+      } catch (error) {
+        console.error('Error fetching time entries:', error);
+        res.status(500).json({ error: 'Failed to fetch time entries' });
+      }
+    });
+    
+    // POST - Save or update a time entry
+    app.post("/api/time-entries/:matricule/:contractId", authenticateToken, async (req, res) => {
+      try {
+        const { matricule, contractId } = req.params;
+        const { date, statut, categorie, start, end, pause } = req.body;
+      
+        if (!date) {
+          return res.status(400).json({ error: 'Date is required' });
+        }
+        
+        console.log('Saving entry for date:', date);
+      
+        // Ensure the date is treated as a local date, not UTC
+        // Parse the date string manually to avoid timezone issues
+        const [year, month, day] = date.split('-').map(Number);
+        
+        // Format as MySQL date (YYYY-MM-DD)
+        const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        
+        console.log('MySQL date will be:', mysqlDate);
+      
+        // Use INSERT ... ON DUPLICATE KEY UPDATE for upsert functionality
+        await db.execute(`
+          INSERT INTO fiches_horaire (
+            contract_id, dates, statut, categorie, 
+            start_time, end_time, pause_duration
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+            statut = VALUES(statut),
+            categorie = VALUES(categorie),
+            start_time = VALUES(start_time),
+            end_time = VALUES(end_time),
+            pause_duration = VALUES(pause_duration),
+            updated_at = CURRENT_TIMESTAMP
+        `, [
+          contractId,
+          mysqlDate, // Use the manually formatted date
+          statut || null,
+          categorie || null,
+          start ? `${start}:00` : null,
+          end ? `${end}:00` : null,
+          pause ? `${pause}:00` : null,
+        ]);
+      
+        res.json({ success: true, message: 'Time entry saved successfully' });
+      } catch (error) {
+        console.error('Error saving time entry:', error);
+        res.status(500).json({ error: 'Failed to save time entry' });
+      }
+    });
+    
+    // DELETE - Delete a time entry
+    app.delete("/api/time-entries/:matricule/:contractId/:date", authenticateToken, async (req, res) => {
+      try {
+        const { matricule, contractId, date } = req.params;
+      
+        await db.execute(`
+          DELETE FROM fiches_horaire 
+          WHERE contract_id = ? AND dates = ?
+        `, [contractId, date]);
+        
+        res.json({ success: true, message: 'Time entry deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting time entry:', error);
+        res.status(500).json({ error: 'Failed to delete time entry' });
+      }
+    });
+    
+    // GET - Get summary statistics for a month
+    app.get("/api/time-entries/:matricule/:contractId/:year/:month/summary", async (req, res) => {
+      try {
+        const { matricule, contractId, year, month } = req.params;
+      
+        const [rows] = await db.execute(`
+          SELECT 
+            COUNT(*) as total_entries,
+            SUM(CASE WHEN statut = 'Présent' THEN 1 ELSE 0 END) as present_days,
+            SUM(CASE WHEN statut LIKE '%Congé%' THEN 1 ELSE 0 END) as leave_days,
+            SUM(CASE WHEN statut LIKE '%Santé%' OR statut LIKE '%Maladie%' THEN 1 ELSE 0 END) as sick_days,
+            SUM(TIME_TO_SEC(total_hours))/3600 as total_hours_worked
+          FROM fiches_horaire 
+          WHERE contract_id = ? 
+          AND YEAR(dates) = ? AND MONTH(dates) = ?
+        `, [contractId, year, month]);
+        
+        res.json(rows[0]);
+      } catch (error) {
+        console.error('Error fetching summary:', error);
+        res.status(500).json({ error: 'Failed to fetch summary' });
+      }
+    });
+    
+    // GET - Get all time entries for a specific contract (for reporting)
+    app.get("/api/time-entries/contract/:contractId", authenticateToken, async (req, res) => {
+      try {
+        const { contractId } = req.params;
+        const { startDate, endDate } = req.query;
+      
+        let query = `
+          SELECT fh.*, c.matricule, a.nom, a.prenom, c.type_contrat
+          FROM fiches_horaire fh
+          JOIN contrats c ON fh.contract_id = c.id
+          JOIN agentdata a ON c.matricule = a.matricule
+          WHERE fh.contract_id = ?
+        `;
+      
+        const params = [contractId];
+      
+        if (startDate) {
+          query += ` AND fh.dates >= ?`;
+          params.push(startDate);
+        }
+      
+        if (endDate) {
+          query += ` AND fh.dates <= ?`;
+          params.push(endDate);
+        }
+      
+        query += ` ORDER BY fh.dates ASC`;
+        
+        const [rows] = await db.execute(query, params);
+        res.json(rows);
+      } catch (error) {
+        console.error('Error fetching contract time entries:', error);
+        res.status(500).json({ error: 'Failed to fetch contract time entries' });
+      }
+    });
+    
+    // POST - Bulk import time entries (for admin use)
+    app.post("/api/time-entries/bulk-import", authenticateToken, async (req, res) => {
+      try {
+        const { entries } = req.body; // Array of time entries
+      
+        if (!Array.isArray(entries) || entries.length === 0) {
+          return res.status(400).json({ error: 'No entries provided' });
+        }
+      
+        await db.beginTransaction();
+      
+        try {
+          for (const entry of entries) {
+            const { contractId, date, statut, categorie, start, end, pause } = entry;
+          
+            // Calculate total hours
+            let totalHours = '00:00:00';
+            if (start && end && pause) {
+              const startMinutes = timeToMinutes(start);
+              const endMinutes = timeToMinutes(end);
+              const pauseMinutes = timeToMinutes(pause);
+              const totalMinutes = Math.max(endMinutes - startMinutes - pauseMinutes, 0);
+              totalHours = minutesToTime(totalMinutes);
+            }
+            
+            // Parse date manually to avoid timezone issues
+            const [year, month, day] = date.split('-').map(Number);
+            const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          
+            await db.execute(`
+              INSERT INTO fiches_horaire (
+                contract_id, dates, statut, categorie, 
+                start_time, end_time, pause_duration, total_hours
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                statut = VALUES(statut),
+                categorie = VALUES(categorie),
+                start_time = VALUES(start_time),
+                end_time = VALUES(end_time),
+                pause_duration = VALUES(pause_duration),
+                total_hours = VALUES(total_hours),
+                updated_at = CURRENT_TIMESTAMP
+            `, [
+              contractId,
+              mysqlDate, // Use manually formatted date
+              statut || null,
+              categorie || null,
+              start ? `${start}:00` : null,
+              end ? `${end}:00` : null,
+              pause ? `${pause}:00` : null,
+              totalHours
+            ]);
+          }
+          
+          await db.commit();
+          res.json({ success: true, message: `${entries.length} entries imported successfully` });
+        } catch (error) {
+          await db.rollback();
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error bulk importing time entries:', error);
+        res.status(500).json({ error: 'Failed to import time entries' });
+      }
+    });
+
     // Lancer le serveur
     app.listen(PORT, () =>
       console.log(`✅ Serveur démarré sur http://localhost:${PORT}`)

@@ -12,6 +12,8 @@ export default function Horaire() {
   const [loadingContracts, setLoadingContracts] = useState(false);
   const [error, setError] = useState("");
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
 
   // Each entry: { statut, categorie, start, end, pause }
   const [timeEntries, setTimeEntries] = useState({});
@@ -35,6 +37,17 @@ export default function Horaire() {
     }
   }, [user?.matricule]);
 
+  // Load time entries when contract or month changes
+  useEffect(() => {
+    if (selectedContract && selectedMonthIndex !== null) {
+      const contractMonths = getContractMonths(selectedContract);
+      const selectedMonth = contractMonths[selectedMonthIndex];
+      if (selectedMonth) {
+        loadTimeEntries(selectedMonth);
+      }
+    }
+  }, [selectedContract, selectedMonthIndex]);
+
   const fetchContracts = async (matricule) => {
     setLoadingContracts(true);
     setError("");
@@ -50,6 +63,51 @@ export default function Horaire() {
       setError(err.message || "Erreur lors du chargement des contrats");
     } finally {
       setLoadingContracts(false);
+    }
+  };
+
+  const loadTimeEntries = async (selectedMonth) => {
+    if (!selectedContract || !user?.matricule || !selectedMonth) return;
+    
+    try {
+      const year = selectedMonth.date.getFullYear();
+      const month = selectedMonth.date.getMonth() + 1; // JavaScript months are 0-indexed
+      
+      const response = await api.get(
+        `http://localhost:5000/api/time-entries/${user.matricule}/${selectedContract.id}/${year}/${month}`
+      );
+      
+      setTimeEntries(response || {});
+    } catch (err) {
+      console.error("Error loading time entries:", err);
+      // Initialize empty entries if no data exists
+      setTimeEntries({});
+    }
+  };
+
+  const saveTimeEntry = async (date, entryData) => {
+    if (!selectedContract || !user?.matricule) return;
+
+    setSaving(true);
+    setSaveMessage("");
+
+    try {
+      await api.post(
+        `http://localhost:5000/api/time-entries/${user.matricule}/${selectedContract.id}`,
+        {
+          date,
+          ...entryData
+        }
+      );
+
+      setSaveMessage("Données sauvegardées avec succès");
+      setTimeout(() => setSaveMessage(""), 3000);
+    } catch (err) {
+      console.error("Error saving time entry:", err);
+      setSaveMessage("Erreur lors de la sauvegarde");
+      setTimeout(() => setSaveMessage(""), 3000);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -102,31 +160,59 @@ export default function Horaire() {
         day,
         dayName: dayNames[dayOfWeek],
         isWeekend,
-        fullDate: currentDate.toISOString().split("T")[0],
+        fullDate: `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${currentDate.getDate().toString().padStart(2, '0')}`,
       });
     }
     return days;
   };
 
-  const handleStatutChange = (date, value) => {
+  const handleStatutChange = async (date, value) => {
+    const updatedEntry = { 
+      ...timeEntries[date], 
+      statut: value, 
+      categorie: value ? timeEntries[date]?.categorie || "" : "" 
+    };
+    
     setTimeEntries((prev) => ({
       ...prev,
-      [date]: { ...prev[date], statut: value, categorie: "" },
+      [date]: updatedEntry,
     }));
+
+    // Auto-save when status changes
+    await saveTimeEntry(date, updatedEntry);
   };
 
-  const handleCategorieChange = (date, value) => {
+  const handleCategorieChange = async (date, value) => {
+    const updatedEntry = { 
+      ...timeEntries[date], 
+      categorie: value 
+    };
+    
     setTimeEntries((prev) => ({
       ...prev,
-      [date]: { ...prev[date], categorie: value },
+      [date]: updatedEntry,
     }));
+
+    // Auto-save when category changes
+    await saveTimeEntry(date, updatedEntry);
   };
 
-  const handleTimeChange = (date, field, value) => {
+  const handleTimeChange = async (date, field, value) => {
+    const updatedEntry = { 
+      ...timeEntries[date], 
+      [field]: value 
+    };
+    
     setTimeEntries((prev) => ({
       ...prev,
-      [date]: { ...prev[date], [field]: value },
+      [date]: updatedEntry,
     }));
+
+    // Auto-save when time changes (with a small delay to prevent too many requests)
+    clearTimeout(window.timeChangeTimeout);
+    window.timeChangeTimeout = setTimeout(async () => {
+      await saveTimeEntry(date, updatedEntry);
+    }, 1000);
   };
 
   const timeToMinutes = (t) => {
@@ -167,6 +253,15 @@ export default function Horaire() {
     <BasePage title="Hébésoft">
       <div className="horaire-container2">
         <h1>Fiche Horaire</h1>
+        
+        {/* Save status indicator */}
+        {saving && <div className="save-indicator">Sauvegarde en cours...</div>}
+        {saveMessage && (
+          <div className={`save-message ${saveMessage.includes('Erreur') ? 'error' : 'success'}`}>
+            {saveMessage}
+          </div>
+        )}
+        
         {loading || loadingContracts ? <p>Chargement...</p> : null}
         {error && <p className="error-message2">{error}</p>}
 
