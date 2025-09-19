@@ -80,3 +80,13 @@ CREATE TABLE IF NOT EXISTS perms (
     all_users BOOLEAN DEFAULT FALSE,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(user_id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(50),
+    message TEXT,
+    id_read BOOLEN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
+);

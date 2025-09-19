@@ -1020,6 +1020,20 @@ async function startServer() {
           [req.user.id, type_conge, date_debut, date_fin, duree, commentaire || ""]
         );
 
+        const [admins] = await db.query(`
+          SELECT a.user_id
+          FROM agentdata a
+          JOIN perms p ON a.user_id = p.user_id
+          WHERE p.request = 1
+        `);
+        
+        for (const admin of admins) {
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+            [admin.user_id, `Nouvelle demande de congé déposée par ${req.user.matricule}`]
+          );
+        }
+
         res.status(201).json({ success: true, message: "Demande de congé créée avec succès" });
       } catch (err) {
         console.error("Erreur lors de la création de la demande de congé:", err);
@@ -1162,6 +1176,32 @@ async function startServer() {
       } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Erreur lors de la récupération des soldes"});
+      }
+    });
+
+    app.get("/api/notifications", authenticateToken, async (req, res) => {
+      try {
+        await db.query("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY");
+        const [rows] = await db.query(
+          "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC",
+          [req.user.id]
+        );
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur notifications:", err);
+        res.status(500).json({ error: "Erreur serveur notifications" });
+      }
+    });
+
+    app.post("/api/notifications/:id/read", authenticateToken, async (req, res) => {
+      try {
+        await db.query(
+          "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
+          [req.params.id, req.user.id]
+        );
+        res.json({ success: true });
+      } catch (err) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
 
