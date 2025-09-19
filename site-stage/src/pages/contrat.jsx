@@ -96,7 +96,7 @@ export default function Contrat() {
               {contracts.map((contract) => (
                 <tr key={contract.id}>
                   <td
-                    className={contract.statut === "Actif" ? "active" : "inactive"}
+                    className={contract.statut === "Actif" ? "contrat-active" : "contrat-inactive"}
                   >
                     {`Période du ${new Date(
                       contract.date_debut
