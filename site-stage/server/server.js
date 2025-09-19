@@ -88,6 +88,7 @@ async function startServer() {
                 "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
                 [matricule, hashedPassword]
             );
+            console.log('Saving entry for date:', date_naiss);
           
             const userId = loginResult.insertId;
           
@@ -141,7 +142,7 @@ async function startServer() {
         adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
         adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
       } = req.body;
-    
+      
       try {
         await db.beginTransaction();
     
@@ -154,7 +155,8 @@ async function startServer() {
             [hashedPassword, userId]
           );
         }
-    
+        
+        console.log('Saving entry for date:', date_naiss);
         // Mettre à jour les informations dans la table `agentdata`
         const [result] = await db.query(
           `UPDATE agentdata SET 
@@ -844,79 +846,89 @@ async function startServer() {
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
-        // ---------------- Contrats Management ----------------
+    // ---------------- Contrats Management ----------------
       
     // Get all contracts for a given matricule
     app.get("/contrats/:matricule", async (req, res) => {
       try {
         const { matricule } = req.params;
-
         const [rows] = await db.query(
           "SELECT * FROM contrats WHERE matricule = ? ORDER BY date_debut DESC",
           [matricule]
         );
-
         res.json(rows);
       } catch (err) {
         console.error("Erreur lors de la récupération des contrats:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
-    
+
     // Create a new contract
-// Replace your contract creation endpoint in server.js with this:
-
-  app.post("/contrats", authenticateToken, async (req, res) => {
-    try {
-      const {
-        matricule,
-        type_contrat,
-        date_debut,
-        date_fin,
-        ca = 0,
-        cf = 0,
-        js = 0,
-        rca = 0,
-        heure = 0
-      } = req.body;
-
-      if (!matricule || !type_contrat || !date_debut || !date_fin) {
-        return res.status(400).json({ success: false, message: "Champs requis manquants" });
-      }
-
-      const duree_contrat = Math.ceil(
-        (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
-      );
-
-      await db.query(
-        `INSERT INTO contrats 
-          (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id] // ✅ req.user.id vient du middleware
-      );
-
-      res.status(201).json({ success: true, message: "Contrat créé avec succès" });
-    } catch (err) {
-      console.error("Erreur lors de la création du contrat:", err);
-      res.status(500).json({ success: false, message: "Erreur serveur" });
-    }
-  });
-
-    
-    // Update contract values (CA, CF, JS, heures, etc.)
-    app.put("/contrats/:id", async (req, res) => {
+    app.post("/contrats", authenticateToken, async (req, res) => {
       try {
-        const { id } = req.params;
-        const { ca, cf, js, rca, heure } = req.body;
+        const {
+          matricule,
+          type_contrat,
+          date_debut,
+          date_fin,
+          ca = 0,
+          cf = 0,
+          js = 0,
+          rca = 0,
+          heure = 0
+        } = req.body;
       
-        await db.query(
-          `UPDATE contrats SET ca = ?, cf = ?, js = ?, rca = ?, heure = ? WHERE id = ?`,
-          [ca, cf, js, rca, heure, id]
+        if (!matricule || !type_contrat || !date_debut || !date_fin) {
+          return res.status(400).json({ success: false, message: "Champs requis manquants" });
+        }
+      
+        const duree_contrat = Math.ceil(
+          (new Date(date_fin) - new Date(date_debut)) / (1000 * 60 * 60 * 24)
         );
       
-        res.json({ success: true, message: "Contrat mis à jour" });
+        const [result] = await db.query(
+          `INSERT INTO contrats 
+            (matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, user_id) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id]
+        );
+      
+        // Return the new contract ID
+        res.status(201).json({ success: true, id: result.insertId, message: "Contrat créé avec succès" });
+      
       } catch (err) {
-        console.error("Erreur lors de la mise à jour du contrat:", err);
+        console.error("Erreur lors de la création du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Update contract values (CA, CF, JS, heures, etc.)
+    app.post("/contrats/:id/upload", upload.single("pdf"), async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ success: false, message: "Aucun fichier fourni" });
+        }
+      
+        const { id } = req.params;
+        const filename = `${Date.now()}_${req.file.originalname}`;
+        const fs = require("fs");
+        const path = require("path");
+      
+        const destDir = path.join(__dirname, "../public/uploads/contracts");
+        const destPath = path.join(destDir, filename);
+      
+        // Make sure the folder exists
+        fs.mkdirSync(destDir, { recursive: true });
+      
+        // Move file
+        fs.renameSync(req.file.path, destPath);
+      
+        // Save filename in DB
+        await db.query("UPDATE contrats SET pdf_file = ? WHERE id = ?", [filename, id]);
+      
+        res.json({ success: true, message: "PDF uploadé avec succès", filename });
+      } catch (err) {
+        console.error("Erreur upload PDF:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
@@ -945,14 +957,75 @@ async function startServer() {
       }
     });
     
-    // Delete a contract
+    const fs = require("fs");
+    const path = require("path");
+
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
+      
+        // 1. Find contract & check for PDF
+        const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
+      
+        if (rows.length > 0 && rows[0].pdf_file) {
+          const filePath = path.join(__dirname, "../public/uploads/contracts", rows[0].pdf_file);
+        
+          // 2. Delete file if it exists
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        }
+        // 3. Delete contract from DB
         await db.query("DELETE FROM contrats WHERE id = ?", [id]);
-        res.json({ success: true, message: "Contrat supprimé" });
+      
+        res.json({ success: true, message: "Contrat et PDF supprimés" });
       } catch (err) {
         console.error("Erreur lors de la suppression du contrat:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+    // Upload a PDF contract
+    app.post("/contrats/:id/upload", upload.single("pdf"), async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ success: false, message: "Aucun fichier fourni" });
+        }
+      
+        const { id } = req.params;
+        const filename = `${Date.now()}_${req.file.originalname}`;
+      
+        // Move uploaded file to contracts folder
+        const fs = require("fs");
+        const path = require("path");
+        const destPath = path.join(__dirname, "../public/uploads/contracts", filename);
+        fs.renameSync(req.file.path, destPath);
+      
+        // Save filename in DB
+        await db.query("UPDATE contrats SET pdf_file = ? WHERE id = ?", [filename, id]);
+      
+        res.json({ success: true, message: "PDF uploadé avec succès", filename });
+      } catch (err) {
+        console.error("Erreur upload PDF:", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+    
+    // Download PDF contract
+    app.get("/contrats/:id/download", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
+      
+        if (!rows.length || !rows[0].pdf_file) {
+          return res.status(404).json({ success: false, message: "Aucun PDF trouvé" });
+        }
+      
+        const path = require("path");
+        const filePath = path.join(__dirname, "../public/uploads/contracts", rows[0].pdf_file);
+        res.download(filePath, rows[0].pdf_file);
+      } catch (err) {
+        console.error("Erreur téléchargement PDF:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });
@@ -1024,6 +1097,256 @@ async function startServer() {
       } catch (err) {
         console.error("Erreur lors de la création de la demande de congé:", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
+// ---------------- Time Entries Management (Horaire) ----------------
+      
+    // Helper function to convert time string to minutes
+    const timeToMinutes = (timeString) => {
+      if (!timeString) return 0;
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    // Helper function to convert minutes to time string
+    const minutesToTime = (totalMinutes) => {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    };
+    
+    // GET - Fetch time entries for a specific contract and month
+    app.get("/api/time-entries/:matricule/:contractId/:year/:month", async (req, res) => {
+      try {
+        const { matricule, contractId, year, month } = req.params;
+      
+        // Validate parameters
+        if (!matricule || !contractId || !year || !month) {
+          return res.status(400).json({ error: 'Missing required parameters' });
+        }
+      
+        const [rows] = await db.execute(`
+          SELECT 
+            DATE_FORMAT(dates, '%Y-%m-%d') as date_key,
+            statut, categorie, 
+            TIME_FORMAT(start_time, '%H:%i') as start_time,
+            TIME_FORMAT(end_time, '%H:%i') as end_time,
+            TIME_FORMAT(pause_duration, '%H:%i') as pause_duration
+          FROM fiches_horaire 
+          WHERE contract_id = ? 
+          AND YEAR(dates) = ? AND MONTH(dates) = ?
+          ORDER BY dates ASC
+        `, [contractId, year, month]);
+        
+        // Transform data to match frontend format
+        const timeEntries = {};
+        rows.forEach(row => {
+          timeEntries[row.date_key] = {
+            statut: row.statut || '',
+            categorie: row.categorie || '',
+            start: row.start_time || '09:00',
+            end: row.end_time || '17:30',
+            pause: row.pause_duration || '00:30'
+          };
+        });
+        
+        res.json(timeEntries);
+      } catch (error) {
+        console.error('Error fetching time entries:', error);
+        res.status(500).json({ error: 'Failed to fetch time entries' });
+      }
+    });
+    
+    // POST - Save or update a time entry
+    app.post("/api/time-entries/:matricule/:contractId", authenticateToken, async (req, res) => {
+      try {
+        const { matricule, contractId } = req.params;
+        const { date, statut, categorie, start, end, pause } = req.body;
+      
+        if (!date) {
+          return res.status(400).json({ error: 'Date is required' });
+        }
+      
+        // Ensure the date is treated as a local date, not UTC
+        // Parse the date string manually to avoid timezone issues
+        const [year, month, day] = date.split('-').map(Number);
+        
+        // Format as MySQL date (YYYY-MM-DD)
+        const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+        
+        console.log('MySQL date will be:', mysqlDate);
+      
+        // Use INSERT ... ON DUPLICATE KEY UPDATE for upsert functionality
+        await db.execute(`
+          INSERT INTO fiches_horaire (
+            contract_id, dates, statut, categorie, 
+            start_time, end_time, pause_duration
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+            statut = VALUES(statut),
+            categorie = VALUES(categorie),
+            start_time = VALUES(start_time),
+            end_time = VALUES(end_time),
+            pause_duration = VALUES(pause_duration),
+            updated_at = CURRENT_TIMESTAMP
+        `, [
+          contractId,
+          mysqlDate, // Use the manually formatted date
+          statut || null,
+          categorie || null,
+          start ? `${start}:00` : null,
+          end ? `${end}:00` : null,
+          pause ? `${pause}:00` : null,
+        ]);
+      
+        res.json({ success: true, message: 'Time entry saved successfully' });
+      } catch (error) {
+        console.error('Error saving time entry:', error);
+        res.status(500).json({ error: 'Failed to save time entry' });
+      }
+    });
+    
+    // DELETE - Delete a time entry
+    app.delete("/api/time-entries/:matricule/:contractId/:date", authenticateToken, async (req, res) => {
+      try {
+        const { matricule, contractId, date } = req.params;
+      
+        await db.execute(`
+          DELETE FROM fiches_horaire 
+          WHERE contract_id = ? AND dates = ?
+        `, [contractId, date]);
+        
+        res.json({ success: true, message: 'Time entry deleted successfully' });
+      } catch (error) {
+        console.error('Error deleting time entry:', error);
+        res.status(500).json({ error: 'Failed to delete time entry' });
+      }
+    });
+    
+    // GET - Get summary statistics for a month
+    app.get("/api/time-entries/:matricule/:contractId/:year/:month/summary", async (req, res) => {
+      try {
+        const { matricule, contractId, year, month } = req.params;
+      
+        const [rows] = await db.execute(`
+          SELECT 
+            COUNT(*) as total_entries,
+            SUM(CASE WHEN statut = 'Présent' THEN 1 ELSE 0 END) as present_days,
+            SUM(CASE WHEN statut LIKE '%Congé%' THEN 1 ELSE 0 END) as leave_days,
+            SUM(CASE WHEN statut LIKE '%Santé%' OR statut LIKE '%Maladie%' THEN 1 ELSE 0 END) as sick_days,
+            SUM(TIME_TO_SEC(total_hours))/3600 as total_hours_worked
+          FROM fiches_horaire 
+          WHERE contract_id = ? 
+          AND YEAR(dates) = ? AND MONTH(dates) = ?
+        `, [contractId, year, month]);
+        
+        res.json(rows[0]);
+      } catch (error) {
+        console.error('Error fetching summary:', error);
+        res.status(500).json({ error: 'Failed to fetch summary' });
+      }
+    });
+    
+    // GET - Get all time entries for a specific contract (for reporting)
+    app.get("/api/time-entries/contract/:contractId", authenticateToken, async (req, res) => {
+      try {
+        const { contractId } = req.params;
+        const { startDate, endDate } = req.query;
+      
+        let query = `
+          SELECT fh.*, c.matricule, a.nom, a.prenom, c.type_contrat
+          FROM fiches_horaire fh
+          JOIN contrats c ON fh.contract_id = c.id
+          JOIN agentdata a ON c.matricule = a.matricule
+          WHERE fh.contract_id = ?
+        `;
+      
+        const params = [contractId];
+      
+        if (startDate) {
+          query += ` AND fh.dates >= ?`;
+          params.push(startDate);
+        }
+      
+        if (endDate) {
+          query += ` AND fh.dates <= ?`;
+          params.push(endDate);
+        }
+      
+        query += ` ORDER BY fh.dates ASC`;
+        
+        const [rows] = await db.execute(query, params);
+        res.json(rows);
+      } catch (error) {
+        console.error('Error fetching contract time entries:', error);
+        res.status(500).json({ error: 'Failed to fetch contract time entries' });
+      }
+    });
+    
+    // POST - Bulk import time entries (for admin use)
+    app.post("/api/time-entries/bulk-import", authenticateToken, async (req, res) => {
+      try {
+        const { entries } = req.body; // Array of time entries
+      
+        if (!Array.isArray(entries) || entries.length === 0) {
+          return res.status(400).json({ error: 'No entries provided' });
+        }
+      
+        await db.beginTransaction();
+      
+        try {
+          for (const entry of entries) {
+            const { contractId, date, statut, categorie, start, end, pause } = entry;
+          
+            // Calculate total hours
+            let totalHours = '00:00:00';
+            if (start && end && pause) {
+              const startMinutes = timeToMinutes(start);
+              const endMinutes = timeToMinutes(end);
+              const pauseMinutes = timeToMinutes(pause);
+              const totalMinutes = Math.max(endMinutes - startMinutes - pauseMinutes, 0);
+              totalHours = minutesToTime(totalMinutes);
+            }
+            
+            // Parse date manually to avoid timezone issues
+            const [year, month, day] = date.split('-').map(Number);
+            const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+          
+            await db.execute(`
+              INSERT INTO fiches_horaire (
+                contract_id, dates, statut, categorie, 
+                start_time, end_time, pause_duration, total_hours
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                statut = VALUES(statut),
+                categorie = VALUES(categorie),
+                start_time = VALUES(start_time),
+                end_time = VALUES(end_time),
+                pause_duration = VALUES(pause_duration),
+                total_hours = VALUES(total_hours),
+                updated_at = CURRENT_TIMESTAMP
+            `, [
+              contractId,
+              mysqlDate, // Use manually formatted date
+              statut || null,
+              categorie || null,
+              start ? `${start}:00` : null,
+              end ? `${end}:00` : null,
+              pause ? `${pause}:00` : null,
+              totalHours
+            ]);
+          }
+          
+          await db.commit();
+          res.json({ success: true, message: `${entries.length} entries imported successfully` });
+        } catch (error) {
+          await db.rollback();
+          throw error;
+        }
+      } catch (error) {
+        console.error('Error bulk importing time entries:', error);
+        res.status(500).json({ error: 'Failed to import time entries' });
       }
     });
 
