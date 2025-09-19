@@ -1,0 +1,82 @@
+.weekly-agenda-container {
+    max-width: 450px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    border: 2px solid #333;
+    border-radius: 20px;
+    background-color: #f7f7f7;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+}
+
+.agenda-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.agenda-title {
+    color: #4a4a4a;
+    font-weight: 500;
+}
+
+.nav-arrow {
+    cursor: pointer;
+    font-size: 1.5em;
+    color: #888;
+    user-select: none;
+    padding: 0 10px;
+}
+
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.agenda-item {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.day-info {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.day-number {
+    font-size: 1.8em;
+    font-weight: 600;
+    color: #333;
+}
+
+.day-name {
+    font-size: 1em;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.event-indicators {
+    display: flex;
+    gap: 8px;
+}
+
+.event-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}

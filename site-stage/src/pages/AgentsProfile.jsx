@@ -10,6 +10,7 @@ import { getPerm } from "../utils/permsApi.js";
 import { getAgentById } from "../utils/agentsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useApi } from "../hooks/useApi.js";
+import Calendar from "../components/calendar.jsx";
 
 const ALL_TABS = [
     { id: "requests", label: "Demandes", perm: "request", content: "RequestsContent" },
@@ -159,7 +160,7 @@ export default function AgentsProfile() {
                             ) : tab.id === "requests" ? (
                                 <p>Contenu des demandes de {agent.nom}</p>
                             ) : tab.id === "calendar" ? (
-                                <p>Contenu du calendrier de {agent.nom}</p>
+                                <Calendar user_id={agent.user_id} />
                             ) : (
                                 tab.content && <tab.content agent={agent} onUpdate={updateAgentData} />
                             )}
