@@ -349,8 +349,8 @@ export default function Horaire() {
                           statut: "",
                           categorie: "",
                           start: "09:00",
-                          end: "17:30",
-                          pause: "00:30",
+                          end: "15:30",
+                          pause: "01:00",
                         };
                         return (
                           <div

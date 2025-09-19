@@ -73,6 +73,7 @@ async function startServer() {
                 "INSERT INTO logindata (matricule, password) VALUES (?, ?)",
                 [matricule, hashedPassword]
             );
+            console.log('Saving entry for date:', date_naiss);
           
             const userId = loginResult.insertId;
           
@@ -111,7 +112,7 @@ async function startServer() {
         adresse, adresse_code, adresse_ville, tel_perso, mail_perso, statut, grade, poste,
         adresse_pro, stage, tel_fixe, tel_pro, mail_pro, isAdmin
       } = req.body;
-    
+      
       try {
         await db.beginTransaction();
     
@@ -124,7 +125,8 @@ async function startServer() {
             [hashedPassword, userId]
           );
         }
-    
+        
+        console.log('Saving entry for date:', date_naiss);
         // Mettre à jour les informations dans la table `agentdata`
         const [result] = await db.query(
           `UPDATE agentdata SET 
@@ -1040,7 +1042,6 @@ async function startServer() {
         // Transform data to match frontend format
         const timeEntries = {};
         rows.forEach(row => {
-          console.log('Loading entry for date:', row.date_key);
           timeEntries[row.date_key] = {
             statut: row.statut || '',
             categorie: row.categorie || '',
@@ -1066,8 +1067,6 @@ async function startServer() {
         if (!date) {
           return res.status(400).json({ error: 'Date is required' });
         }
-        
-        console.log('Saving entry for date:', date);
       
         // Ensure the date is treated as a local date, not UTC
         // Parse the date string manually to avoid timezone issues
