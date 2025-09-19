@@ -1,11 +1,14 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, use } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState(null);
 
+
+  
   // Rafraîchir le token via cookie
   const refreshToken = useCallback(async () => {
     try {
@@ -74,6 +77,32 @@ export const AuthProvider = ({ children }) => {
     return response;
   }, [refreshToken, logout]);
 
+  const fetchPermissions = useCallback(async (userId) => {
+    try {
+      const res = await authenticatedFetch(`http://localhost:5000/perms/${userId}`);
+      if (!res.ok) {
+        console.warn("Erreur fetch permissions:", res.status);
+        setPermissions({});
+        return;
+      }
+
+      const data = await res.json();
+      setPermissions(data.perms || data || {});
+    } catch (err) {
+      console.error("Erreur fetch permissions:", err);
+      setPermissions({});
+    }
+  }, [authenticatedFetch]);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchPermissions(user.id);
+    } else {
+      setPermissions({});
+    }
+  }, [user, fetchPermissions]);
+  
+
   // Récupérer infos utilisateur
   const refreshUserData = useCallback(async () => {
     try {
@@ -124,6 +153,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       handleLogout, // ✅ Ajout de l'alias pour compatibilité
       loading,
+      permissions,
+      setPermissions,
     }}>
       {children}
     </AuthContext.Provider>

@@ -80,25 +80,15 @@ function Contracts({ matricule, agent }) {
     
       try {
         // 1. Create contract
-        const response = await fetch('http://localhost:5000/contrats', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ ...newContract, matricule: agent.matricule }),
-        });
-      
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || "Erreur création contrat");
+        const response = await api.post('http://localhost:5000/contrats',{ ...newContract, matricule: agent.matricule });
+        const data = await response;
+        if (!response.success) throw new Error(data.message || "Erreur création contrat");
       
         // 2. Upload PDF if present
         if (newContract.pdf) {
           const formData = new FormData();
           formData.append("pdf", newContract.pdf);
-          await fetch(`http://localhost:5000/contrats/${data.id}/upload`, {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-          });
+          await api.post(`http://localhost:5000/contrats/${data.id}/upload`, formData);
         }
       
         setShowModal(false);
@@ -194,7 +184,7 @@ function Contracts({ matricule, agent }) {
         <tbody>
           {contracts.map(contract => (
             <tr key={contract.id}>
-              <td className={contract.statut === 'Actif' ? 'active' : 'inactive'}>
+              <td className={contract.statut === 'Actif' ? 'contrat-active' : 'contrat-inactive'}>
                 {`Période du ${new Date(contract.date_debut).toLocaleDateString("fr-FR")} au ${new Date(contract.date_fin).toLocaleDateString("fr-FR")}`}
               </td>
               <td>{typeContratLabels[contract.type_contrat] || contract.type_contrat}</td>

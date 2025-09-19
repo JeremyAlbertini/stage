@@ -2,13 +2,14 @@
  * Hook de gestion des permissions utilisateur
  */
 
-
 export async function getUserPerms(api, userId) {
   try {
     const data = await api.get(`http://localhost:5000/perms/${userId}`);
     if (data?.success && data.perms) {
+      console.log("Permissions récupérées pour l'utilisateur", userId, ":", data.perms);
       return data.perms;
     }
+    console.warn("Aucune permission trouvée pour l'utilisateur", userId);
     return null;
   } catch (err) {
     console.error("Erreur getUserPerms :", err);
@@ -45,4 +46,20 @@ export async function getUserData(api, userId) {
     console.error("Erreur getUserData :", err);
     return null;
   }
+}
+
+export function hasAnyPerm(permissions, permNames) {
+  console.log("Vérification des permissions:", permissions, permNames);
+  if (!permissions) return false;
+  return permNames.some(p => !!permissions[p]);
+}
+
+export function hasPerm(permissions, permName) {
+  if (!permissions) return false;
+  return !!permissions[permName];
+}
+
+export  function getPerm(permissions , permName) {
+  if (!permissions) return null;
+  return !!permissions[permName];
 }

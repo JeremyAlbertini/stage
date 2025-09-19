@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/CreateUser.css";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
 
+const PERMS_LIST = [
+    { key: "change_perms", label: "Modifier les permissions" },
+    { key: "create_account", label: "Créer un utilisateur" },
+    { key: "request", label: "Accepter les demandes" },
+    { key: "modify_account", label: "Modifier un compte" },
+    { key: "all_users", label: "Voir tous les utilisateurs" },
+  ];
+
 function CreateUser({ onUserCreated }) {
     const api = useApi();
     const { user } = useAuth();
+    const [perms, setPerms] = useState({});
 
     const [matricule, setMatricule] = useState("");
     const [password, setPassword] = useState("");
@@ -33,9 +42,27 @@ function CreateUser({ onUserCreated }) {
     const [stage, setStage] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const permsdata = {user_id: 0, change_perms: 0, create_account: 0, request: 0, modify_account: 0, all_users: 0};
+
+    useEffect(() => {
+        setPerms(permsdata);
+    }, []);
+
+    const handleChangePerm = (e) => {
+        const { name, checked } = e.target;
+        setPerms(prev => ({
+          ...prev,
+          [name]: checked ? 1 : 0
+        }));
+      };
+
+      useEffect(() => {
+        console.log("Permissions mises à jour :", perms);
+      }, [perms]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("Création de l'utilisateur avec les permissions", perms);
 
         const payload = {
             matricule,
@@ -62,10 +89,11 @@ function CreateUser({ onUserCreated }) {
             adresse_pro: adressePro,
             stage,
             createdBy: user.matricule,
+            perms
         };
 
         try {
-            const response = await api.post("http://localhost:5000/users/create",payload);
+            const response = await api.post("http://localhost:5000/users/create", payload);
 
             const data = await response;
 
@@ -84,7 +112,7 @@ function CreateUser({ onUserCreated }) {
     };
 
     return (
-        <div>
+        <div className="admin-section">
             <h2 className="admin-subtitle">Créer un nouveau compte</h2>
             {message && <p className="success-message">{message}</p>}
             {error && <p className="error-message">{error}</p>}
@@ -99,10 +127,23 @@ function CreateUser({ onUserCreated }) {
                     <label>Mot de passe :</label>
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
-                <div className="form-group">
-                    <label>Compte administrateur :</label>
-                    <input type="checkbox" checked={isAdmin} onChange={(e) => setIsAdmin(e.target.checked)} />
+                <h3>Permissions</h3>
+                <div className="perms-container">
+                {PERMS_LIST.map((perm) => (
+                    <label key={perm.key} className="perm-item">
+                    <input
+                        type="checkbox"
+                        name={perm.key}
+                        checked={!!perms[perm.key]}
+                        onChange={handleChangePerm}
+                    />
+                    <span>{perm.label}</span>
+                    </label>
+                ))}
                 </div>
+
+
+
 
                 <h3>Données Agent</h3>
                 <div className="form-group">
