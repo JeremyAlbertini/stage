@@ -9,6 +9,7 @@ const multer = require("multer");
 const upload = multer({ dest: "tmp/uploads/" });
 const path = require('path');
 
+
 const PORT = 5000;
 const app = express();
 app.use(express.json());
@@ -1075,6 +1076,43 @@ async function startServer() {
       }
     });
 
+    // Récupérer un congé par ID
+    app.get("/api/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        console.log("Requête GET /conges/:id reçue, utilisateur:", req.user);
+
+        if (!req.user || !req.user.id) {
+          console.log("Utilisateur non authentifié");
+          return res.status(401).json({ success: false, message: "Non autorisé" });
+        }
+
+        const UserID = req.params.id;
+        console.log("ID du congé demandé:", UserID);
+
+        const [rows] = await db.query(
+          `
+          SELECT * FROM conges
+          WHERE user_id = ?
+          `,
+          [UserID]
+        );
+
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Congé introuvable" });
+        }
+
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupération du congé:", err);
+        res.status(500).json({
+          success: false,
+          message: "Erreur serveur",
+          error: err.message
+        });
+      }
+    });
+
+
     app.post("/api/conges", authenticateToken,  async (req, res) => {
       try {
         const { type_conge, date_debut, date_fin, commentaire, duree } = req.body;
@@ -1583,6 +1621,26 @@ async function startServer() {
     //     res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
     //   }
     // });
+
+
+    app.get("/api/vacances", async (req, res) => {
+      try {
+        const url =
+        "https://data.education.gouv.fr/api/explore/v2.0/catalog/datasets/fr-en-calendrier-scolaire/exports/json?limit=-1&refine=annee_scolaire:2024-2025&refine=location:Nice&timezone=UTC&use_labels=false&compressed=false&epsg=4326";
+    
+        const response = await fetch(url);
+    
+        if (!response.ok) {
+          throw new Error(`Erreur API externe: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        res.json(data);
+      } catch (error) {
+        console.error("Erreur proxy vacances:", error);
+        res.status(500).json({ error: "Impossible de récupérer les vacances scolaires" });
+      }
+    });
 
     // Lancer le serveur
     app.listen(PORT, () =>
