@@ -90,3 +90,35 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS fiches_horaire (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contract_id INT NOT NULL,
+    dates DATE NOT NULL,
+    statut ENUM('Présent', 'Modification', 'Récupération', 'Congés', 'Santé', 'Autres') DEFAULT NULL,
+    categorie VARCHAR(200) DEFAULT NULL,
+    start_time TIME DEFAULT NULL,
+    end_time TIME DEFAULT NULL,
+    pause_duration TIME DEFAULT '00:30:00',
+    total_hours TIME AS (
+        CASE 
+            WHEN start_time IS NOT NULL AND end_time IS NOT NULL AND pause_duration IS NOT NULL 
+            THEN SEC_TO_TIME(GREATEST(0, TIME_TO_SEC(end_time) - TIME_TO_SEC(start_time) - TIME_TO_SEC(pause_duration)))
+            ELSE NULL 
+        END
+    ) STORED,
+    is_weekend BOOLEAN AS (DAYOFWEEK(dates) IN (1, 7)) STORED,
+    commentaire TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign key constraint
+    FOREIGN KEY (contract_id) REFERENCES contrats(id) ON DELETE CASCADE,
+    
+    -- Unique constraint to prevent duplicate entries for same date/contract
+    UNIQUE KEY unique_entry (contract_id, dates),
+    
+    -- Indexes for performance
+    INDEX idx_contract_date (contract_id, dates),
+    INDEX idx_date_statut (dates, statut)
+);
