@@ -1520,7 +1520,7 @@ async function startServer() {
       try {
         await db.query("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY");
         const [rows] = await db.query(
-          "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC",
+          "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC",
           [req.user.id]
         );
         res.json(rows);
