@@ -3,6 +3,7 @@ import "../styles/homeCalendar.css";
 import { useHolidays } from "../context/HolidaysProvider.jsx";
 import { useApi } from "../hooks/useApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { NavLink } from "react-router-dom";
 
 const WeekCalendar = () => {
   const {
@@ -251,28 +252,34 @@ const WeekCalendar = () => {
   }
 
   return (
-    <div className="wc-container">
-      <div className="wc-header">
-        <button onClick={previousWeek} className="wc-nav-btn">‹</button>
-        <div className="wc-week-label">
-            Semaine du {startOfWeek(currentDate).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            })}
+    <>
+
+        <div className="wc-container">
+        <div>
+            <NavLink to={"/calendar"}> Aller au calendrier</NavLink>
+        </div>
+        <div className="wc-header">
+            <button onClick={previousWeek} className="wc-nav-btn">‹</button>
+            <div className="wc-week-label">
+                Semaine du {startOfWeek(currentDate).toLocaleDateString('fr-FR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                })}
+            </div>
+
+            <button onClick={nextWeek} className="wc-nav-btn">›</button>
         </div>
 
-        <button onClick={nextWeek} className="wc-nav-btn">›</button>
-      </div>
+        <div className="wc-controls">
+            <button onClick={goToToday} className="wc-control-btn">Aujourd’hui</button>
+        </div>
 
-      <div className="wc-controls">
-        <button onClick={goToToday} className="wc-control-btn">Aujourd’hui</button>
-      </div>
+        <div className="wc-grid-vertical">{renderWeek()}</div>
 
-      <div className="wc-grid-vertical">{renderWeek()}</div>
-
-      <div className="wc-events">{renderEventsForDay()}</div>
-    </div>
+        <div className="wc-events">{renderEventsForDay()}</div>
+        </div>
+    </>
   );
 };
 
