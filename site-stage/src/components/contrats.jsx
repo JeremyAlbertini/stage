@@ -1,8 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
+import { useApi } from '../hooks/useApi';
 import '../styles/contrats.css';
 
 function Contracts({ matricule, agent }) {
+  const api = useApi();
   const [contracts, setContracts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');

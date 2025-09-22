@@ -976,7 +976,7 @@ async function startServer() {
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const [[contrat]] = await db.query("SELECT user_id FROM conrtats WHERE id = ?", [id]);
+        const [[contrat]] = await db.query("SELECT user_id FROM contrats WHERE id = ?", [id]);
         // 1. Find contract & check for PDF
         const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
       
