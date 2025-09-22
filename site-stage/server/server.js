@@ -1378,7 +1378,7 @@ async function startServer() {
           const [[leave]] = await db.query("SELECT user_id FROM conges WHERE id = ?", [id]);
           if (leave) {
             await db.query(
-              "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+              "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
               [leave.user_id, "Votre demande de congé à été rejetée."]
             );  
           }
@@ -1413,7 +1413,7 @@ async function startServer() {
           );
         }
         await db.query(
-            "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
             [leave.user_id, "Votre demande de congé à été acceptée."]
         );
         res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
@@ -1538,6 +1538,7 @@ async function startServer() {
         );
         res.json({ success: true });
       } catch (err) {
+        console.error("Erreur /api/notifications/:id/read :", err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
       }
     });

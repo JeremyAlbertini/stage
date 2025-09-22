@@ -86,9 +86,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     user_id INT NOT NULL,
     type VARCHAR(50),
     message TEXT,
-    id_read BOOLEN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS fiches_horaire (
