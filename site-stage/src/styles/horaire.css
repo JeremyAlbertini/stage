@@ -1,0 +1,427 @@
+/* Horaire Component Styles */
+.horaire-container2 {
+  width: 100%;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.horaire-container2 h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* Error Message */
+.error-message2 {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+/* Contract Section */
+.contract-section2 {
+  margin-bottom: 30px;
+}
+
+.contract-label2 {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.contract-select2 {
+  width: 100%;
+  max-width: 500px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-top: 5px;
+  background-color: white;
+}
+
+.contract-select2:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* Contract Details */
+.contract-details2 {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #007bff;
+}
+
+.contract-details2 p {
+  margin: 5px 0;
+  color: #555;
+}
+
+/* Month Navigation */
+.month-navigation2 {
+  display: flex;
+  gap: 8px;
+  margin: 30px 0 20px 0;
+  flex-wrap: wrap;
+}
+
+.month-button2 {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: #e9ecef;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.month-button2:hover {
+  background-color: #dee2e6;
+}
+
+.month-button2.active {
+  background-color: #6c5ce7;
+  color: white;
+}
+
+/* Calendar Container */
+.calendar-container2 {
+  width: 100%;
+  max-width: 100%;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Calendar Header */
+.calendar-header2 {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  color: white;
+  padding: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Calendar Table */
+.calendar-table2 {
+  width: 100%;
+  min-width: 1100px;
+}
+
+/* Header Row */
+.calendar-header-row2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #0051a2;
+}
+
+.header-cell2 {
+  padding: 15px 10px;
+  font-weight: 600;
+  color: #007dfb;
+  text-align: center;
+  font-size: 14px;
+  border-right: 1px solid #e9ecef;
+}
+
+.header-cell2:last-child {
+  border-right: none;
+}
+
+/* Calendar Rows */
+.calendar-row2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr;
+  border-bottom: 1px solid #e9ecef;
+  min-height: 60px;
+  align-items: center;
+}
+
+.calendar-row2.weekend {
+  background-color: #6c757d;
+  color: rgb(0, 0, 0);
+}
+
+/* Day Cell */
+.day-cell2 {
+  padding: 10px;
+  border-right: 1px solid #e9ecef;
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.weekend2 .day-cell2 {
+  border-right: 1px solid #5a6268;
+}
+
+.day-name2 {
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 2px;
+}
+
+/* Action Cell */
+.action-cell2 {
+  padding: 10px;
+  border-right: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.weekend2 .action-cell2 {
+  border-right: 1px solid #5a6268;
+}
+
+.action-button2 {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  display: block;
+  width: 100%;
+}
+
+.action-button2:hover {
+  background-color: #e9ecef;
+}
+
+.day-type2 {
+  font-size: 13px;
+  color: #023c72;
+  text-align: center;
+}
+
+/* Time Cells */
+.time-cell2 {
+  padding: 10px;
+  text-align: center;
+  border-right: 1px solid #e9ecef;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.weekend2 .time-cell2 {
+  border-right: 1px solid #5a6268;
+}
+
+/* Total Cell */
+.total-cell2 {
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #28a745;
+}
+
+.weekend2 .total-cell2 {
+  color: #ced4da;
+}
+
+/* Remove border from last cells in each row */
+.calendar-row2 > div:last-child {
+  border-right: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .horaire-container2 {
+    padding: 15px;
+  }
+  
+  .calendar-header-row2,
+  .calendar-row2 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .calendar-header-row2 {
+    display: none; /* Hide headers on mobile */
+  }
+  
+  .calendar-row2 {
+    padding: 15px;
+    display: block;
+    border-bottom: 2px solid #e9ecef;
+  }
+  
+  .calendar-row2 > div {
+    border-right: none;
+    border-bottom: 1px solid #e9ecef;
+    padding: 8px 0;
+  }
+  
+  .calendar-row2 > div:last-child {
+    border-bottom: none;
+  }
+  
+  .month-navigation2 {
+    justify-content: center;
+  }
+  
+  .month-button2 {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+.time-picker {
+  padding: 6px 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.time-picker:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.time-cell2 {
+  margin: 5px 0;
+}
+
+.save-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.save-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: opacity 0.3s ease;
+}
+
+.save-message.success {
+  background-color: #28a745;
+  color: white;
+}
+
+.save-message.error {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Optional: Add a loading spinner for the save indicator */
+.save-indicator::after {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 10px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Style for disabled elements during save */
+.saving .time-picker,
+.saving .action-button2 {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Highlight recently changed entries */
+.calendar-row2.recently-saved {
+  background-color: rgba(40, 167, 69, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+/* Responsive adjustments for save indicators */
+@media (max-width: 768px) {
+  .save-indicator,
+  .save-message {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    text-align: center;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* Additional styling for better UX */
+.calendar-row2:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.time-picker:focus,
+.action-button2:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Loading state for the entire calendar */
+.calendar-loading {
+  position: relative;
+}
+
+.calendar-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.calendar-loading::before {
+  content: "Chargement des données...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}

@@ -19,7 +19,7 @@ export default function SearchModal({ isVisible, onClose }) {
     { page: "/profile", label: "Mon profil", subtitle: "Voir et modifier mon profil", Permission: "false" },
     { page: "/calendar", label: "Calendrier", subtitle: "Voir le calendrier des interventions", Permission: "false"},
     { page: "/conges", label: "Congés", subtitle: "Voir et gérer les congés", Permission: "false" },
-    { page: "/horaires", label: "Horaires", subtitle: "Voir et gérer les horaires", Permission: "false" },
+    { page: "/horaire", label: "Horaires", subtitle: "Voir et gérer les horaires", Permission: "false" },
     { page: "/contrat", label: "Contrats", subtitle: "Voir et gérer les contrats", Permission: "false" },
   ];
 

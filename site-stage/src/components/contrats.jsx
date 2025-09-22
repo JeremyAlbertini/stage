@@ -1,9 +1,8 @@
+
 import React, { useEffect, useState } from 'react';
 import '../styles/contrats.css';
-import { useApi } from '../hooks/useApi';
 
 function Contracts({ matricule, agent }) {
-  const api = useApi();
   const [contracts, setContracts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState('');
@@ -59,8 +58,11 @@ function Contracts({ matricule, agent }) {
   // Fetch contracts
     const fetchContracts = async () => {
       try {
-        const res = await api.get(`http://localhost:5000/contrats/${agent.matricule}`);
-        const data = await res;
+        const res = await fetch(`http://localhost:5000/contrats/${agent.matricule}`, {
+          credentials: 'include' // Add this line
+        });
+        if (!res.ok) throw new Error('Erreur lors du chargement des contrats');
+        const data = await res.json();
         setContracts(data);
       } catch (err) {
         console.error('Error fetching contracts:', err);
@@ -112,8 +114,11 @@ function Contracts({ matricule, agent }) {
     // Archive contract - ADD credentials and fix URL
     const handleArchive = async (id) => {
       try {
-        const response = await api.patch(`http://localhost:5000/contrats/${id}/archive`);
-        if (!response.success) throw new Error("Erreur lors de l'archivage du contrat");
+        const response = await fetch(`http://localhost:5000/contrats/${id}/archive`, { 
+          method: 'PATCH',
+          credentials: 'include' // Add this line
+        });
+        if (!response.ok) throw new Error("Erreur lors de l'archivage du contrat");
         fetchContracts();
       } catch (err) {
         console.error('Error archiving contract:', err);
@@ -123,8 +128,11 @@ function Contracts({ matricule, agent }) {
 
     const handleActivate = async (id) => {
       try {
-        const response = await api.patch(`http://localhost:5000/contrats/${id}/activate`);
-        if (!response.success) throw new Error("Erreur lors de l'activation du contrat");
+        const response = await fetch(`http://localhost:5000/contrats/${id}/activate`, {
+          method: 'PATCH',
+          credentials: 'include',
+        });
+        if (!response.ok) throw new Error("Erreur lors de l'activation du contrat");
         fetchContracts();
       } catch (err) {
         console.error('Error activating contract:', err);
@@ -135,8 +143,11 @@ function Contracts({ matricule, agent }) {
     const handleDelete = async (id) => {
       if (!window.confirm("Voulez-vous vraiment supprimer ce contrat ?")) return;
       try {
-        const response = await api.delete(`http://localhost:5000/contrats/${id}`);
-        if (!response.success) throw new Error("Erreur lors de la suppression du contrat");
+        const response = await fetch(`http://localhost:5000/contrats/${id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (!response.ok) throw new Error("Erreur lors de la suppression du contrat");
         fetchContracts();
       } catch (err) {
         console.error('Error deleting contract:', err);
