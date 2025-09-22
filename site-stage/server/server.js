@@ -817,6 +817,10 @@ async function startServer() {
     app.put("/perms/:id", async (req, res) => {
       try {
         await db.query("UPDATE perms SET ? WHERE user_id = ?", [req.body, req.params.id]);
+        await db.query(
+          "INSERT INTO notifications (user_id, type, message) VALUES (?, 'perms', ?)",
+          [req.params.id, "Vos permissions ont été modifiées."]
+        );
         res.json({ success: true });
       } catch (err) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -894,6 +898,14 @@ async function startServer() {
           [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id]
         );
       
+        const [agent] = await db.query("SELECT user_id FROM agentdata WHERE matricule = ?", [matricule]);
+        if (agent.length > 0) {
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
+            [agent[0].user_id, "Un nouveau contrat a été créé pour vous."]
+          );
+        }
+
         // Return the new contract ID
         res.status(201).json({ success: true, id: result.insertId, message: "Contrat créé avec succès" });
       
@@ -964,7 +976,7 @@ async function startServer() {
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
-      
+        const [[contrat]] = await db.query("SELECT user_id FROM conrtats WHERE id = ?", [id]);
         // 1. Find contract & check for PDF
         const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
       
@@ -979,6 +991,12 @@ async function startServer() {
         // 3. Delete contract from DB
         await db.query("DELETE FROM contrats WHERE id = ?", [id]);
       
+        if (contrat) {
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
+            [contrat.user_id, "Votre contrat a été supprimé."]
+          )
+        }
         res.json({ success: true, message: "Contrat et PDF supprimés" });
       } catch (err) {
         console.error("Erreur lors de la suppression du contrat:", err);
