@@ -1374,6 +1374,16 @@ async function startServer() {
           [status, id]
         );
 
+        if (status === "Rejeté") {
+          const [[leave]] = await db.query("SELECT user_id FROM conges WHERE id = ?", [id]);
+          if (leave) {
+            await db.query(
+              "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+              [leave.user_id, "Votre demande de congé à été rejetée."]
+            );  
+          }
+        }
+
         res.json({ success: true, message: "Statut de la demande mis à jour" });
       } catch (err) {
         console.error("Erreur lors de la mise à jour du statut:", err);
@@ -1402,7 +1412,11 @@ async function startServer() {
             [leave.duree, leave.matricule]
           );
         }
-        res.json({ success: true, message: "Demande acceptée et sole mis à jour" });
+        await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+            [leave.user_id, "Votre demande de congé à été acceptée."]
+        );
+        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
