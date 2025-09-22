@@ -81,6 +81,16 @@ CREATE TABLE IF NOT EXISTS perms (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES agentdata(user_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    type VARCHAR(50),
+    message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES logindata(id) ON DELETE CASCADE,
+    is_read BOOLEAN DEFAULT FALSE
+);
+
 CREATE TABLE IF NOT EXISTS fiches_horaire (
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_id INT NOT NULL,
