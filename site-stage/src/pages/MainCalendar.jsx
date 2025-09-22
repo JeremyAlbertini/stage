@@ -5,12 +5,7 @@ import { useAuth } from "../context/AuthContext";
 
 
 export default function MainCalendar() {
-    const [userId, setUserId] = useState(null);
     const {user} = useAuth();
-
-    useEffect(() => {
-        console.log("User from AuthContext:", user);
-    }, [user]);
 
     return (
         <BasePage title="Calendrier">
