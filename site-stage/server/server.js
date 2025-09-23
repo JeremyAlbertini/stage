@@ -8,6 +8,7 @@ const storage = require('./services/storage');
 const multer = require("multer");
 const upload = multer({ dest: "tmp/uploads/" });
 const path = require('path');
+const { sendNotificationEmail } = require('./services/mailing');
 
 
 const PORT = 5000;
@@ -898,13 +899,16 @@ async function startServer() {
           [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id]
         );
       
-        const [agent] = await db.query("SELECT user_id FROM agentdata WHERE matricule = ?", [matricule]);
+        const [agent] = await db.query("SELECT user_id, mail_pro FROM agentdata WHERE matricule = ?", [matricule]);
         if (agent.length > 0) {
           await db.query(
             "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
             [agent[0].user_id, "Un nouveau contrat a été créé pour vous."]
           );
         }
+        if (agent[0].mail_pro) {
+          await sendNotificationEmail(agent[0].mail_pro, "Nouveau contrat", "Un nouveau contrat a été créé pour vous.");
+        }        
 
         // Return the new contract ID
         res.status(201).json({ success: true, id: result.insertId, message: "Contrat créé avec succès" });
@@ -976,7 +980,7 @@ async function startServer() {
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const [[contrat]] = await db.query("SELECT user_id FROM contrats WHERE id = ?", [id]);
+        const [[contrat]] = await db.query("SELECT matricule FROM contrats WHERE id = ?", [id]);
         // 1. Find contract & check for PDF
         const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
       
@@ -988,14 +992,19 @@ async function startServer() {
             fs.unlinkSync(filePath);
           }
         }
+
         // 3. Delete contract from DB
         await db.query("DELETE FROM contrats WHERE id = ?", [id]);
       
         if (contrat) {
+          const [[agent]] = await db.query("SELECT user_id, mail_pro FROM agentdata WHERE matricule = ?", [contrat.matricule]);
           await db.query(
             "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
-            [contrat.user_id, "Votre contrat a été supprimé."]
-          )
+            [agent.user_id, "Votre contrat a été supprimé."]
+          );
+          if (agent.mail_pro) {
+            await sendNotificationEmail(agent.mail_pro, "Contrat supprimé", "Votre contrat a été supprimé.");
+          }
         }
         res.json({ success: true, message: "Contrat et PDF supprimés" });
       } catch (err) {
@@ -1436,7 +1445,11 @@ async function startServer() {
             await db.query(
               "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
               [leave.user_id, "Votre demande de congé à été rejetée."]
-            );  
+            );
+            const [[user]] = await db.query("SELECT mail_pro FROM agentdata WHERE user_id = ?", [leave.user_id]);
+            if (user && user.mail_pro) {
+              await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été rejetée.")
+            }
           }
         }
 
@@ -1472,6 +1485,10 @@ async function startServer() {
             "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
             [leave.user_id, "Votre demande de congé à été acceptée."]
         );
+        const [[user]] = await db.query("SELECT mail_pro FROM agentdata WHERE user_id = ?", [leave.user_id]);
+        if (user && user.mail_pro) {
+          await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été acceptée et votre solde a été mis à jour.")
+        }
         res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
       } catch (err) {
         console.error(err);
