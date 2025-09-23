@@ -700,7 +700,7 @@ const Calendar = ({user_id}) => {
   // Affichage de l'état de chargement ou d'erreur
   if (holidaysLoading) {
     return (
-      <BasePage title='Hébésoft'>
+      <BasePage title='Hébésoft' activate={1}>
         <h1>Calendrier</h1>
         <div style={{ textAlign: 'center', padding: '50px' }}>
           <p>Chargement des données des jours fériés et vacances scolaires...</p>

@@ -146,7 +146,7 @@ const fetchSoldes = useCallback(async () => {
   };
 
   return (
-    <BasePage title="Congés">
+    <BasePage title="Congés" activate={1}>
       <h1>Mes congés</h1>
 
       {soldesError ? (

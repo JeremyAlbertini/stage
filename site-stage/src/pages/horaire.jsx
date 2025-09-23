@@ -250,7 +250,7 @@ export default function Horaire() {
   const calendarDays = generateCalendarDays(selectedMonth, selectedContract);
 
   return (
-    <BasePage title="Hébésoft">
+    <BasePage title="Hébésoft" activate={1}>
       <div className="horaire-container2">
         <h1>Fiche Horaire</h1>
         

@@ -46,7 +46,7 @@ export default function Contrat() {
   if (loading) return <p>Chargement de l'utilisateur...</p>;
 
   return (
-    <BasePage title="Hébésoft">
+    <BasePage title="Hébésoft" activate={1}>
       <div className="contracts-container">
         <h1>Mes Contrats</h1>
 

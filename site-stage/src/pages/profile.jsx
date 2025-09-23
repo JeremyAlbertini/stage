@@ -104,7 +104,7 @@ export default function Profile() {
             };
 
     return (
-        <BasePage title="Hébésoft">
+        <BasePage title="Hébésoft" activate={1}>
                     <h1>Mon Profil</h1>
                     {userData ? (
                         <>
