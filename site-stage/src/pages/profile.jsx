@@ -11,6 +11,7 @@ export default function Profile() {
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");
     const [isHoveringPhoto, setIsHoveringPhoto] = useState(false);
+    const [userPerms, setUserPerms] = useState(null);
     const tabs = [
         { id: "infos", label: "Informations personnelles" },
         { id: "documents", label: "Documents" },
@@ -234,23 +235,11 @@ export default function Profile() {
                                 <p>Nom: {userData.nom || "Non renseigné"}</p>
                                 <p>Prénom: {userData.prenom || "Non renseigné"}</p>
                                 <p>Email: {userData.mail_pro || userData.mail_perso || "Non renseigné"}</p>
-                                <p>Rôle: {userData.is_admin ? "Administrateur" : "Utilisateur"}</p>
 
                                 <h2 className="admin-subtitle" style={{marginTop: "1.5rem"}}>Coordonnées</h2>
                                 <p>Téléphone: {userData.tel_pro || userData.tel_perso || "Non renseigné"}</p>
                                 <p>Adresse: {userData.adresse ? `${userData.adresse}, ${userData.adresse_code} ${userData.adresse_ville}` : "Non renseignée"}</p>
 
-                                {userData.is_admin && (
-                                    <div style={{marginTop: "1.5rem"}}>
-                                        <h2 className="admin-subtitle">Administration</h2>
-                                        <button 
-                                            className="admin-button"
-                                            onClick={() => window.location.href = "/admin"}
-                                        >
-                                            Accéder à l'administration
-                                        </button>
-                                    </div>
-                                )}
                             </TabContent>
 
                             <TabContent id="documents" activeTab={activeTab}>
