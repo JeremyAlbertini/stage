@@ -8,6 +8,7 @@ const storage = require('./services/storage');
 const multer = require("multer");
 const upload = multer({ dest: "tmp/uploads/" });
 const path = require('path');
+const { sendNotificationEmail } = require('./services/mailing');
 
 
 const PORT = 5000;
@@ -1472,6 +1473,10 @@ async function startServer() {
             "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
             [leave.user_id, "Votre demande de congé à été acceptée."]
         );
+        const [[user]] = await db.query("SELECT mail_pro FROM agentdata WHERE user_id = ?", [leave.user_id]);
+        if (user && user.mail_pro) {
+          await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été acceptée et votre solde a été mis à jour.")
+        }
         res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
       } catch (err) {
         console.error(err);

@@ -10,12 +10,12 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-async function sendNotificationEmail(userId, subject, message) {
+async function sendNotificationEmail(to, subject, message) {
     await transporter.sendMail({
         from: '"Hébésoft" <hebesoft.test@gmail.com>',
-        to,
-        subject,
-        text, message
+        to: to,
+        subject: subject,
+        text: message
     });
 }
 
