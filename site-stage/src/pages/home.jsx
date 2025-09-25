@@ -5,27 +5,28 @@ import NbrOfLeaves from "../components/nbrOfLeaves.jsx";
 import "../styles/home.css";
 
 export default function Home() {
-  const [order, setOrder] = useState([]);
-
-  useEffect(() => {
-    setOrder([WeekCalendar, NbrOfLeaves]);
-  }, []);
-
-  const changeorder = () => {
-    if (order[0] === WeekCalendar) {
-      setOrder([NbrOfLeaves, WeekCalendar]);
-    } else {
-      setOrder([WeekCalendar, NbrOfLeaves]);
-    }
-  };
+  const [right, setRight] = useState([NbrOfLeaves, NbrOfLeaves, NbrOfLeaves, NbrOfLeaves]);
+  const [middle, setMiddle] = useState([NbrOfLeaves, WeekCalendar]);
+  const [left, setLeft] = useState([WeekCalendar, NbrOfLeaves]);
 
   return (
-    <BasePage title="Hébésoft" activate={0}>
+    <BasePage title="Hébésoft" >
       <div className="contenair-home">
-        {order.map((Item, index) => (
-          <Item key={index} />
-        ))}
-        <button style={{maxHeight: "fit-content"}} onClick={changeorder}>Changer l'ordre</button>
+        <div className="box-home">
+          {left.map((Item, index) => (
+            <Item key={index} />
+          ))}
+        </div>
+        <div className="box-home">
+          {middle.map((Item, index) => (
+            <Item key={index} />
+          ))}
+        </div>
+        <div className="box-home">
+          {right.map((Item, index) => (
+            <Item key={index} />
+          ))}
+        </div>
       </div>
     </BasePage>
   );

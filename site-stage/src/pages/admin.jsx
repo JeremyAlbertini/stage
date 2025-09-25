@@ -67,7 +67,7 @@ export default function AdminPage({ users, loadUsers }) {
     }, [perms, activeTab, tabs]);
 
     return (
-        <BasePage title="Administration" activate={1}>
+        <BasePage title="Administration" >
             <div className="admin-container">
                 <div className="admin-card">
                     <h1 className="admin-title">Bienvenue sur la page administration</h1>

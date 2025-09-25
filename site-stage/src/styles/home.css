@@ -1,5 +1,18 @@
-.contenair-home {
+
+  .contenair-home {
     display: flex;
-    padding: 20px;
-    gap: 20px;
-}
+    flex: 1;          /* prend tout l’espace restant */
+    width: 100%;      /* toute la largeur dispo */
+    height: 100%;     /* toute la hauteur dispo */
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  
+  .box-home {
+    flex: 1;          /* chaque box prend la même largeur */
+    min-width: 0;     /* évite que le contenu casse le flex */
+    display: flex;
+    flex-direction: column; /* vertical */
+    gap: 10px; /* espace vertical maintenant */
+  }
+  

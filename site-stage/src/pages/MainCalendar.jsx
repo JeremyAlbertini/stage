@@ -8,7 +8,7 @@ export default function MainCalendar() {
     const {user} = useAuth();
 
     return (
-        <BasePage title="Calendrier" activate={1}>
+        <BasePage title="Calendrier" >
             <h1>Calendrier</h1>
             <Calendar user_id={user.id}/>
         </BasePage>

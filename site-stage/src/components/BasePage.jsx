@@ -1,20 +1,7 @@
 import Header from "./Header";
 import LeftBand from "./LeftBand";
 
-export default function BasePage({ title, children, activate }) {
-  // A helper function to return styles based on `activate`
-  const getContentStyle = () => {
-    if (activate === 1) {
-      return {
-        flex: 1,
-        boxSizing: "border-box",
-        padding: "2rem",
-        backgroundColor: "white",
-      };
-    }
-    return {};
-  };
-
+export default function BasePage({ title, children }) {
   return (
     <div
       style={{
@@ -27,7 +14,12 @@ export default function BasePage({ title, children, activate }) {
       <Header title={title} />
       <div style={{ display: "flex", flex: 1 }}>
         <LeftBand />
-        <div style={getContentStyle()}>
+        <div style={{
+        flex: 1,
+        boxSizing: "border-box",
+        padding: "2rem",
+        backgroundColor: "white",
+      }}>
           {children}
         </div>
       </div>

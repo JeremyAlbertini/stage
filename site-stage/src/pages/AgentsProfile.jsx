@@ -106,7 +106,7 @@ export default function AgentsProfile() {
     // Loader si agent non chargé
     if (!agent) {
         return (
-            <BasePage title="Chargement..." backgroundColor="#f5f5f5" activate={1}>
+            <BasePage title="Chargement..." backgroundColor="#f5f5f5" >
                 <div style={{ textAlign: "center", padding: "2rem" }}>
                     <p>Chargement du profil...</p>
                 </div>
@@ -115,7 +115,7 @@ export default function AgentsProfile() {
     }
 
     return (
-        <BasePage title={`Profil de ${agent.nom} ${agent.prenom}`} backgroundColor="#f5f5f5" activate={1}>
+        <BasePage title={`Profil de ${agent.nom} ${agent.prenom}`} backgroundColor="#f5f5f5" >
             <div style={{
                 display: "flex",
                 flexDirection: "column",
