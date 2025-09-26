@@ -1,0 +1,40 @@
+.div-contair-solde {
+    width: 400px;
+    margin: 0 auto;
+    font-family: "Segoe UI", sans-serif;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: 20px;
+    max-height: fit-content;
+}
+
+.leave-balance-cards-home {
+    display: flex;
+    gap: 1rem;
+}
+
+.title-solde {
+    padding-bottom: 15px;
+}
+
+  /* === Lien vers calendrier complet === */
+  .navlink-solde {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #879098;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  
+  .navlink-solde:hover {
+    color: #505a65;
+    text-decoration: underline;
+  }
+  
+.header-titlee {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}

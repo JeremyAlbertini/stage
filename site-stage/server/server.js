@@ -8,6 +8,8 @@ const storage = require('./services/storage');
 const multer = require("multer");
 const upload = multer({ dest: "tmp/uploads/" });
 const path = require('path');
+const { sendNotificationEmail } = require('./services/mailing');
+
 
 const PORT = 5000;
 const app = express();
@@ -816,6 +818,10 @@ async function startServer() {
     app.put("/perms/:id", async (req, res) => {
       try {
         await db.query("UPDATE perms SET ? WHERE user_id = ?", [req.body, req.params.id]);
+        await db.query(
+          "INSERT INTO notifications (user_id, type, message) VALUES (?, 'perms', ?)",
+          [req.params.id, "Vos permissions ont été modifiées."]
+        );
         res.json({ success: true });
       } catch (err) {
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -893,6 +899,17 @@ async function startServer() {
           [matricule, type_contrat, date_debut, date_fin, duree_contrat, ca, cf, js, rca, heure, req.user.id]
         );
       
+        const [agent] = await db.query("SELECT user_id, mail_pro FROM agentdata WHERE matricule = ?", [matricule]);
+        if (agent.length > 0) {
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
+            [agent[0].user_id, "Un nouveau contrat a été créé pour vous."]
+          );
+        }
+        if (agent[0].mail_pro) {
+          await sendNotificationEmail(agent[0].mail_pro, "Nouveau contrat", "Un nouveau contrat a été créé pour vous.");
+        }        
+
         // Return the new contract ID
         res.status(201).json({ success: true, id: result.insertId, message: "Contrat créé avec succès" });
       
@@ -963,7 +980,7 @@ async function startServer() {
     app.delete("/contrats/:id", async (req, res) => {
       try {
         const { id } = req.params;
-      
+        const [[contrat]] = await db.query("SELECT matricule FROM contrats WHERE id = ?", [id]);
         // 1. Find contract & check for PDF
         const [rows] = await db.query("SELECT pdf_file FROM contrats WHERE id = ?", [id]);
       
@@ -975,9 +992,20 @@ async function startServer() {
             fs.unlinkSync(filePath);
           }
         }
+
         // 3. Delete contract from DB
         await db.query("DELETE FROM contrats WHERE id = ?", [id]);
       
+        if (contrat) {
+          const [[agent]] = await db.query("SELECT user_id, mail_pro FROM agentdata WHERE matricule = ?", [contrat.matricule]);
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'contrat', ?)",
+            [agent.user_id, "Votre contrat a été supprimé."]
+          );
+          if (agent.mail_pro) {
+            await sendNotificationEmail(agent.mail_pro, "Contrat supprimé", "Votre contrat a été supprimé.");
+          }
+        }
         res.json({ success: true, message: "Contrat et PDF supprimés" });
       } catch (err) {
         console.error("Erreur lors de la suppression du contrat:", err);
@@ -1057,6 +1085,43 @@ async function startServer() {
       }
     });
 
+    // Récupérer un congé par ID
+    app.get("/api/conges/:id", authenticateToken, async (req, res) => {
+      try {
+        console.log("Requête GET /conges/:id reçue, utilisateur:", req.user);
+
+        if (!req.user || !req.user.id) {
+          console.log("Utilisateur non authentifié");
+          return res.status(401).json({ success: false, message: "Non autorisé" });
+        }
+
+        const UserID = req.params.id;
+        console.log("ID du congé demandé:", UserID);
+
+        const [rows] = await db.query(
+          `
+          SELECT * FROM conges
+          WHERE user_id = ?
+          `,
+          [UserID]
+        );
+
+        if (rows.length === 0) {
+          return res.status(404).json({ success: false, message: "Congé introuvable" });
+        }
+
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur lors de la récupération du congé:", err);
+        res.status(500).json({
+          success: false,
+          message: "Erreur serveur",
+          error: err.message
+        });
+      }
+    });
+
+
     app.post("/api/conges", authenticateToken,  async (req, res) => {
       try {
         const { type_conge, date_debut, date_fin, commentaire, duree } = req.body;
@@ -1092,6 +1157,20 @@ async function startServer() {
           VALUES (?, ?, ?, ?, ?, ?, 'En Attente', NOW())`,
           [req.user.id, type_conge, date_debut, date_fin, duree, commentaire || ""]
         );
+
+        const [admins] = await db.query(`
+          SELECT a.user_id
+          FROM agentdata a
+          JOIN perms p ON a.user_id = p.user_id
+          WHERE p.request = 1
+        `);
+        
+        for (const admin of admins) {
+          await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUE (?, 'conge', ?)",
+            [admin.user_id, `Nouvelle demande de congé déposée par ${req.user.matricule}`]
+          );
+        }
 
         res.status(201).json({ success: true, message: "Demande de congé créée avec succès" });
       } catch (err) {
@@ -1356,6 +1435,20 @@ async function startServer() {
           [status, id]
         );
 
+        if (status === "Rejeté") {
+          const [[leave]] = await db.query("SELECT user_id FROM conges WHERE id = ?", [id]);
+          if (leave) {
+            await db.query(
+              "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
+              [leave.user_id, "Votre demande de congé à été rejetée."]
+            );
+            const [[user]] = await db.query("SELECT mail_pro FROM agentdata WHERE user_id = ?", [leave.user_id]);
+            if (user && user.mail_pro) {
+              await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été rejetée.")
+            }
+          }
+        }
+
         res.json({ success: true, message: "Statut de la demande mis à jour" });
       } catch (err) {
         console.error("Erreur lors de la mise à jour du statut:", err);
@@ -1384,7 +1477,15 @@ async function startServer() {
             [leave.duree, leave.matricule]
           );
         }
-        res.json({ success: true, message: "Demande acceptée et sole mis à jour" });
+        await db.query(
+            "INSERT INTO notifications (user_id, type, message) VALUES (?, 'conge', ?)",
+            [leave.user_id, "Votre demande de congé à été acceptée."]
+        );
+        const [[user]] = await db.query("SELECT mail_pro FROM agentdata WHERE user_id = ?", [leave.user_id]);
+        if (user && user.mail_pro) {
+          await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été acceptée et votre solde a été mis à jour.")
+        }
+        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
@@ -1484,6 +1585,33 @@ async function startServer() {
       }
     });
 
+    app.get("/api/notifications", authenticateToken, async (req, res) => {
+      try {
+        await db.query("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY");
+        const [rows] = await db.query(
+          "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC",
+          [req.user.id]
+        );
+        res.json(rows);
+      } catch (err) {
+        console.error("Erreur notifications:", err);
+        res.status(500).json({ error: "Erreur serveur notifications" });
+      }
+    });
+
+    app.post("/api/notifications/:id/read", authenticateToken, async (req, res) => {
+      try {
+        await db.query(
+          "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
+          [req.params.id, req.user.id]
+        );
+        res.json({ success: true });
+      } catch (err) {
+        console.error("Erreur /api/notifications/:id/read :", err);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+      }
+    });
+
     // app.get("/api/soldes", authenticateToken, async (req, res) => {
     //   try {
     //     const userId = req.user.id;
@@ -1506,6 +1634,26 @@ async function startServer() {
     //     res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
     //   }
     // });
+
+
+    app.get("/api/vacances", async (req, res) => {
+      try {
+        const url =
+        "https://data.education.gouv.fr/api/explore/v2.0/catalog/datasets/fr-en-calendrier-scolaire/exports/json?limit=-1&refine=annee_scolaire:2024-2025&refine=location:Nice&timezone=UTC&use_labels=false&compressed=false&epsg=4326";
+    
+        const response = await fetch(url);
+    
+        if (!response.ok) {
+          throw new Error(`Erreur API externe: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        res.json(data);
+      } catch (error) {
+        console.error("Erreur proxy vacances:", error);
+        res.status(500).json({ error: "Impossible de récupérer les vacances scolaires" });
+      }
+    });
 
     // Lancer le serveur
     app.listen(PORT, () =>

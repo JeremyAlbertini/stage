@@ -292,7 +292,6 @@ export default function Horaire() {
     <BasePage title="Hébésoft">
       <h1>Fiche Horaire</h1>
         <div className="horaire-container2">
-        
         {/* Save status indicator */}
         {saving && <div className="save-indicator">Sauvegarde en cours...</div>}
         {saveMessage && (

@@ -12,6 +12,7 @@ export default function Profile() {
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState("infos");
     const [isHoveringPhoto, setIsHoveringPhoto] = useState(false);
+    const [userPerms, setUserPerms] = useState(null);
     const tabs = [
         { id: "infos perso", label: "Profil" },
         { id: "infos pro", label: "Information Administratives" },
@@ -284,7 +285,6 @@ export default function Profile() {
                                 </div>
                             </div>
                         </TabContent>
-
                         <TabContent id="infos pro" activeTab={activeTab}>
                             
                         </TabContent>

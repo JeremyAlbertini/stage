@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/home.jsx";
 import Users from "./pages/user.jsx";
-import Calendar from "./pages/calendar.jsx";
+import Calendar from "./components/calendar.jsx";
 import Conges from "./pages/conges.jsx";
 import Horaire from "./pages/horaire.jsx";
 import Contrat from "./pages/contrat.jsx";
@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoutes.jsx";
 import { useState, useEffect } from "react";
 import AgentsProfile from "./pages/AgentsProfile.jsx";
 import { useApi } from "./hooks/useApi.js"; // Import du hook
+import MainCalendar from "./pages/MainCalendar.jsx";
 
 export default function AppRoutes() {
   const [users, setUsers] = useState([]);
@@ -52,7 +53,7 @@ export default function AppRoutes() {
       } />
       <Route path="/calendar" element={
         <ProtectedRoute>
-          <Calendar />
+          <MainCalendar/>
         </ProtectedRoute>
       } />
       <Route path="/conges" element={

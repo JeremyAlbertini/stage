@@ -5,6 +5,7 @@ import SearchModal from './SearchModal';
 import { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
 import { useUI } from '../context/UIContext';
+import NotificationBell from './NotificationBell';
 
 export default function Header({ 
   title, 
@@ -60,7 +61,10 @@ export default function Header({
         </div>
   
         {user && (
-          <UserMenu userMenuItems={userMenuItems} />
+          <div className="header-right">
+            <NotificationBell />
+            <UserMenu userMenuItems={userMenuItems} />
+          </div>
         )}
       </header>
   

@@ -14,7 +14,7 @@ export default function Users() {
   }, []);
 
   return (
-    <BasePage title='Hébésoft'>
+    <BasePage title='Hébésoft' >
         <h1>Liste des utilisateurs</h1>
         <ul>
             {users.map(u => (

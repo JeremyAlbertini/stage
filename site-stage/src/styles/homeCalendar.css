@@ -1,0 +1,215 @@
+/* === Container général === */
+.wc-container {
+    width: 400px;
+    margin: 0 auto;
+    font-family: "Segoe UI", sans-serif;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: 20px;
+  }
+  
+  /* === Header navigation semaine === */
+  .wc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .wc-week-label {
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+  
+  .wc-nav-btn {
+    background: #f2f2f2;
+    border: none;
+    padding: 6px 13px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 18px;
+  }
+  
+  .wc-nav-btn:hover {
+    background: #ddd;
+  }
+  
+  /* === Boutons secondaires === */
+  .wc-controls {
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .wc-control-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .wc-control-btn:hover {
+    background: #0056b3;
+  }
+  
+  /* === Grille verticale (jours en colonne) === */
+  .wc-grid-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  /* === Case jour === */
+  .wc-day-cell {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #fafafa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    border-left: 10px solid #ddd; /* base */
+  }
+
+
+  
+  .wc-day-cell:hover {
+    background: #f0f8ff;
+  }
+  .wc-day-cell.wc-selected:hover {
+    background: #2c92ff;
+    color: white;
+  }
+  
+  /* === Numéro du jour === */
+  .wc-day-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 8px;
+  }
+  
+  /* === Label du jour (lundi, mardi...) === */
+  .wc-day-label {
+    font-size: 1rem;
+    color: #666;
+    flex-grow: 1;
+    text-align: left;
+  }
+  
+  /* === États spéciaux === */
+  .wc-today {
+    border: 2px solid #007bff;
+  }
+  
+  .wc-selected {
+    background: #007bff;
+    color: white;
+  }
+  
+  .wc-selected .wc-day-label {
+    color: #e0e0e0;
+  }
+  
+  /* === Indicateur événements par type === */
+  .wc-holiday {
+    border-left: 6px solid #dc3545; /* rouge pour jours fériés */
+  }
+  
+  .wc-school-vacation {
+    border-left: 6px solid #ffc107; /* jaune/orange pour vacances scolaires */
+  }
+  
+  .wc-vacation {
+    border-left: 6px solid #17a2b8; /* bleu turquoise pour congés utilisateur */
+  }
+  
+  /* === Liste des événements === */
+  .wc-events {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+  
+  .wc-events p {
+    margin: 0;
+    color: #555;
+  }
+  
+  .wc-event-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  
+  /* === Pastilles colorées selon type === */
+  .wc-event-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 50%;
+  }
+  
+  .wc-event-item.holiday .wc-event-dot {
+    background: #dc3545; /* rouge */
+  }
+  .wc-event-item.school_vacation .wc-event-dot {
+    background: #ffc107; /* jaune */
+  }
+  .wc-event-item.vacation .wc-event-dot {
+    background: #17a2b8; /* bleu turquoise */
+  }
+  .wc-event-item.other .wc-event-dot {
+    background: #28a745; /* vert par défaut */
+  }
+  
+  .wc-event-item em {
+    font-size: 0.8rem;
+    color: #777;
+  }
+
+  
+  /* === Couleurs par type pour les cases jours === */
+.wc-day-cell.holiday {
+    border-left: 10px solid #dc3545; /* rouge */
+  }
+  
+  .wc-day-cell.school_vacation {
+    border-left: 10px solid #ffc107; /* jaune */
+  }
+  
+  .wc-day-cell.vacation {
+    border-left: 10px solid #17a2b8; /* bleu turquoise */
+  }
+  
+
+  .wc-day-cell.weekend {
+    background-color:  #f2f2f2;
+  }
+  .wc-day-cell.weekend.wc-selected {
+    background-color:  #0070e7;
+  }
+
+  /* === Lien vers calendrier complet === */
+.wc-container > div > a {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: #879098;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  
+  .wc-container > div > a:hover {
+    color: #505a65;
+    text-decoration: underline;
+  }
+  
