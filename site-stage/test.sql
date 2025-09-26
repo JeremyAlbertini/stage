@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS fiches_horaire (
     id INT AUTO_INCREMENT PRIMARY KEY,
     contract_id INT NOT NULL,
     dates DATE NOT NULL,
+    cycle VARCHAR(100) DEFAULT NULL,
     statut ENUM('Présent', 'Modification', 'Récupération', 'Congés', 'Santé', 'Autres') DEFAULT NULL,
     categorie VARCHAR(200) DEFAULT NULL,
     start_time TIME DEFAULT NULL,

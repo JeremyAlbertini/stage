@@ -1119,38 +1119,40 @@ async function startServer() {
     // GET - Fetch time entries for a specific contract and month
     app.get("/api/time-entries/:matricule/:contractId/:year/:month", async (req, res) => {
       try {
-        const { matricule, contractId, year, month } = req.params;
+        const { contractId, year, month } = req.params;
       
-        // Validate parameters
-        if (!matricule || !contractId || !year || !month) {
+        if (!contractId || !year || !month) {
           return res.status(400).json({ error: 'Missing required parameters' });
         }
       
         const [rows] = await db.execute(`
           SELECT 
             DATE_FORMAT(dates, '%Y-%m-%d') as date_key,
+            cycle,
             statut, categorie, 
             TIME_FORMAT(start_time, '%H:%i') as start_time,
             TIME_FORMAT(end_time, '%H:%i') as end_time,
-            TIME_FORMAT(pause_duration, '%H:%i') as pause_duration
+            TIME_FORMAT(pause_duration, '%H:%i') as pause_duration,
+            updated_at
           FROM fiches_horaire 
           WHERE contract_id = ? 
           AND YEAR(dates) = ? AND MONTH(dates) = ?
           ORDER BY dates ASC
         `, [contractId, year, month]);
         
-        // Transform data to match frontend format
         const timeEntries = {};
         rows.forEach(row => {
           timeEntries[row.date_key] = {
+            cycle: row.cycle || '',
             statut: row.statut || '',
             categorie: row.categorie || '',
             start: row.start_time || '09:00',
             end: row.end_time || '17:30',
-            pause: row.pause_duration || '00:30'
+            pause: row.pause_duration || '00:30',
+            updated_at: row.updated_at || '-'
           };
         });
-        
+      
         res.json(timeEntries);
       } catch (error) {
         console.error('Error fetching time entries:', error);
@@ -1161,29 +1163,23 @@ async function startServer() {
     // POST - Save or update a time entry
     app.post("/api/time-entries/:matricule/:contractId", authenticateToken, async (req, res) => {
       try {
-        const { matricule, contractId } = req.params;
-        const { date, statut, categorie, start, end, pause } = req.body;
+        const { contractId } = req.params;
+        const { date, cycle, statut, categorie, start, end, pause } = req.body;
       
         if (!date) {
           return res.status(400).json({ error: 'Date is required' });
         }
       
-        // Ensure the date is treated as a local date, not UTC
-        // Parse the date string manually to avoid timezone issues
         const [year, month, day] = date.split('-').map(Number);
-        
-        // Format as MySQL date (YYYY-MM-DD)
         const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        
-        console.log('MySQL date will be:', mysqlDate);
       
-        // Use INSERT ... ON DUPLICATE KEY UPDATE for upsert functionality
         await db.execute(`
           INSERT INTO fiches_horaire (
-            contract_id, dates, statut, categorie, 
+            contract_id, dates, cycle, statut, categorie, 
             start_time, end_time, pause_duration
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE
+            cycle = VALUES(cycle),
             statut = VALUES(statut),
             categorie = VALUES(categorie),
             start_time = VALUES(start_time),
@@ -1192,7 +1188,8 @@ async function startServer() {
             updated_at = CURRENT_TIMESTAMP
         `, [
           contractId,
-          mysqlDate, // Use the manually formatted date
+          mysqlDate,
+          cycle || null,
           statut || null,
           categorie || null,
           start ? `${start}:00` : null,
@@ -1210,7 +1207,7 @@ async function startServer() {
     // DELETE - Delete a time entry
     app.delete("/api/time-entries/:matricule/:contractId/:date", authenticateToken, async (req, res) => {
       try {
-        const { matricule, contractId, date } = req.params;
+        const { contractId, date } = req.params;
       
         await db.execute(`
           DELETE FROM fiches_horaire 
@@ -1227,7 +1224,7 @@ async function startServer() {
     // GET - Get summary statistics for a month
     app.get("/api/time-entries/:matricule/:contractId/:year/:month/summary", async (req, res) => {
       try {
-        const { matricule, contractId, year, month } = req.params;
+        const { contractId, year, month } = req.params;
       
         const [rows] = await db.execute(`
           SELECT 
@@ -1275,7 +1272,7 @@ async function startServer() {
         }
       
         query += ` ORDER BY fh.dates ASC`;
-        
+      
         const [rows] = await db.execute(query, params);
         res.json(rows);
       } catch (error) {
@@ -1287,8 +1284,7 @@ async function startServer() {
     // POST - Bulk import time entries (for admin use)
     app.post("/api/time-entries/bulk-import", authenticateToken, async (req, res) => {
       try {
-        const { entries } = req.body; // Array of time entries
-      
+        const { entries } = req.body;
         if (!Array.isArray(entries) || entries.length === 0) {
           return res.status(400).json({ error: 'No entries provided' });
         }
@@ -1297,9 +1293,8 @@ async function startServer() {
       
         try {
           for (const entry of entries) {
-            const { contractId, date, statut, categorie, start, end, pause } = entry;
+            const { contractId, date, cycle, statut, categorie, start, end, pause } = entry;
           
-            // Calculate total hours
             let totalHours = '00:00:00';
             if (start && end && pause) {
               const startMinutes = timeToMinutes(start);
@@ -1308,17 +1303,17 @@ async function startServer() {
               const totalMinutes = Math.max(endMinutes - startMinutes - pauseMinutes, 0);
               totalHours = minutesToTime(totalMinutes);
             }
-            
-            // Parse date manually to avoid timezone issues
+          
             const [year, month, day] = date.split('-').map(Number);
             const mysqlDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
           
             await db.execute(`
               INSERT INTO fiches_horaire (
-                contract_id, dates, statut, categorie, 
+                contract_id, dates, cycle, statut, categorie, 
                 start_time, end_time, pause_duration, total_hours
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
               ON DUPLICATE KEY UPDATE
+                cycle = VALUES(cycle),
                 statut = VALUES(statut),
                 categorie = VALUES(categorie),
                 start_time = VALUES(start_time),
@@ -1328,7 +1323,8 @@ async function startServer() {
                 updated_at = CURRENT_TIMESTAMP
             `, [
               contractId,
-              mysqlDate, // Use manually formatted date
+              mysqlDate,
+              cycle || null,
               statut || null,
               categorie || null,
               start ? `${start}:00` : null,
@@ -1337,7 +1333,7 @@ async function startServer() {
               totalHours
             ]);
           }
-          
+        
           await db.commit();
           res.json({ success: true, message: `${entries.length} entries imported successfully` });
         } catch (error) {

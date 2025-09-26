@@ -90,7 +90,7 @@
 }
 
 .month-button2.active {
-  background-color: #6c5ce7;
+  background-color: #68e75c;
   color: white;
 }
 
@@ -124,7 +124,7 @@
 /* Header Row */
 .calendar-header-row2 {
   display: grid;
-  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr 1.5fr;
   background-color: #f8f9fa;
   border-bottom: 2px solid #0051a2;
 }
@@ -145,7 +145,7 @@
 /* Calendar Rows */
 .calendar-row2 {
   display: grid;
-  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 2fr 3fr 3fr 1fr 1fr 1fr 1fr 1.5fr;
   border-bottom: 1px solid #e9ecef;
   min-height: 60px;
   align-items: center;
@@ -218,6 +218,14 @@
   text-align: center;
   border-right: 1px solid #e9ecef;
   font-size: 14px;
+  font-weight: 500;
+}
+
+.prevision-cell2 {
+  padding: 10px;
+  text-align: center;
+  border-right: 1px solid #e9ecef;
+  font-size: 15px;
   font-weight: 500;
 }
 

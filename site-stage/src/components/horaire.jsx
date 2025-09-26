@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
-import { useApi } from "../hooks/useApi";
-import BasePage from "../components/BasePage";
-import { useAuth } from "../context/AuthContext";
-import "../styles/horaire.css";
+import React, { useEffect, useState } from 'react';
+import { useApi } from '../hooks/useApi';
+import '../styles/horaire.css';
 
-export default function Horaire() {
-  const { user, loading } = useAuth();
+function Horaire({ agent }) {
   const api = useApi();
   const [contracts, setContracts] = useState([]);
   const [selectedContract, setSelectedContract] = useState(null);
@@ -30,7 +27,7 @@ export default function Horaire() {
     Autres: ["FORM - Formation", "CCR - Concours", "OFF - Journée Off", "DISP - Disponibilité", "MAD - Mise à Disposition", "GRV - Grève",
       "MAP - Mise à Pied", "ABI - Absence Injustifiée"],
   };
-
+   
   const cycleMap = {
     // Cycle Bureau 
     "B01": { start: "09:00", end: "15:00", pause: "01:00" },
@@ -70,11 +67,25 @@ export default function Horaire() {
     "P02": { start: "09:00", end: "18:00", pause: "03:00" },
   }
 
+  const handleCycleChange = async (date, cycleKey) => {
+  const cycleTimes = cycleMap[cycleKey] || {};
+  const updatedEntry = {
+    ...timeEntries[date],
+    cycle: cycleKey,
+    start: cycleTimes.start || timeEntries[date]?.start,
+    end: cycleTimes.end || timeEntries[date]?.end,
+    pause: cycleTimes.pause || timeEntries[date]?.pause,
+  };
+
+  setTimeEntries(prev => ({ ...prev, [date]: updatedEntry }));
+  await saveTimeEntry(date, updatedEntry);
+  };
+
   useEffect(() => {
-    if (user?.matricule) {
-      fetchContracts(user.matricule);
+    if (agent?.matricule) {
+      fetchContracts(agent.matricule);
     }
-  }, [user?.matricule]);
+  }, [agent?.matricule]);
 
   // Load time entries when contract or month changes
   useEffect(() => {
@@ -106,14 +117,14 @@ export default function Horaire() {
   };
 
   const loadTimeEntries = async (selectedMonth) => {
-    if (!selectedContract || !user?.matricule || !selectedMonth) return;
+    if (!selectedContract || !agent?.matricule || !selectedMonth) return;
     
     try {
       const year = selectedMonth.date.getFullYear();
       const month = selectedMonth.date.getMonth() + 1; // JavaScript months are 0-indexed
       
       const response = await api.get(
-        `http://localhost:5000/api/time-entries/${user.matricule}/${selectedContract.id}/${year}/${month}`
+        `http://localhost:5000/api/time-entries/${agent.matricule}/${selectedContract.id}/${year}/${month}`
       );
       
       setTimeEntries(response || {});
@@ -125,14 +136,14 @@ export default function Horaire() {
   };
 
   const saveTimeEntry = async (date, entryData) => {
-    if (!selectedContract || !user?.matricule) return;
+    if (!selectedContract || !agent?.matricule) return;
 
     setSaving(true);
     setSaveMessage("");
 
     try {
       await api.post(
-        `http://localhost:5000/api/time-entries/${user.matricule}/${selectedContract.id}`,
+        `http://localhost:5000/api/time-entries/${agent.matricule}/${selectedContract.id}`,
         {
           date,
           ...entryData
@@ -278,7 +289,7 @@ export default function Horaire() {
         const m = minute.toString().padStart(2, "0");
         return (
           <option key={`${h}:${m}`} value={`${h}:${m}`}>
-            {`${h}:${m}`}
+            {`${h}:${m}`}   
           </option>
         );
       })
@@ -289,230 +300,227 @@ export default function Horaire() {
   const calendarDays = generateCalendarDays(selectedMonth, selectedContract);
 
   return (
-    <BasePage title="Hébésoft">
-      <h1>Fiche Horaire</h1>
-        <div className="horaire-container2">
-        
-        {/* Save status indicator */}
-        {saving && <div className="save-indicator">Sauvegarde en cours...</div>}
-        {saveMessage && (
-          <div className={`save-message ${saveMessage.includes('Erreur') ? 'error' : 'success'}`}>
-            {saveMessage}
-          </div>
-        )}
-        
-        {loading || loadingContracts ? <p>Chargement...</p> : null}
-        {error && <p className="error-message2">{error}</p>}
+    <div className="horaire-container2">
+      <h2>FICHE HORAIRE DE L'AGENT</h2>
+      
+      {/* Save status indicator */}
+      {saving && <div className="save-indicator">Sauvegarde en cours...</div>}
+      {saveMessage && (
+        <div className={`save-message ${saveMessage.includes('Erreur') ? 'error' : 'success'}`}>
+          {saveMessage}
+        </div>
+      )}
+      
+      {loadingContracts && <p>Chargement...</p>}
+      {error && <p className="error-message2">{error}</p>}
 
-        {contracts.length > 0 ? (
-          <div className="contract-section2">
-            <label htmlFor="contract-select2" className="contract-label2">
-              Sélectionnez le contrat :
-              <select
-                id="contract-select2"
-                value={selectedContract?.id || ""}
-                onChange={(e) => {
-                  const contract = contracts.find(
-                    (c) => c.id === parseInt(e.target.value)
-                  );
-                  setSelectedContract(contract);
-                  setSelectedMonthIndex(0);
-                }}
-                className="contract-select2"
-              >
-                {contracts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.type_contrat} ({formatDate(c.date_debut)} →{" "}
-                    {formatDate(c.date_fin)}) {c.statut === "Actif" ? "⭐" : ""}
-                  </option>
+      {contracts.length > 0 ? (
+        <div className="contract-section2">
+          <label htmlFor="contract-select2" className="contract-label2">
+            Sélectionnez le contrat :
+            <select
+              id="contract-select2"
+              value={selectedContract?.id || ""}
+              onChange={(e) => {
+                const contract = contracts.find(
+                  (c) => c.id === parseInt(e.target.value)
+                );
+                setSelectedContract(contract);
+                setSelectedMonthIndex(0);
+              }}
+              className="contract-select2"
+            >
+              {contracts.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.type_contrat} ({formatDate(c.date_debut)} →{" "}
+                  {formatDate(c.date_fin)}) {c.statut === "Actif" ? "⭐" : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {selectedContract && (
+            <div className="contract-details2">
+              <p>
+                <strong>Date de début:</strong>{" "}
+                {formatDate(selectedContract.date_debut)}
+              </p>
+              <p>
+                <strong>Date de fin:</strong>{" "}
+                {formatDate(selectedContract.date_fin)}
+              </p>
+              <p>
+                <strong>Durée (jours):</strong>{" "}
+                {selectedContract.duree_contrat}
+              </p>
+              <p>
+                <strong>Statut:</strong> {selectedContract.statut}
+              </p>
+            </div>
+          )}
+
+          {contractMonths.length > 0 && (
+            <div className="calendar-section2">
+              <div className="month-navigation2">
+                {contractMonths.map((month, index) => (
+                  <button
+                    key={index}
+                    className={`month-button2 ${
+                      index === selectedMonthIndex ? "active" : ""
+                    }`}
+                    onClick={() => setSelectedMonthIndex(index)}
+                  >
+                    {month.label}
+                  </button>
                 ))}
-              </select>
-            </label>
-
-            {selectedContract && (
-              <div className="contract-details2">
-                <p>
-                  <strong>Date de début:</strong>{" "}
-                  {formatDate(selectedContract.date_debut)}
-                </p>
-                <p>
-                  <strong>Date de fin:</strong>{" "}
-                  {formatDate(selectedContract.date_fin)}
-                </p>
-                <p>
-                  <strong>Durée (jours):</strong>{" "}
-                  {selectedContract.duree_contrat}
-                </p>
-                <p>
-                  <strong>Statut:</strong> {selectedContract.statut}
-                </p>
               </div>
-            )}
 
-            {contractMonths.length > 0 && (
-              <div className="calendar-section2">
-                <div className="month-navigation2">
-                  {contractMonths.map((month, index) => (
-                    <button
-                      key={index}
-                      className={`month-button2 ${
-                        index === selectedMonthIndex ? "active" : ""
-                      }`}
-                      onClick={() => setSelectedMonthIndex(index)}
-                    >
-                      {month.label}
-                    </button>
-                  ))}
-                </div>
+              {selectedMonth && (
+                <div className="calendar-container2">
+                  <div className="calendar-header2">
+                    Fiche horaire de {selectedMonth.fullLabel}
+                  </div>
 
-                {selectedMonth && (
-                  <div className="calendar-container2">
-                    <div className="calendar-header2">
-                      Fiche horaire de {selectedMonth.fullLabel}
+                  <div className="calendar-table2">
+                    <div className="calendar-header-row2">
+                      <div className="header-cell2">Dates</div>
+                      <div className="header-cell2">Horaire Prévisionnnel</div>
+                      <div className="header-cell2">Statut</div>
+                      <div className="header-cell2">Catégorisation</div>
+                      <div className="header-cell2">Début</div>
+                      <div className="header-cell2">Fin</div>
+                      <div className="header-cell2">Pause</div>
+                      <div className="header-cell2">Total</div>
+                      <div className="header-cell2">Modifié le :</div>
                     </div>
 
-                    <div className="calendar-table2">
-                      <div className="calendar-header-row2">
-                        <div className="header-cell2">Dates</div>
-                        <div className="header-cell2">Horaire Prévisionel</div>
-                        <div className="header-cell2">Statut</div>
-                        <div className="header-cell2">Catégorisation</div>
-                        <div className="header-cell2">Début</div>
-                        <div className="header-cell2">Fin</div>
-                        <div className="header-cell2">Pause</div>
-                        <div className="header-cell2">Total</div>
-                        <div className="header-cell2">Modifié le :</div>
-                      </div>
-
-                      {calendarDays.map((day) => {
-                        const entry = timeEntries[day.fullDate] || {
-                          statut: "",
-                          categorie: "",
-                          start: "09:00",
-                          end: "15:30",
-                          pause: "01:00",
-                        };
-                        return (
-                          <div
-                            key={day.fullDate}
-                            className={`calendar-row2 ${
-                              day.isWeekend ? "weekend" : ""
-                            }`}
-                          >
-                            <div className="day-cell2">
-                              <div className="day-name2">
-                                {day.dayName} {day.day}
-                              </div>
+                    {calendarDays.map((day) => {
+                      const entry = timeEntries[day.fullDate] || {
+                        statut: "",
+                        categorie: "",
+                        start: "09:00",
+                        end: "15:30",
+                        pause: "01:00",
+                      };
+                      return (
+                        <div
+                          key={day.fullDate}
+                          className={`calendar-row2 ${
+                            day.isWeekend ? "weekend" : ""
+                          }`}
+                        >
+                          <div className="day-cell2">
+                            <div className="day-name2">
+                              {day.dayName} {day.day}
                             </div>
-                            <div className="prevision-cell2">
-                              {!day.isWeekend &&
-                                (() => {
-                                  const cycle = entry.cycle;
-                                  if (cycle && cycleMap[cycle]) {
-                                    const { start, end, pause } = cycleMap[cycle];
-                                    return (
-                                      <>
-                                        <span>{start} ➪ {end}</span>
-                                        <br />
-                                        <span style={{ fontSize: "0.95em", color: "#888" }}>Pause : {pause}</span>
-                                      </>
-                                    );
-                                  }
-                                  return "-";
-                                })()
-                              }
-                            </div>
+                          </div>
                             <div className="action-cell2">
                               {!day.isWeekend && (
                                 <select
                                   className="action-button2"
-                                  value={entry.statut}
-                                  onChange={(e) =>
-                                    handleStatutChange(day.fullDate, e.target.value)
-                                  }
+                                  value={entry.cycle || ""}
+                                  onChange={(e) => handleCycleChange(day.fullDate, e.target.value)}
                                 >
-                                  <option value="">
-                                    --- Sélectionner un statut ---
-                                  </option>
-                                  {Object.keys(optionsMap).map((s) => (
-                                    <option key={s} value={s}>
-                                      {s}
+                                  <option value="">--- Choisir un cycle de Travail ---</option>
+                                  {Object.keys(cycleMap).map((c) => (
+                                    <option key={c} value={c}>
+                                      {c}
                                     </option>
                                   ))}
                                 </select>
                               )}
                             </div>
-
-                            <div className="action-cell2">
-                              {!day.isWeekend && (
-                                <select
-                                  className="action-button2"
-                                  value={entry.categorie}
-                                  onChange={(e) =>
-                                    handleCategorieChange(day.fullDate, e.target.value)
-                                  }
-                                  disabled={!entry.statut}
-                                >
-                                  <option value="">
-                                    --- Sélectionner une catégorie ---
+                          <div className="action-cell2">
+                            {!day.isWeekend && (
+                              <select
+                                className="action-button2"
+                                value={entry.statut}
+                                onChange={(e) =>
+                                  handleStatutChange(day.fullDate, e.target.value)
+                                }
+                              >
+                                <option value="">
+                                  --- Sélectionner un statut ---
+                                </option>
+                                {Object.keys(optionsMap).map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
                                   </option>
-                                  {entry.statut &&
-                                    optionsMap[entry.statut].map((opt) => (
-                                      <option key={opt} value={opt}>
-                                        {opt}
-                                      </option>
-                                    ))}
-                                </select>
-                              )}
-                            </div>
+                                ))}
+                              </select>
+                            )}
+                          </div>
 
-                            <div className="time-cell2">
-                              {!day.isWeekend && (
-                                <select
-                                  className="time-picker"
-                                  value={entry.start}
-                                  onChange={(e) =>
-                                    handleTimeChange(day.fullDate, "start", e.target.value)
-                                  }
-                                >
-                                  {renderTimeOptions()}
-                                </select>
-                              )}
-                            </div>
+                          <div className="action-cell2">
+                            {!day.isWeekend && (
+                              <select
+                                className="action-button2"
+                                value={entry.categorie}
+                                onChange={(e) =>
+                                  handleCategorieChange(day.fullDate, e.target.value)
+                                }
+                                disabled={!entry.statut}
+                              >
+                                <option value="">
+                                  --- Sélectionner une catégorie ---
+                                </option>
+                                {entry.statut &&
+                                  optionsMap[entry.statut].map((opt) => (
+                                    <option key={opt} value={opt}>
+                                      {opt}
+                                    </option>
+                                  ))}
+                              </select>
+                            )}
+                          </div>
 
-                            <div className="time-cell2">
-                              {!day.isWeekend && (
-                                <select
-                                  className="time-picker"
-                                  value={entry.end}
-                                  onChange={(e) =>
-                                    handleTimeChange(day.fullDate, "end", e.target.value)
-                                  }
-                                >
-                                  {renderTimeOptions()}
-                                </select>
-                              )}
-                            </div>
+                          <div className="time-cell2">
+                            {!day.isWeekend && (
+                              <select
+                                className="time-picker"
+                                value={entry.start}
+                                onChange={(e) =>
+                                  handleTimeChange(day.fullDate, "start", e.target.value)
+                                }
+                              >
+                                {renderTimeOptions()}
+                              </select>
+                            )}
+                          </div>
 
-                            <div className="time-cell2">
-                              {!day.isWeekend && (
-                                <select
-                                  className="time-picker"
-                                  value={entry.pause}
-                                  onChange={(e) =>
-                                    handleTimeChange(day.fullDate, "pause", e.target.value)
-                                  }
-                                >
-                                  {renderTimeOptions()}
-                                </select>
-                              )}
-                            </div>
+                          <div className="time-cell2">
+                            {!day.isWeekend && (
+                              <select
+                                className="time-picker"
+                                value={entry.end}
+                                onChange={(e) =>
+                                  handleTimeChange(day.fullDate, "end", e.target.value)
+                                }
+                              >
+                                {renderTimeOptions()}
+                              </select>
+                            )}
+                          </div>
 
-                            <div className="total-cell2">
-                              {!day.isWeekend &&
-                                calculateTotal(entry.start, entry.end, entry.pause)}
-                            </div>
-                            <div className="action-cell2">
+                          <div className="time-cell2">
+                            {!day.isWeekend && (
+                              <select
+                                className="time-picker"
+                                value={entry.pause}
+                                onChange={(e) =>
+                                  handleTimeChange(day.fullDate, "pause", e.target.value)
+                                }
+                              >
+                                {renderTimeOptions()}
+                              </select>
+                            )}
+                          </div>
+
+                          <div className="total-cell2">
+                            {!day.isWeekend &&
+                              calculateTotal(entry.start, entry.end, entry.pause)}
+                          </div>
+                          <div className="action-cell2">
                               {!day.isWeekend &&
                                 (entry.updated_at
                                   ? new Date(entry.updated_at).toLocaleString("fr-FR", {
@@ -524,20 +532,21 @@ export default function Horaire() {
                                     })
                                   : "-")
                               }
-                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        ) : (
-          !loadingContracts && <p>Aucun contrat trouvé pour cet utilisateur.</p>
-        )}
-      </div>
-    </BasePage>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        !loadingContracts && <p>Aucun contrat trouvé pour cet utilisateur.</p>
+      )}
+    </div>
   );
 }
+
+export default Horaire;
