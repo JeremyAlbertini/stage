@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import BasePage from "../components/BasePage";
 import { useAuth } from "../context/AuthContext";
 import { useApi } from "../hooks/useApi";
+import "../styles/profile.css";
 
 export default function Profile() {
     const api = useApi();
@@ -13,9 +14,9 @@ export default function Profile() {
     const [isHoveringPhoto, setIsHoveringPhoto] = useState(false);
     const [userPerms, setUserPerms] = useState(null);
     const tabs = [
-        { id: "infos", label: "Informations personnelles" },
-        { id: "documents", label: "Documents" },
-        {id: "certificats", label: "Certificats" }
+        { id: "infos perso", label: "Profil" },
+        { id: "infos pro", label: "Information Administratives" },
+        { id: "certificats", label: "Certificats" }
     ];
 
     useEffect(() => {
@@ -47,214 +48,260 @@ export default function Profile() {
         loadUserData();
     }, []);
 
-        const handlePhotoChange = async (e) => {
-            if (!e.target.files || e.target.files.length === 0) return;
+    const handlePhotoChange = async (e) => {
+        if (!e.target.files || e.target.files.length === 0) return;
 
-            const file = e.target.files[0];
-            const formData = new FormData();
-            formData.append("photo", file);
+        const file = e.target.files[0];
+        const formData = new FormData();
+        formData.append("photo", file);
 
-            try {
-                const response = await fetch("http://localhost:5000/upload/profile", {
-                    method: "POST",
-                    body: formData,
-                    credentials: "include"
-                });
+        try {
+            const response = await fetch("http://localhost:5000/upload/profile", {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if (data.success) {
-                    setUserData(prev => ({
-                        ...prev,
-                        photo: data.imageUrl.split("/").pop()
-                    }));
-                    await refreshUserData();
-                } else {
-                    alert("Erreur lors de l'upload: " + data.message);
-                } 
-            }   catch (error) {
-                    console.error("Erreur lors de l'upload::", error);
-                    alert("Erreur lors de l'upload de l'image");
-                }
+            if (data.success) {
+                setUserData(prev => ({
+                    ...prev,
+                    photo: data.imageUrl.split("/").pop()
+                }));
+                await refreshUserData();
+            } else {
+                alert("Erreur lors de l'upload: " + data.message);
+            } 
+        } catch (error) {
+            console.error("Erreur lors de l'upload::", error);
+            alert("Erreur lors de l'upload de l'image");
+        }
+    }
+
+    const handleDeletePhoto = async () => {
+        if (!confirm("Êtes-vous sûr de vouloir supprimer votre photo de profil?")) return;
+        
+        try {
+            const response = await fetch("http://localhost:5000/delete/profile-photo", {
+                method: "POST",
+                credentials: "include"
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                setUserData(prev => ({
+                    ...prev,
+                    photo: "ano.jpg"
+                }));
+                await refreshUserData();
+            } else {
+                alert("Erreur lors de la suppression: " + data.message);
             }
-
-            const handleDeletePhoto = async () => {
-                if (!confirm("Êtes-vous sûr de vouloir supprimer votre photo de profil?")) return;
-                
-                try {
-                    const response = await fetch("http://localhost:5000/delete/profile-photo", {
-                        method: "POST",
-                        credentials: "include"
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        setUserData(prev => ({
-                            ...prev,
-                            photo: "ano.jpg" // Utiliser explicitement "ano.png" au lieu de null
-                        }));
-                        await refreshUserData();
-                    } else {
-                        alert("Erreur lors de la suppression: " + data.message);
-                    }
-                } catch (error) {
-                    console.error("Erreur lors de la suppression:", error);
-                    alert("Erreur lors de la suppression de l'image");
-                }
-            };
+        } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+            alert("Erreur lors de la suppression de l'image");
+        }
+    };
 
     return (
-        <BasePage title="Hébésoft" >
-                    <h1>Mon Profil</h1>
-                    {userData ? (
-                        <>
-                            <div style ={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                backgroundColor: "white",
-                                borderRadius: "8px",
-                                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                                padding: "2rem",
-                                marginBottom: "2rem",
-                                position: "relative"
-                            }}>
-
-                                <div 
-                                    style={{
-                                        position: "relative",
-                                        height: "150px",
-                                        width: "150px",
-                                        borderRadius: "50%",
-                                        overflow: "hidden",
-                                        border: "3px solid rgb(51, 35, 143)",
-                                    }}
-                                    onMouseEnter={() => setIsHoveringPhoto(true)}
-                                    onMouseLeave={() => setIsHoveringPhoto(false)}
-                                >
-
+        <BasePage title="Hébésoft">
+            <div className="profile-container">
+                <div className="profile-header">
+                    PROFIL :
+                </div>
+                {userData ? (
+                    <>
+                        {/* Photo Section */}
+                        <div className="photo-section">
+                            <div 
+                                className="photo-container"
+                                onMouseEnter={() => setIsHoveringPhoto(true)}
+                                onMouseLeave={() => setIsHoveringPhoto(false)}
+                            >
                                 <img
                                     src={userData.photo && userData.photo !== "ano.jpg" 
                                         ? `/uploads/profiles/${userData.photo}` 
                                         : "/ano.jpg"}
                                     alt="Photo de profil"
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover",
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0
-                                    }}
                                 />
 
-                                    <div style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        bottom: 0,
-                                        left: 0,
-                                        right: 0,
-                                        background: "rgba(0, 0, 0, 0.7)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        opacity: isHoveringPhoto ? 1 : 0,
-                                        transition: "opacity 0.3s ease",
-                                    }}>
-                                        <div style={{ 
-                                            display: "flex", 
-                                            flexDirection: "column",
-                                            gap: "10px",
-                                            width: "80%"
-                                        }}>
+                                <div className={`photo-overlay ${isHoveringPhoto ? 'visible' : ''}`}>
+                                    <div className="photo-buttons">
+                                        <button 
+                                            className="photo-btn change"
+                                            onClick={() => document.getElementById("photoUpload").click()}
+                                        >
+                                            Changer
+                                        </button>
+                                        {userData.photo && userData.photo !== "ano.jpg" && (
                                             <button 
-                                                style={{ 
-                                                    color: "white", 
-                                                    fontSize: "14px",
-                                                    cursor: "pointer", 
-                                                    padding: "10px", 
-                                                    background: "rgba(59, 130, 246, 0.8)", // Bleu plus visible
-                                                    border: "none",
-                                                    borderRadius: "5px",
-                                                    fontWeight: "bold",
-                                                    width: "100%"
-                                                }}
-                                                onClick={() => document.getElementById("photoUpload").click()}
+                                                className="photo-btn delete"
+                                                onClick={handleDeletePhoto}
                                             >
-                                                Changer
+                                                Supprimer
                                             </button>
-                                            {userData.photo && userData.photo !== "ano.jpg" && (
-                                                <button 
-                                                    style={{ 
-                                                        color: "white", 
-                                                        fontSize: "14px",
-                                                        cursor: "pointer", 
-                                                        padding: "10px",
-                                                        background: "rgba(239, 68, 68, 0.8)", // Rouge plus visible
-                                                        border: "none",
-                                                        borderRadius: "5px",
-                                                        fontWeight: "bold",
-                                                        width: "100%"
-                                                    }}
-                                                    onClick={handleDeletePhoto}
-                                                >
-                                                    Supprimer
-                                                </button>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
-
-                                    <input
-                                        type="file"
-                                        id="photoUpload"
-                                        style={{ display: "none" }}
-                                        accept="image/*"
-                                        onChange={handlePhotoChange}
-                                    />
-                                </div>
-                                
-                                <div style={{
-                                    marginTop: "1rem",
-                                    textAlign: "center"
-                                }}>
-                                    <p>Bienvenue {userData.nom} {userData.prenom} !</p>
                                 </div>
 
-                                </div>
+                                <input
+                                    type="file"
+                                    id="photoUpload"
+                                    accept="image/*"
+                                    onChange={handlePhotoChange}
+                                />
+                            </div>
+                        </div>
 
-                            <TabGroup 
-                                tabs={tabs} 
-                                activeTab={activeTab} 
-                                onTabChange={setActiveTab} 
-                            />
+                        {/* Tab Navigation */}
+                        <TabGroup 
+                            tabs={tabs} 
+                            activeTab={activeTab} 
+                            onTabChange={setActiveTab} 
+                        />
 
-                            <TabContent id="infos" activeTab={activeTab}>
+                        {/* Tab Contents */}
+                        <TabContent id="infos perso" activeTab={activeTab}>
+                            <div className="tab-content">
                                 <h2 className="admin-subtitle">Informations personnelles</h2>
-                                <p>Matricule: {userData.matricule}</p>
-                                <p>Nom: {userData.nom || "Non renseigné"}</p>
-                                <p>Prénom: {userData.prenom || "Non renseigné"}</p>
-                                <p>Email: {userData.mail_pro || userData.mail_perso || "Non renseigné"}</p>
+                                <div className="profile-grid">
+                                    <div className="form-group">
+                                        <label className="form-label">Civilité :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.civilite || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <br></br>
+                                    <div className="form-group">
+                                        <label className="form-label">Nom :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.nom || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Prénom :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.prenom || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Lieu de naissance :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.lieu_naiss || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Date de naissance :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.date_naiss 
+                                                ? new Date(userData.date_naiss).toLocaleDateString("fr-FR")
+                                                : ""
+                                            }
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Pays de naissance :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.pays_naiss || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Département de naissance :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.dpt_naiss || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <h2 className="admin-subtitle">Coordonnées</h2>
+                                <div className="profile-grid">
+                                    <div className="form-group full-width">
+                                        <label className="form-label">Adresse :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.adresse || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Code Postal :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.adresse_code || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Ville :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.adresse_ville || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Téléphone Portable :</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-input" 
+                                            value={userData.tel_pro || userData.tel_perso || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Email Personnel :</label>
+                                        <input 
+                                            type="email" 
+                                            className="form-input" 
+                                            value={userData.mail_perso || ""}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </TabContent>
+                        <TabContent id="infos pro" activeTab={activeTab}>
+                            
+                        </TabContent>
 
-                                <h2 className="admin-subtitle" style={{marginTop: "1.5rem"}}>Coordonnées</h2>
-                                <p>Téléphone: {userData.tel_pro || userData.tel_perso || "Non renseigné"}</p>
-                                <p>Adresse: {userData.adresse ? `${userData.adresse}, ${userData.adresse_code} ${userData.adresse_ville}` : "Non renseignée"}</p>
-
-                            </TabContent>
-
-                            <TabContent id="documents" activeTab={activeTab}>
-                                <h2 className="admin-subtitle">Mes documents</h2>
-                                <p>Aucun document disponible pour le moment.</p>
-                            </TabContent>
-
-                            <TabContent id="certificats" activeTab={activeTab}>
+                        <TabContent id="certificats" activeTab={activeTab}>
+                            <div className="tab-content">
                                 <h2 className="admin-subtitle">Mes certificats</h2>
                                 <p>Aucun certificat disponible pour le moment.</p>
-                            </TabContent>
-                        </>
-                    ) : (
-                        <p>Chargement des données...</p>
-                    )}
+                            </div>
+                        </TabContent>
+                    </>
+                ) : (
+                    <div className="loading">
+                        Chargement des données...
+                    </div>
+                )}
+            </div>
         </BasePage>
     );
 }

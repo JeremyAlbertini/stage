@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import '../styles/contrats.css';
+import { useApi } from '../hooks/useApi';
 
 function Contracts({ matricule, agent }) {
   const api = useApi();
@@ -90,7 +90,16 @@ function Contracts({ matricule, agent }) {
         if (newContract.pdf) {
           const formData = new FormData();
           formData.append("pdf", newContract.pdf);
-          await api.post(`http://localhost:5000/contrats/${data.id}/upload`, formData);
+          const uploadResponse = await fetch(`http://localhost:5000/contrats/${data.id}/upload`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData  // Don't set Content-Type header - let browser handle it
+          });
+          
+          if (!uploadResponse.ok) {
+            const errorData = await uploadResponse.json();
+            throw new Error(errorData.message || "Erreur upload PDF");
+          }
         }
       
         setShowModal(false);

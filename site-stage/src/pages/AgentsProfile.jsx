@@ -6,6 +6,7 @@ import TabGroup from "../components/TabGroup";
 import ModifyAgents from "../components/modifyAgents";
 import ManagePerms from "../components/managePerms";
 import Contract from "../components/contrats.jsx";
+import Horaire from "../components/horaire.jsx";
 import { getPerm } from "../utils/permsApi.js";
 import { getAgentById } from "../utils/agentsApi.js";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -18,6 +19,7 @@ const ALL_TABS = [
     { id: "calendar", label: "Calendrier", perm: null, content: "CalendarContent" },
     { id: "perms", label: "Permissions", perm: "change_perms", content: ManagePerms },
     { id: "contrats", label: "Contrats", perm: null, content: Contract },
+    { id: "horaire", label: "Fiche Horaire", perm: null, content: Horaire },
 ];
 
 export default function AgentsProfile() {
@@ -25,7 +27,6 @@ export default function AgentsProfile() {
     const { id } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
     const { user, loading, permissions } = useAuth();
-
     const [agent, setAgent] = useState(null);
     const [activeTab, setActiveTab] = useState(() => searchParams.get("tab") || "");
     const [initialized, setInitialized] = useState(false);

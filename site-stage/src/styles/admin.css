@@ -3,10 +3,14 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 30px;
+    padding: 0;
     background-color: #f8fafc; /* gris très clair */
     min-height: 100vh;
-    border-radius: 12px;
+    border-radius: 0;
+    width: 100vw;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
   }
   
   /* Carte de contenu */
@@ -82,4 +86,3 @@
   .user-list li:hover {
     background: #e2e8f0;
   }
-  
