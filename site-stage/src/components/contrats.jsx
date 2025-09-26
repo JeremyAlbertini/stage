@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import '../styles/contrats.css';
-import { useApi } from '../hooks/useApi';
 
 function Contracts({ matricule, agent }) {
   const api = useApi();
