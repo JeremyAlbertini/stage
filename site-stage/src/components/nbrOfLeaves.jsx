@@ -33,7 +33,7 @@ export default function NbrOfLeaves() {
         <div className="div-contair-solde">
             <div className="header-titlee">
                 <h3 className="title-solde">Congés restants :</h3>
-                <NavLink className={"navlink-solde"} to={"/conges"}>aller aux congés</NavLink>
+                <NavLink className={"navlink-solde"} to={"/conges"}>Aller aux congés</NavLink>
             </div>
             <div className="leave-balance-cards-home">
             {soldesError ? (

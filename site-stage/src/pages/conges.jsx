@@ -146,7 +146,7 @@ const fetchSoldes = useCallback(async () => {
   };
 
   return (
-    <BasePage title="Congés" >
+    <BasePage title="Hébésoft" >
       <h1>Mes congés</h1>
 
       {soldesError ? (
