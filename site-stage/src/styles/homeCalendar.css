@@ -208,7 +208,7 @@
     transition: color 0.2s;
   }
   
-  .wc-container > div > a:hover {
+.wc-container > div > a:hover {
     color: #505a65;
     text-decoration: underline;
   }

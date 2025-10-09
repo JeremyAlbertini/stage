@@ -872,8 +872,7 @@ async function startServer() {
     // Create a new contract
     app.post("/contrats", authenticateToken, async (req, res) => {
       try {
-        const {
-          matricule,
+        const {json
           type_contrat,
           date_debut,
           date_fin,
