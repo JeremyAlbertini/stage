@@ -1,0 +1,239 @@
+
+.contract-form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    font-family: Arial, sans-serif;
+  }
+
+  .instructions-section {
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .instruction-item {
+    margin-bottom: 4px;
+  }
+
+  .nom-header {
+    background-color: #FED7AA;
+    padding: 16px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    border: 2px solid black;
+  }
+
+  .contract-dates-section {
+    border: 2px solid black;
+    margin-bottom: 16px;
+  }
+
+  .dates-row {
+    display: flex;
+  }
+
+  .date-column {
+    flex: 1;
+    border-right: 1px solid black;
+  }
+
+  .date-column:last-child {
+    border-right: none;
+  }
+
+  .date-label {
+    background-color: #E5E7EB;
+    padding: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    border-bottom: 1px solid black;
+  }
+
+  .date-input-container {
+    padding: 8px;
+    text-align: center;
+    background-color: white;
+  }
+
+  .date-input {
+    width: 100%;
+    text-align: center;
+    border: none;
+    outline: none;
+    font-size: 16px;
+  }
+
+  .hours-table {
+    border-top: 1px solid black;
+  }
+
+  .hours-header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 12px;
+  }
+
+  .hours-header-cell {
+    background-color: #E5E7EB;
+    padding: 8px;
+    border-right: 1px solid black;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .hours-header-cell:last-child {
+    border-right: none;
+  }
+
+  .hours-values-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .hours-value-cell {
+    padding: 12px;
+    border-right: 1px solid black;
+    text-align: center;
+  }
+
+  .hours-value-cell:last-child {
+    border-right: none;
+  }
+
+  .vacances-header {
+    background-color: #FED7AA;
+    padding: 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    border: 2px solid black;
+  }
+
+  .vacances-section {
+    border: 2px solid black;
+    margin-bottom: 16px;
+  }
+
+  .year-header {
+    background-color: #D1D5DB;
+    padding: 8px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid black;
+  }
+
+  .vacance-row {
+    display: grid;
+    grid-template-columns: 2fr 2fr 2fr 1fr 1fr 1fr;
+    border-bottom: 1px solid black;
+    font-size: 14px;
+  }
+
+  .vacance-cell {
+    padding: 8px;
+    border-right: 1px solid black;
+  }
+
+  .vacance-cell:last-child {
+    border-right: none;
+  }
+
+  .vacance-name {
+    font-weight: 500;
+  }
+
+  .vacance-date {
+    text-align: center;
+  }
+
+  .status-faux {
+    text-align: center;
+    background-color: #FEE2E2;
+    font-weight: bold;
+    color: #DC2626;
+  }
+
+  .status-vrai {
+    text-align: center;
+    background-color: #DCFCE7;
+    font-weight: bold;
+    color: #16A34A;
+  }
+
+  .feries-header-row {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    font-size: 11px;
+    background-color: #E5E7EB;
+    border-bottom: 1px solid black;
+  }
+
+  .ferie-header-cell {
+    padding: 8px;
+    border-right: 1px solid black;
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .ferie-header-cell:last-child {
+    border-right: none;
+  }
+
+  .year-label {
+    background-color: #F3F4F6;
+    padding: 8px;
+    font-weight: bold;
+    border-bottom: 1px solid black;
+  }
+
+  .feries-dates-row {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    font-size: 11px;
+    border-bottom: 1px solid black;
+  }
+
+  .ferie-date-cell {
+    padding: 8px;
+    border-right: 1px solid black;
+    text-align: center;
+  }
+
+  .ferie-date-cell:last-child {
+    border-right: none;
+  }
+
+  .feries-status-row {
+    display: grid;
+    grid-template-columns: repeat(11, 1fr);
+    font-size: 11px;
+    border-bottom: 1px solid black;
+  }
+
+  .ferie-status-cell {
+    padding: 8px;
+    border-right: 1px solid black;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .ferie-status-cell:last-child {
+    border-right: none;
+  }
+
+  .ferie-status-vrai {
+    background-color: #DCFCE7;
+    color: #16A34A;
+  }
+
+  .ferie-status-faux {
+    background-color: #FEE2E2;
+    color: #DC2626;
+  }

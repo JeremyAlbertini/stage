@@ -4,6 +4,7 @@ import Users from "./pages/user.jsx";
 import Calendar from "./components/calendar.jsx";
 import Conges from "./pages/conges.jsx";
 import Horaire from "./pages/horaire.jsx";
+import PageHoraire from "./pages/horaire.jsx";
 import Contrat from "./pages/contrat.jsx";
 import Log from "./pages/log.jsx";
 import AdminPage from "./pages/admin.jsx";
@@ -63,7 +64,7 @@ export default function AppRoutes() {
       } />
       <Route path="/horaire" element={
         <ProtectedRoute>
-          <Horaire />
+          <PageHoraire />
         </ProtectedRoute>
       } />
       <Route path="/contrat" element={
