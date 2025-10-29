@@ -1,7 +1,7 @@
 import Header from "./Header";
 import LeftBand from "./LeftBand";
 
-export default function BasePage({ title, children }) {
+export default function BasePage({ title, children, backgroundColor = "white" }) {
   return (
     <div
       style={{
@@ -18,7 +18,7 @@ export default function BasePage({ title, children }) {
         flex: 1,
         boxSizing: "border-box",
         padding: "2rem",
-        backgroundColor: "white",
+        backgroundColor: backgroundColor,
       }}>
           {children}
         </div>

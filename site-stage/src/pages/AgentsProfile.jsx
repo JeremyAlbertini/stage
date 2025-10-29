@@ -116,7 +116,7 @@ export default function AgentsProfile() {
     }
 
     return (
-        <BasePage title={`Profil de ${agent.nom} ${agent.prenom}`} backgroundColor="#f5f5f5" >
+        <BasePage title={`Profil de ${agent.nom} ${agent.prenom}`} backgroundColor="#eeeeeeff" >
             <div style={{
                 display: "flex",
                 flexDirection: "column",

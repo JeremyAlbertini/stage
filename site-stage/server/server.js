@@ -1485,7 +1485,7 @@ async function startServer() {
         if (user && user.mail_pro) {
           await sendNotificationEmail(user.mail_pro, "Votre demande de congé","Votre demande de congé à été acceptée et votre solde a été mis à jour.")
         }
-        res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
+         res.json({ success: true, message: "Demande acceptée et solde mis à jour" });
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, message: "Erreur serveur" });
