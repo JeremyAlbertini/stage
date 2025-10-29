@@ -13,6 +13,13 @@
     box-sizing: border-box;
   }
   
+
+  .admin-page {
+    background-color: #f3f4f6;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
   /* Carte de contenu */
   .admin-card {
     background: #ffffff;

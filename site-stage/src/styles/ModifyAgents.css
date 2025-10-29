@@ -1,4 +1,9 @@
 /* Conteneur principal du formulaire */
+
+body {
+    background-color: black;
+}
+
 .formContainer {
     background: #ffffff;
     padding: 25px;
