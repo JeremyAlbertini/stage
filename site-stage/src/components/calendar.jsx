@@ -729,8 +729,8 @@ const Calendar = ({user_id}) => {
           </div>
 
           <div className="controls">
-            <button className="control-btn" onClick={goToToday}>Today</button>
-            <button className="control-btn" onClick={handleShowEventInput}>Add Event</button>
+            <button className="control-btn" onClick={goToToday}>Aujourd'hui</button>
+            <button className="control-btn" onClick={handleShowEventInput}>Ajouter un événement</button>
 
             {!clickSelectionMode ? (
               <button className="control-btn" onClick={startClickSelection}>
