@@ -1547,70 +1547,78 @@ async function startServer() {
       }
     });
 
-    app.get("/api/soldes", authenticateToken, async (req, res) => {
-      try {
-        const userId = req.user.id;
+  app.get("/api/soldes", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.id;
 
-        const [[agent]] = await db.query(
-          "SELECT matricule FROM agentdata WHERE user_id = ?",
-          [userId]
-        );
-        if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
+      const [[agent]] = await db.query(
+        "SELECT matricule FROM agentdata WHERE user_id = ?",
+        [userId]
+      );
+      if (!agent) return res.status(404).json({ error: "Agent non trouvé" });
 
-        const [[contrat]] = await db.query(
-          "SELECT ca AS CA, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
-          [agent.matricule]
-        );
-        if (!contrat) return res.status(404).json({ error: "Contrat non trouvé" });
+      // include CF and JS from contrats
+      const [[contrat]] = await db.query(
+        "SELECT ca AS CA, cf AS CF, js AS JS, rca AS RCA FROM contrats WHERE matricule = ? AND statut = 'Actif' ORDER BY date_debut DESC LIMIT 1",
+        [agent.matricule]
+      );
+      if (!contrat) return res.status(404).json({ error: "Contrat non trouvé" });
 
-        const [conges] = await db.query(
-          "SELECT type_conge, SUM(duree) AS total FROM conges WHERE user_id = ? AND statut = 'Approuvé' GROUP BY type_conge",
-          [userId]
-        );
+      const [conges] = await db.query(
+        "SELECT type_conge, SUM(duree) AS total FROM conges WHERE user_id = ? AND statut = 'Approuvé' GROUP BY type_conge",
+        [userId]
+      );
 
-        let CA = contrat.CA;
-        let RCA = contrat.RCA;
-        conges.forEach(c => {
-          if (c.type_conge === "CA") CA -= c.total;
-          if (c.type_conge === "RCA") RCA -= c.total;
-        });
+      let CA = contrat.CA ?? 0;
+      let CF = contrat.CF ?? 0;
+      let JS = contrat.JS ?? 0;
+      let RCA = contrat.RCA ?? 0;
 
-        res.json({
-          CA: Math.max(CA, 0),
-          RCA: Math.max(RCA, 0)
-        });
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Erreur lors de la récupération des soldes"});
-      }
-    });
+      conges.forEach(c => {
+        if (c.type_conge === "CA") CA -= c.total;
+        if (c.type_conge === "CF") CF -= c.total;
+        if (c.type_conge === "JS") JS -= c.total;
+        if (c.type_conge === "RCA") RCA -= c.total;
+      });
 
-    app.get("/api/notifications", authenticateToken, async (req, res) => {
-      try {
-        await db.query("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY");
-        const [rows] = await db.query(
-          "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC",
-          [req.user.id]
-        );
-        res.json(rows);
-      } catch (err) {
-        console.error("Erreur notifications:", err);
-        res.status(500).json({ error: "Erreur serveur notifications" });
-      }
-    });
+      res.json({
+        CA: Math.max(CA, 0),
+        CF: Math.max(CF, 0),
+        JS: Math.max(JS, 0),
+        RCA: Math.max(RCA, 0)
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Erreur lors de la récupération des soldes" });
+    }
+  });
 
-    app.post("/api/notifications/:id/read", authenticateToken, async (req, res) => {
-      try {
-        await db.query(
-          "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
-          [req.params.id, req.user.id]
-        );
-        res.json({ success: true });
-      } catch (err) {
-        console.error("Erreur /api/notifications/:id/read :", err);
-        res.status(500).json({ success: false, message: "Erreur serveur" });
-      }
-    });
+  app.get("/api/notifications", authenticateToken, async (req, res) => {
+    try {
+      await db.query("DELETE FROM notifications WHERE created_at < NOW() - INTERVAL 30 DAY");
+      const [rows] = await db.query(
+        "SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC",
+        [req.user.id]
+      );
+      res.json(rows);
+    } catch (err) {
+      console.error("Erreur notifications:", err);
+      res.status(500).json({ error: "Erreur serveur notifications" });
+    }
+  });
+  
+  app.post("/api/notifications/:id/read", authenticateToken, async (req, res) => {
+    try {
+      await db.query(
+        "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?",
+        [req.params.id, req.user.id]
+      );
+      res.json({ success: true });
+    } catch (err) {
+      console.error("Erreur /api/notifications/:id/read :", err);
+      res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+  });
 
     // app.get("/api/soldes", authenticateToken, async (req, res) => {
     //   try {
