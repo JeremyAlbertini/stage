@@ -15,7 +15,7 @@ export default function PageHoraire() {
 
   return (
     <>
-      <BasePage title={"Horaire"}>
+      <BasePage title={"Hébésoft"}>
       <TabGroup 
       tabs={tabs} 
       activeTab={activeTab} 

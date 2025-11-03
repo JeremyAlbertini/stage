@@ -20,11 +20,11 @@
   padding: 30px;
   max-width: 1200px;
   width: 100%;
-  height: 940px;
+  height: 510px;
   transition: height 0.3s ease;
 }
 .calendar-container.expanded {
-  height: 1100px;
+  height: 690px;
 }
 
 .calendar-header {
@@ -280,7 +280,7 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 16px;
-  margin: 10px 0;
+  margin: 20px 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .event-input.show {

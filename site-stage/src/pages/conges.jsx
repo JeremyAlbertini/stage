@@ -146,7 +146,7 @@ const fetchSoldes = useCallback(async () => {
   };
 
   return (
-    <BasePage title="Congés" >
+    <BasePage title="Hébésoft" >
       <h1>Mes congés</h1>
 
       {soldesError ? (
@@ -154,11 +154,11 @@ const fetchSoldes = useCallback(async () => {
       ) : soldes ? (
         <div className="leave-balance-cards">
           <div className="balance-card">
-            <h3>Congés annuels</h3>
+            <h3>Congés Annuels</h3>
             <p className="balance-value">{soldes.CA} jours</p>
           </div>
           <div className="balance-card">
-            <h3>RTT</h3>
+            <h3>RCA</h3>
             <p className="balance-value">{soldes.RCA} jours</p>
           </div>
         </div>
