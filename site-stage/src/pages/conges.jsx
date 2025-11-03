@@ -12,7 +12,7 @@ export default function Conges() {
   const api = useApi();
   const [activeTab, setActiveTab] = useState("new");
   const [userLeaves, setUserLeaves] = useState([]);
-  const [soldes, setSoldes] = useState({ CA: 25, RCA: 10});
+  const [soldes, setSoldes] = useState({ CA: 25, CF: 10, JS: 10, RCA: 10});
   const [soldesError, setSoldesError] = useState("");
   const [formData, setFormData] = useState({
     type_conge: "CA",
@@ -107,7 +107,9 @@ const fetchSoldes = useCallback(async () => {
 
     if (
       (formData.type_conge === "CA" && formData.duree > (soldes?.CA ?? 0)) ||
-      (formData.type_conge === "RCA" && formData.duree > (soldes?.RCA ?? 0))
+      (formData.type_conge === "RCA" && formData.duree > (soldes?.RCA ?? 0)) ||
+      (formData.type_conge === "CF" && formData.duree > (soldes?.CF ?? 0)) ||
+      (formData.type_conge === "JS" && formData.duree > (soldes?.JS ?? 0))
     ) {
       setSubmitMessage({ 
         text: `Vous n'avez pas assez de jours de ${formData.type_conge} pour cette demande.`,
@@ -154,11 +156,19 @@ const fetchSoldes = useCallback(async () => {
       ) : soldes ? (
         <div className="leave-balance-cards">
           <div className="balance-card">
-            <h3>Congés Annuels</h3>
+            <h3>Congés Annuels Restants</h3>
             <p className="balance-value">{soldes.CA} jours</p>
           </div>
           <div className="balance-card">
-            <h3>RCA</h3>
+            <h3>Congés Fractionnés Restants</h3>
+            <p className="balance-value">{soldes.CF} jours</p>
+          </div>
+          <div className="balance-card">
+            <h3>Jours de Sujétions Restants</h3>
+            <p className="balance-value">{soldes.JS} jours</p>
+          </div>
+          <div className="balance-card">
+            <h3>Relicat Congés Annuels Restants</h3>
             <p className="balance-value">{soldes.RCA} jours</p>
           </div>
         </div>
@@ -184,15 +194,15 @@ const fetchSoldes = useCallback(async () => {
                 required
               >
                 <option value="CA">
-                  Congés Annuels ({soldes?.CA ?? 0} jours restants)
+                  CA - Congés Annuels ({soldes?.CA ?? 0} jours restants)
                 </option>
+                <option value="CF">CF - Congés Fractionnés ({soldes?.CF ?? 0} jours restants)</option>
+                <option value="JS">Jours de Sujétions ({soldes?.JS ?? 0} jours restants)</option>
                 <option value="RCA">  
-                  RTT ({soldes?.RCA ?? 0} jours restants)
+                  RCA - Relicat Congés Annuels ({soldes?.RCA ?? 0} jours restants)
                 </option>
+                <option value="CET">CET - Compte Épargne Temps</option>
                 <option value="Congé Exceptionnel">Congé Exceptionnel</option>
-                <option value="CF">Congés Formation</option>
-                <option value="JS">Jour de solidarité</option>
-                <option value="CET">Compte Épargne Temps</option>
                 <option value="Congé Enfant Malade">Congé Enfant Malade</option>
               </select>
             </div>
