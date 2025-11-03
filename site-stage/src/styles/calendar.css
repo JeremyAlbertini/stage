@@ -3,7 +3,6 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  display: flex;
   padding: 20px;
   gap: 20px;
   align-items: flex-start;
@@ -37,7 +36,7 @@
 .month-year {
   font-size: 2.2rem;
   font-weight: 700;
-  color: #333;
+  color: #6e68ca;
   text-align: center;
   flex: 1;
 }
@@ -263,7 +262,6 @@
   overflow-y: auto;
   height: auto;
   max-height: 920px;
-  margin-top: 20px;
 }
 .events-list.empty {
   background: transparent;
@@ -428,4 +426,62 @@
   .calendar-grid { gap: 5px; }
   .day-cell { font-size: 0.9rem; }
   .controls { flex-direction: column; align-items: center; }
+}
+
+
+.upcoming-events-bar {
+  background: #f8f9ff;
+  border-radius: 12px;
+  padding: 10px 15px;
+  margin: 10px 0 20px 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.upcoming-events-bar h4 {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.upcoming-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  font-size: 0.9rem;
+}
+
+.upcoming-item .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.upcoming-date {
+  font-weight: 600;
+  color: #333;
+  margin-right: 8px;
+}
+
+.upcoming-text {
+  color: #666;
+}
+
+
+.calendar-and-events {
+  display: flex;
+  gap: 20px;
+  width: 100%;
 }

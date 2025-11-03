@@ -717,8 +717,58 @@ const Calendar = ({user_id}) => {
     );
   }
 
+    // === Prochains événements ===
+    const getUpcomingEvents = () => {
+      const today = new Date();
+      const upcoming = [];
+  
+      Object.entries(events).forEach(([dateKey, evts]) => {
+        const d = new Date(dateKey);
+        if (d >= today) {
+          evts.forEach(ev => {
+            // Exclure vacances scolaires et jours fériés si tu veux
+            if (!['school_vacation', 'holiday'].includes(ev.type)) {
+              upcoming.push({ date: d, ...ev });
+            }
+          });
+        }
+      });
+  
+      // Tri par date
+      upcoming.sort((a, b) => a.date - b.date);
+      // Limite à 5 ou 10
+      return upcoming.slice(0, 7);
+    };
+  
+    const upcomingEvents = getUpcomingEvents();
+      
+
   return (
       <div className="calendar-page">
+        <div className='calendar-wrapper'>
+        {/* === Barre des prochains événements === */}
+          {upcomingEvents.length > 0 && (
+            <div className="upcoming-events-bar">
+              <h4>🗓️ Prochains événements</h4>
+              <div className="upcoming-scroll">
+                {upcomingEvents.map((ev, idx) => (
+                  <div key={idx} className="upcoming-item" title={ev.text}>
+                    <div
+                      className="dot"
+                      style={{ backgroundColor: getEventTypeInfo(ev.type).color }}
+                    ></div>
+                    <span className="upcoming-date">
+                      {ev.date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                    </span>
+                    <span className="upcoming-text">{ev.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="calendar-and-events">
         <div className={`calendar-container ${showEventInput ? 'expanded' : ''}`}>
           <div className="calendar-header">
             <button className="nav-btn" onClick={previousMonth}>‹</button>
@@ -787,6 +837,7 @@ const Calendar = ({user_id}) => {
         <div className={`events-list ${!selectedRange.start ? 'empty' : ''}`}>
           {renderEvents()}
         </div>
+      </div>
       </div>
   );
 };
